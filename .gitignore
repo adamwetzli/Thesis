@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+this is my gitignore # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# Folders (trailing slash means it's a directory)
+bi5_files/
+bibliography/
+csv_files/
+figures/
+models/
+tables/
+txt_files/
+Morini (IPAI) Sigmoid Conformal Q Classification/
+
+# Files
+*.pdf
