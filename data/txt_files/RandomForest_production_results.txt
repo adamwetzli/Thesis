@@ -1,0 +1,78 @@
+================================================================================
+MODEL PERFORMANCE LEADERBOARD
+Generated: 2026-05-12 15:56:51
+================================================================================
+
+QUICK COMPARISON TABLE (Mean +/- StdDev)
+--------------------------------------------------------------------------------
+Model                | total_return | sharpe       | probabilisti | min_trl      | max_dd       | 
+--------------------------------------------------------------------------------
+RandomForest         | 0.0173+/-0.0000 | 3.6827+/-0.0000 | 0.6476+/-0.0000 |    inf+/-nan    | -0.0026+/-0.0000 | 
+
+================================================================================
+
+DETAILED STATISTICS BY MODEL
+================================================================================
+
+>>> MODEL: RANDOMFOREST
+--------------------------------------------------------------------------------
+Statistic                 |       Mean |     StdDev |        Min |        Max |  Count
+--------------------------------------------------------------------------------
+total_return              |     0.0173 |     0.0000 |     0.0173 |     0.0173 |      1
+sharpe                    |     3.6827 |     0.0000 |     3.6827 |     3.6827 |      1
+probabilistic_sharpe      |     0.6476 |     0.0000 |     0.6476 |     0.6476 |      1
+min_trl                   |        inf |        nan |        inf |        inf |      1
+max_dd                    |    -0.0026 |     0.0000 |    -0.0026 |    -0.0026 |      1
+cagr                      |     0.0999 |     0.0000 |     0.0999 |     0.0999 |      1
+win_rate                  |     0.6441 |     0.0000 |     0.6441 |     0.6441 |      1
+profit_factor             |     1.9591 |     0.0000 |     1.9591 |     1.9591 |      1
+n_trades                  |      140.7 |        0.0 |        141 |        141 |      1
+avg_capital_exposure      |    10.9318 |     0.0000 |    10.9318 |    10.9318 |      1
+avg_trade_size            |    14.3800 |     0.0000 |    14.3800 |    14.3800 |      1
+deflated_sharpe           |     0.5531 |     0.0000 |     0.5531 |     0.5531 |      1
+deflated_min_trl          |        inf |        nan |        inf |        inf |      1
+pfdr                      |     1.0000 |     0.0000 |     1.0000 |     1.0000 |      1
+m2_brier                  |     0.2458 |     0.0000 |     0.2458 |     0.2458 |      1
+
+--------------------------------------------------------------------------------
+
+Raw Data (last 10 values shown):
+  total_return           : [np.float64(0.01728848848238856)]
+  sharpe                 : [np.float64(3.6827272727272726)]
+  probabilistic_sharpe   : [np.float64(0.6475545454545455)]
+  min_trl                : [np.float64(inf)]
+  max_dd                 : [np.float64(-0.0026)]
+  cagr                   : [np.float64(0.09994545454545456)]
+  win_rate               : [np.float64(0.6441090909090907)]
+  profit_factor          : [np.float64(1.9590909090909092)]
+  n_trades               : [np.float64(140.72727272727272)]
+  avg_capital_exposure   : [np.float64(10.931818181818182)]
+  avg_trade_size         : [np.float64(14.38)]
+  deflated_sharpe        : [np.float64(0.5530727272727273)]
+  deflated_min_trl       : [np.float64(inf)]
+  pfdr                   : [np.float64(1.0)]
+  m2_brier               : [np.float64(0.24583075088313985)]
+
+================================================================================
+
+RANKING SUMMARY (Best performer per metric)
+--------------------------------------------------------------------------------
+total_return             : HIGHER_IS_BETTER = True  BEST = RandomForest    (0.0173)
+sharpe                   : HIGHER_IS_BETTER = True  BEST = RandomForest    (3.6827)
+probabilistic_sharpe     : HIGHER_IS_BETTER = True  BEST = RandomForest    (0.6476)
+min_trl                  : HIGHER_IS_BETTER = False BEST = None            (inf)
+max_dd                   : HIGHER_IS_BETTER = True  BEST = RandomForest    (-0.0026)
+cagr                     : HIGHER_IS_BETTER = True  BEST = RandomForest    (0.0999)
+win_rate                 : HIGHER_IS_BETTER = True  BEST = RandomForest    (0.6441)
+profit_factor            : HIGHER_IS_BETTER = True  BEST = RandomForest    (1.9591)
+n_trades                 : HIGHER_IS_BETTER = False BEST = RandomForest    (140.7273)
+avg_capital_exposure     : HIGHER_IS_BETTER = False BEST = RandomForest    (10.9318)
+avg_trade_size           : HIGHER_IS_BETTER = False BEST = RandomForest    (14.3800)
+deflated_sharpe          : HIGHER_IS_BETTER = True  BEST = RandomForest    (0.5531)
+deflated_min_trl         : HIGHER_IS_BETTER = False BEST = None            (inf)
+pfdr                     : HIGHER_IS_BETTER = False BEST = RandomForest    (1.0000)
+m2_brier                 : HIGHER_IS_BETTER = False BEST = RandomForest    (0.2458)
+
+================================================================================
+END OF REPORT
+================================================================================

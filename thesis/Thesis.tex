@@ -1,0 +1,1744 @@
+\documentclass[12pt, a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{times}  % Times New Roman
+\usepackage{rotating}
+\usepackage[backend=biber, style=authoryear, natbib=true]{biblatex}
+\addbibresource{./data/bibliography/references.bib} 
+
+% Margins: 2cm all around
+\geometry{
+    a4paper,
+    top=2cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm
+}
+
+% Line spacing: 1.15
+\setstretch{1.15}
+
+% Rest of your preamble (tocdepth, secnumdepth, etc.)
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+
+\title{Master Thesis Proposal: Global Cross-Asset Machine Learning Models for Forex Trading: A Nested Tournament Framework for Benchmarking Architectures and Mitigating Overfitting via Meta-Labeling, Conformal Filtering, and Statistical Discovery Control}
+\author{Adam Elias Scheuerlein}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+To summarize the current progress of the project as well as provide a glimpse into the planned research.
+\end{abstract}
+
+\pagebreak
+
+% Table of Contents
+\tableofcontents
+
+\pagebreak
+
+% List of Figures
+\listoffigures
+
+\pagebreak
+
+% List of Tables  
+\listoftables
+
+\pagebreak
+
+%%%%%%%%%%%%%%%%
+% INTRODUCTION %
+%%%%%%%%%%%%%%%%
+\section{Introduction}
+\subsection{Quantifying the Unknown}
+
+The fundamental challenge of modern quantitative finance is not a scarcity of information, but a crisis of statistical validity.
+In the intraday Forex market, a domain characterized by extreme non-stationarity and a vanishingly low
+signal-to-noise ratio, the traditional tools of predictive modeling often become instruments of self-deception.
+When a machine learning model is tasked with finding patterns in a random walk with drift, it will invariably succeed in
+finding something. The question is whether that "something" is a structural property of the market or merely a ghost in the data.
+
+\medskip
+
+This thesis proceeds from the premise that the path to robust algorithmic trading lies not in the optimization of predictive power,
+but in the rigorous quantification of uncertainty. Most contemporary trading frameworks suffer from
+a form of epistemic arrogance, the sin of being overconfident about the reliability of your own knowledge,
+for they treat financial time-series as a standard supervised learning problem.
+Thus, they ignore the fact that the underlying distribution of the data can shift within minutes.
+To trade successfully is not necessarily to predict the future, but to establish a verification gauntlet
+that can distinguish between a high-probability regime and a chaotic one.
+
+\medskip
+
+At the heart of this research is a shift from point-estimate trading to meta-verification.
+We introduce a hierarchical architecture where every trade signal is subjected to a secondary statistical referee.
+By utilizing conformal prediction, we move away from raw probabilities and toward a framework of valid inference,
+where a signal is only acted upon if it meets a mathematically rigorous significance threshold.
+This effectively transforms the trading system from a simple classifier into a skeptical agent, 
+one that prioritizes the avoidance of false discoveries over the pursuit of frequent, but unverified, opportunities.
+
+
+\subsection{Problem Statement}
+
+The central challenge of intraday Forex trading lies in the fundamental tension between the vanishingly low signal-to-noise ratio of 
+financial time series and the non-stationary nature of global market regimes.
+While modern machine learning architectures possess the theoretical capacity to map these complex dynamics, 
+their transition from controlled backtests to live liquidity is typically compromised by a sequence of systemic failures.
+This process often begins with the data-mining trap, where the high dimensionality of feature sets and 
+exhaustive hyperparameter optimization allow a model to inadvertently discover stochastic flukes rather than systematic alpha.
+These overfitted strategies appear spectacular in historical simulations but remain structurally fragile, 
+as their performance is a function of historical luck rather than predictive permanence.
+
+\medskip
+
+This fragility is further intensified by the hard classification threshold inherent in standard classifiers.
+By treating every trade signal with equal weight, most models remain blind to their own uncertainty, forced to take a binary stance
+even when the underlying market conditions are chaotic or ambiguous. 
+Without a secondary layer of statistical skepticism, a mechanism to rigorously veto low-conviction signals through meta-verification, 
+a strategy is inevitably eroded by the cumulative costs of trading in high-entropy regimes.
+
+\medskip
+
+Finally, even when a signal is valid, trading systems often suffer from regime blindness, a failure to account for the radical heterogeneity across currency pairs. 
+A global model that performs admirably on the deep liquidity of G10 Majors may find itself catastrophically misaligned when applied to the 
+idiosyncratic volatility of Emerging Markets.
+Without adaptive, pair-specific execution guardrails that can adjust to local liquidity profiles, a model remains a
+generalist in a market that demands specialized precision, ultimately leading to alpha decay where theoretical alpha vanishes upon contact with reality.
+
+
+\subsection{Research Objectives}
+
+The primary objective of this research is to answer the fundamental question of machine learning in algorithmic trading: 
+\textbf{Can we build an ML classifier that can drive a Forex trading model successfully?}
+This overarching goal is pursued by identifying which "machinery" is most effective, which components are useless or dangerous, 
+and the underlying reasons for feature performance. This is decomposed into the following specific research objectives:
+
+\begin{enumerate}
+  \item \textbf{Architecture Efficacy \& The Tournament Framework}
+  \begin{enumerate}
+    \item \textit{Question:} How do different ML models rank and is there a clear architecture that outperforms the rest 
+    when validated through a nested, purged, and embargoed walk-forward framework?
+    \item \textit{Objective:} To determine which ML architectures provide the most robust framework for intraday FX data.
+  \end{enumerate}
+  
+
+  \item \textbf{Efficacy of the "Meta-Machinery" (Filtering \& Sizing)}
+  \begin{enumerate}
+    \item \textit{Question:} Can a secondary "referee" model (M2) effectively veto low-probability trades from the primary model (M1), 
+    and does conformal prediction provide a statistically superior threshold for this veto compared to simple probability cut-offs?
+    \item \textit{Objective:} To quantify the value added by meta-labeling and conformal filtering.
+  \end{enumerate}
+
+
+  \item \textbf{Statistical Discovery Control \& Overfitting Mitigation}
+  \begin{enumerate}
+    \item \textit{Question:} Can the Deflated Sharpe Ratio (DSR) and positive False Discovery Rate (pFDR) prevent the deployment of over-optimized models?
+    \item \textit{Objective:} To distinguish between strategy luck and systematic alpha using advanced metrics.
+  \end{enumerate}
+  
+
+  \item \textbf{Feature Anatomy: What Works and Why?}
+  \begin{enumerate}
+    \item \textit{Question:} Which features provide more stable signals and why could that be?
+   \item \textit{Objective:} To perform a "post-mortem" on feature importance.
+  \end{enumerate}
+  
+
+  \item \textbf{Global Robustness vs. Local Adaptation}
+  \begin{enumerate}
+    \item \textit{Question:} Is it more effective to have a single model architecture trained on all pairs 
+    or does the model require pair-specific "execution guardrails" (ATR-based SL/TP and conformal significance levels) 
+    to survive across diverse currency pairs (Majors vs. EMs)?
+    \item \textit{Objective:} To evaluate the success of a "global model, local parameters" strategy.
+  \end{enumerate}
+\end{enumerate}
+
+
+%%%%%%%%%%%%%%%%%%%%%
+% LITERATURE REVIEW %
+%%%%%%%%%%%%%%%%%%%%%
+\section{Literature Review}
+
+\subsection{Structural Rigor in Financial Machine Learning: Labeling, Filtering, and Validation Protocols}\label{sec:label_filter_validate}
+
+Labeling methods such as the fixed-time horizon method fail to capture the path-dependent nature of real-world trading where a position might hit a stop-loss 
+before reaching its daily close. As argued by \textcite{lopez_de_prado_advances_2018}, financial labels should instead be defined by the first of three barriers hit: 
+a profit-taking level (upper), a stop-loss level (lower), or a time-expiration (vertical). It should be clear that the we label an observation with 1 (long) if the upper
+barrier is hit first and with -1 (short) if the lower barrier is hit first. For the last case, when the vertical barrier is hit first, \textcite{lopez_de_prado_advances_2018}
+describes two choices: the sign of the return at that time or 0 (hold). The triple-barrier method we use in this research assigns the sign of the return if the vertical
+barrier is hit first and thus gives the following labeling rules:
+
+\begin{equation}
+y_i = \begin{cases}
+1 & \text{if } \underbrace{t_{i, TP} < t_{i, SL} \text{ and } t_{i, TP} \leq t_i + h}_{\text{Profit Barrier Hit First}} \\
+-1 & \text{if } \underbrace{t_{i, SL} < t_{i, TP} \text{ and } t_{i, SL} \leq t_i + h}_{\text{Loss Barrier Hit First}} \\
+\operatorname{sgn}(r_{t_i, t_i+h}) & \text{if } \underbrace{\min(t_{i, TP}, t_{i, SL}) > t_i + h}_{\text{Vertical Barrier (Time-out) Hit}}
+\end{cases}
+\label{eq:tbm_binary}
+\end{equation}
+
+where \( h \) defines the expiration limit, \( t_{i, TP} \) the timestamp of observation \( i \) at which the take-profit was triggered, 
+\(t_{i, SL} \) the timestamp of observation \( i \) at which the stop-loss was triggered, and \( t_i \) the current time at observation \( i \).
+Adopting the triple-barrier method as the foundational labeling scheme for the primary model (M1) ensures that signal generation is 
+strictly aligned with the dynamic volatility of the market.
+
+\medskip
+
+Building upon the path-dependent labels of the triple-barrier method, the literature identifies a fundamental distinction between predicting the 
+"side" of a trade and the assessment of its "size" or reliability. \textcite{lopez_de_prado_advances_2018} argues that while practitioners often have a 
+primary exogenous model to decide the market direction, they frequently lack a formal mechanism to determine whether to risk capital on a specific bet. 
+To address this, he proposes the meta-labeling framework, which involves building a secondary machine learning model (M2) that learns how to 
+effectively use a primary model (M1). The primary model is tasked with determining the "side" (long or short), 
+while the secondary model is trained to decide whether to "take the bet" or "pass". 
+This transforms the meta-model's objective into a binary classification problem:
+
+\begin{equation}
+y_i^{\text{M2}} = \begin{cases}
+1 & \text{if } \hat{y}_i^{\text{M1}} = y_i \quad \text{(Correct Prediction)} \\
+0 & \text{if } \hat{y}_i^{\text{M1}} \neq y_i \quad \text{(Incorrect Prediction)}
+\label{eq:meta_label}
+\end{cases}
+\end{equation}
+
+where \( \hat{y}_i^{M1} \) represents the side predicted by the primary model and \( y_i \) is the actual market outcome as defined by the triple-barrier method. 
+This approach is particularly effective for maximizing the F1-score of a strategy by configuring the primary model for high recall to ensure it 
+identifies the majority of potential positives such that the secondary model can then correct for low precision by filtering out false positives. 
+As noted by \textcite{lopez_de_prado_advances_2018}, this decoupling not only limits the risk of overfitting, as the machine
+learning algorithm is not tasked with learning the market direction from scratch, 
+but also ensures more robust outcomes by focusing the secondary model solely on the critical decision of signal reliability.
+
+\medskip
+
+Beyond the design of labels and meta-filters, the architectural integrity of a trading strategy depends on the methodology used to simulate out-of-sample performance. 
+\textcite{lopez_de_prado_advances_2018} distinguishes between two primary backtesting philosophies: 
+the walk-forward (WF) method, which performs a historical simulation of how a strategy would have performed in the past, 
+and the combinatorial purged cross-validation (CPCV) method, which simulates scenarios that did not necessarily occur in the historical sequence. 
+The WF approach is favored for its clear historical interpretation and its adherence to the "filtration" of time, 
+where each decision is based strictly on trailing data to guarantee a true out-of-sample test. 
+However, \textcite{lopez_de_prado_advances_2018} warns that the traditional WF method suffers from the "single-path" limitation, 
+making it susceptible to overfitting the specific sequence of historical events. 
+To address this, he proposes the CPCV method, which generates multiple backtest paths \( \varphi \) by partitioning data into N groups and testing all possible combinations, 
+thereby deriving a distribution of Sharpe ratios rather than a single, potentially volatile estimate.
+
+\medskip
+
+This research utilizes a nested walk-forward validation framework as the primary evaluation protocol. 
+While the CPCV method presents a compelling alternative for stress-testing and defeating overfitting through scenario generation,
+this study prioritizes the preservation of the temporal ordering and the historical accuracy inherent in the walk-forward approach. 
+To mitigate the risk of information leakage the framework incorporates the concept of purging as defined by \textcite{lopez_de_prado_advances_2018} 
+but leaves out embargoing because in the walk-forward approach the training set always predates the testing set. 
+Specifically, any training observation \( i \) is purged if its evaluation interval \( \left[ t_i, t_i + h_i \right] \) 
+overlaps with a test observation \( j \), ensuring that the features of the training set do not contain information about the labels in the testing set:
+
+\begin{equation}
+I_{\text{purged}} = \{\, i : (t_j \leq t_i \leq t_j + h_j) \text{ or } (t_j \leq t_i + h_i \leq t_j + h_j) \,\}
+\label{eq:purging}
+\end{equation}
+
+By nesting this purged walk-forward loop within a hyperparameter optimization study (Optuna), 
+the research ensures that model selection and trading parameter tuning are conducted with the highest degree of statistical rigor, 
+even as it acknowledges that future extensions could benefit from the multi-path analysis offered by the CPCV framework.
+
+
+\subsection{The Risk of Backtest Overfitting}\label{sec:backtest_overfitting}
+
+The exhaustive search for profitable trading rules through automated optimization engines inevitably leads to finding 
+lucky configurations that appear significant in backtests but fail in live execution. 
+\textcite{bailey_deflated_2014} warn that traditional performance metrics like the Sharpe ratio 
+are fundamentally misleading when reported without accounting for the number of trials conducted (\(N\)), 
+as the probability of backtest overfitting increases monotonically with the volume of configurations tested. 
+This research addresses this risk by implementing a verification layer that treats the results of the Optuna hyperparameter optimization 
+not as deterministic facts, but as a multiple-testing problem that requires statistical deflation.
+The statistical quantification of this overfitting risk requires moving beyond simple point estimates toward a probabilistic framework 
+that accounts for both the distribution of returns and the selection process. 
+\textcite{bailey_sharpe_2012} proposed the probabilistic Sharpe ratio (PSR), which adjusts the observed Sharpe ratio (\(\widehat{SR}\)) 
+for non-normality (skewness \(\gamma_3\) and kurtosis \(\gamma_4\)) and the track record length (\(T\)):
+
+\begin{equation}
+\text{PSR}(SR^*) = \Phi \left[ \frac{(\widehat{SR} - SR^*) \sqrt{T-1}}{\sqrt{1 - \gamma_3 \widehat{SR} + \frac{\gamma_4 - 1}{4} \widehat{SR}^2}} \right]
+\label{eq:psr}
+\end{equation}
+
+where \(\Phi\) is the CDF of the standard normal distribution and \(SR^*\) is the benchmark. 
+To correct for the data mining trap, \textcite{bailey_deflated_2014} introduced the deflated Sharpe ratio (DSR), 
+which is essentially the PSR calculated by setting the benchmark \(SR^*\) to the expected maximum Sharpe ratio found by chance 
+across \(N\) trials:
+
+\begin{equation}
+SR^* = \sqrt{\text{Var}[\{SR_n\}]} \left( (1-\gamma) \Phi^{-1}\left(1 - \frac{1}{N}\right) + \gamma \Phi^{-1}\left(1 - \frac{1}{Ne}\right) \right)
+\label{eq:sr_star}
+\end{equation}
+
+where \(\gamma \approx 0.5772\) is the Euler-Mascheroni constant and \(\text{Var}[\{SR_n\}]\) is the variance of the Sharpe ratios across all trials and 
+thus \( \text{DSR} \equiv \text{PSR}(SR^*) \). 
+
+
+\subsection{Uncertainty Quantification in Machine Learning}\label{sec:conformal_preds}
+
+The low signal-to-noise ratio inherent in high-frequency Forex data makes the task of distinguishing true predictive signals 
+from random market fluctuations a primary challenge for the quantification of uncertainty in Machine Learning.
+As argued by \textcite{lopez_de_prado_advances_2018}, a simple, single-layer classification model is rarely sufficient in these domains 
+because the low signal-to-noise ratio prevents a single model from simultaneously learning the "side" (directional bet) and 
+the "size" (statistical conviction) of a trade without overfitting to noise. 
+To solve this, \textcite{shafer_tutorial_2008} argue that the strength of conformal prediction lies in its ability to provide a measure of
+confidence for every individual prediction based on how well it fits with past examples. 
+This allows for the generation of confidence sets rather than mere point estimates and defines the conformal prediction \( p \)-value for a new
+observation as:
+
+\begin{equation}
+p = \frac{\left\|\{i = 1, \ldots, k : \alpha_i \geq \alpha_{\text{new}}\}\right\| + 1}{k + 1}
+\label{eq:conformal_p}
+\end{equation}
+
+where \( k \) is the size of the calibration set, \( \alpha_i \) represents the non-conformity measure for the 
+\( i \)-th calibration point, and \( \alpha_{\text{new}} \) is the non-conformity score for the new observation.
+In this research, the non-conformity score for the M2 meta-model is defined as:
+
+\begin{equation}
+\alpha = \hat{P}_{\text{M2}}(\text{Signal is Correct})
+\label{eq:nonconformity}
+\end{equation}
+
+where \( \hat{P}_{\text{M2}}(\cdot) \) denotes the predicted probability from the M2 model, 
+which describes whether the primary (M1) model's directional bet matches the actual market outcome.
+This link transforms raw, uncalibrated success probabilities into statistically valid \( p \)-values, 
+allowing for a conformal veto of M2 where a trade is only executed if its \( p \)-value exceeds a significance threshold \( \varepsilon \), effectively identifying
+and filtering out "non-conforming" outliers, signals that are statistically likely to result in a mistake.
+
+
+%%%%%%%%%%%%%%%
+% METHODOLOGY %
+%%%%%%%%%%%%%%%
+\newpage
+
+\section{Methodology}
+
+\subsection{Overview}
+
+Given the multi-layered and technically demanding nature of the machine learning pipeline this section provides a high-level roadmap 
+of the research framework, serving as a "beacon" for the reader to return to for consultation. 
+The research methodology is visually summarized through two lenses:
+
+\begin{itemize}
+    \item Figure \ref{fig:methodology flowchart} illustrates the end-to-end project lifecycle. 
+    It begins with the ingestion and preparation of raw data, continues with a model tournament, 
+    and ultimately crowns a tournament winner which is made ready for production.
+
+    \item Figure \ref{fig:pipeline structure} details the timeseries split of the tournament and production phases. 
+    This technical view highlights the "two-phase" approach, where a primary (M1) model identifies directional opportunities while a secondary (M2) 
+    meta-labeling model—enhanced by conformal prediction—acts as a statistical filter to validate trade quality.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{data/figures/methodology/Methodology Flowchart.png}
+    \caption{Methodology Overview}
+    \label{fig:methodology flowchart}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{data/figures/methodology/pipeline_structure.png}
+    \caption{Timeseries Split of the Tournament and Production Pipeline}
+    \label{fig:pipeline structure}
+\end{figure}
+
+
+\subsection{Data Preparation}
+
+\subsubsection{Multi-Pair Data Acquisition}\label{sec:data_acquisition}
+
+The data acquisition process is designed to consolidate two different sources into a unified historical dataset.
+Hourly OHLCV data is retrieved via the OpenBB SDK, utilizing the Polygon.io provider. 
+The system iterates over a list of Forex pairs and performs for each pair incremental updates by detecting the the last timestamp in the local CSV. 
+It then tries to fetch as much data as possible in a single API request starting from the last timestamp while respecting a "backoff" period that accounts for the 
+number of fetching attempts and API rate limits. If there is no last timestamp, i.e. data is requested for the very first time, the first timestamp will be placed roughly two years 
+in the past as this is the maximum period available within the free tier of the polygon API. However, the code allows to extend the dataset every additional day the
+script runs, thus, this research has more than two years worth of data available.
+Additionally, hourly bid and ask candles are requested from Dukascopy's datafeed which are delivered as compressed binary .bi5 (LZMA) files. 
+The module decodes these binary files, unpacking raw integer values (Time, Open, Close, Low, High, Volume) into human-readable prices.
+In the final stage both data sources are merged into a single dataset for each specific pair. A critical technical challenge in this phase is the 
+synchronization of timestamps as Dukascopy data arrives in Unix time (milliseconds since epoch) and OpenBB arrives in datetime. 
+The system enforces a merge by coordinating both sources to the UTC+0 timezone and discards duplicate rows that were generated by the incremental API requests. 
+The resulting file provides a holistic view of each hourly bar, containing transaction prices alongside the exact bid/ask spreads available at that time.
+
+
+\subsubsection{Sanity Checks}\label{sec:sanity_checks}
+
+The raw consolidated dataset undergoes multiple steps to ensure that the machine learning models are trained on valid, tradeable market data. However, the cleaning
+process prioritizes market logic over purely statistical filtering which is why the majority of actions taken relate to sanity checks.
+Firstly, we scan for bars that are impossible to have occured during live market hours and are more than anything an error. 
+A bar is flagged and removed if fundamental OHLCV logic is violated (i.e., if the High price is lower than the Low price). 
+Additionally, any bars with zero or negative prices, or non-positive volume, are discarded as technical artifacts.
+Secondly, timestamps are validated for strict monotonicity and any non-chronological entries are sorted.
+Finally, a sophisticated diagnostic is performed to compare transaction prices against the corresponding bid/ask spread. 
+While transaction prices should ideally reside within the quoted range, the system analyzes the magnitude of violations using both zero-tolerance and slippage-buffered thresholds. 
+It is important to note that these flagged bars are not filtered out during the cleaning phase because the available bid/ask data represents 
+the Top-of-Book (Level 1), which only reflects the best quote for standard volume sizes. 
+In reality, larger transaction volumes often sweep through the order book, executing at deeper level prices outside the initial spread. 
+By retaining these bars, the methodology ensures the dataset remains representative of actual market execution.
+
+
+\subsubsection{Feature Engineering and Labeling}\label{sec:features_labels}
+
+The scope of the feature engineering process is intentionally delimited to endogenous market variables, a decision that was driven by the significant 
+architectural requirements needed to implement a holistic, end-to-end research pipeline in an individual development effort. 
+Consequently, expansion of the feature set into exogenous macroeconomic domains was considered outside the current research horizon.
+Nevertheless, the feature engineering phase transforms the previously sanitized dataset into a high-dimensional feature space designed to capture momentum, volatility, and market microstructure. 
+To facilitate downstream preprocessing, a naming convention is enforced using the prefixes num\_ (numerical), bin\_ (binary), cyc\_ (cyclical), ord\_ (ordinal) and cat\_ (categorical) such that it becomes 
+trivial to assign the correct scaler to the respective feature.
+
+\medskip
+
+In order to capture global trading hours, the system encodes time using both binary flags and cyclical transforms.
+It does so via binary indicators that identify among others the London, New York, and Asia sessions, as well as overlaps (i.e., London-NY).
+Features such as Time-of-day and day-of-week are transformed using sine and cosine functions to cyclical features which ensures that the 
+model perceives the circular nature of time (i.e., that hour 23 is close to hour 0).
+To move beyond raw price data, a broad range of technical and momentum indicators is engineered to quantify price velocity, trend exhaustion, and prevailing market regimes. 
+This category focuses on capturing the "energy" and stability of price movements, providing the model with normalized signals that distinguish between 
+low-volatility ranging markets and high-momentum breakouts across varying look-back windows.
+The pipeline leverages bid/ask and volume data to model microstructural dynamics of the market by extracting features related to order flow imbalance, spread fluctuations, and quote
+resilience. These microstructural signals try to serve as a proxy for the information content of the order book, offering a deeper view of market state
+than traditional price action alone.
+Recognizing that market behavior is highly dependent on the active trading session (i.e. London vs. NY), 
+interaction features are created to capture the relationship between time-based sessions and price dynamics.
+Furthermore, the cat\_pair\_group feature (i.e., Major vs. Emerging Market) was introduced to provide the global model with generizable market context 
+without explicitly disclosing the identity of the specific currency pair. 
+This abstraction is a deliberate architectural choice to prevent the model from over-fitting to the idiosyncratic historical noise of a single pair, 
+while still acknowledging the fundamental differences in volatility and spread profiles between major and exotic instruments.
+
+\medskip
+
+To bridge the gap between feature engineering and supervised learning, the system employs the Triple-Barrier Method introduced by \textcite{lopez_de_prado_advances_2018} and discussed in \ref{sec:label_filter_validate}.
+
+\input{data/tables/label_dist.tex}
+
+As shown in Table \ref{tab:label_dist}, the resulting dataset exhibits a well-balanced distribution between directional labels. 
+It should be noted that while the TBM logic is configured to force a binary (Long/Short) directional classification at the holding period's expiration, 
+a negligible number of 55 "Timeout" labels (0.04\%) persist in the aggregated statistics. These represent edge cases at the extreme end of the historical dataset where the
+remaining price history was shorter than the required \( t_{\text{final}} \) window, preventing the path-search algorithm from reaching either a price barrier or the full timeout duration.
+\footnote{I.e. \( t_{\text{final}} = 5 \) with 11 pairs corresponds to 5 missing labels per pair and 55 missing labels in total.}
+These instances are systematically purged during the data alignment phase to ensure that only samples with complete ground-truth outcomes are presented to the models.
+
+
+\subsection{Strategy Development}
+
+The following methodology details the strategy development within the architectural tournament phase but omits the subsequent production phase as it follows an identical logic.
+
+
+\subsubsection{Tournament Models}\label{sec:tournament_models}
+
+The tournament phase evaluates a heterogeneous ensemble of machine learning architectures, spanning from classical ensemble methods to modern deep learning structures, 
+to identify the most robust learner for high-frequency forex signals. The primary models (M1) include:
+
+\begin{itemize}
+    \item Bagging Ensembles (Random Forest \& ExtraTrees): These models operate on the principle of "bootstrap aggregating." They build a large number of independent decision trees 
+    on random subsets of the data and average their predictions. This process reduces the risk of the model reacting to random market noise and 
+    ensures a more stable prediction by leveraging the "wisdom of the crowd."
+
+    \item Gradient Boosting Decision Trees (XGBoost \& LightGBM): Unlike bagging, boosting models build trees sequentially, where each new tree specifically focuses on 
+    correcting the errors made by the previous ones. XGBoost is highly regarded for its precision and regularization techniques that prevent overfitting, 
+    while LightGBM is optimized for speed and efficiency, making it particularly effective at processing the large, high-dimensional feature sets common in forex trading.
+
+    \item Recurrent Neural Networks (LSTM \& GRU): These architectures are designed specifically for time-series data. Long Short-Term Memory (LSTM) networks use a "gating" mechanism 
+    to selectively remember or forget information over long periods, allowing them to capture deep historical patterns in price action. The Gated Recurrent Unit (GRU) is a more 
+    streamlined version of this logic that often achieves similar performance with less computational complexity, providing a faster alternative for sequential learning.
+\end{itemize}
+
+
+\subsubsection{Feature Preprocessing and Selection}\label{sec:preprocessing_scaling}
+
+As already announced in Figures \ref{fig:methodology flowchart} and \ref{fig:pipeline structure} the feature selection and preprocessing logic is executed exactly once per outer training fold.
+This obviously leads to a sort of minor lookahead bias in the inner validation sets since a preprocessor that is fitted on the entire outer training fold will transform the data used for 
+validation in a way that would be inaccessible for the model during live trading. However, it is of utmost importance to us to note that this lookahead solely occurs on these inner validation 
+set (included in the outer training set) and that no data was leaked to the outer testing sets as the preprocessor was never fitted on that data. Furthermore, we selected features from the 
+entire available feature space also only once per outer fold for two major reasons. Firstly, it is computationally more efficient to run the selection pipeline once per outer fold as methods 
+such as selection via permutation importance can take quite some time depending on the chosen parameters. Secondly, as already mentioned we are not leaking anything to the outer test set.
+
+\medskip
+
+The preprocessing process is fairly lean thanks to the naming convention introduced in \ref{sec:features_labels} which allows granular control over which preprocessor to assign to which group 
+of features. Thus, the preprocessor is a singular scikit-learn ColumnTransformer object that uses on the other hand a make\_column\_selector object which selects the respective feature via 
+regex patterns. Ultimately, numerical features get assigned a StandardScaler, ordinal features get assigned an OrdinalEncoder, categorical features get assigned a OneHotEncoder, and all others 
+are simply let through. Features which do not adhere to the naming convention are discarded for numerical safety.
+
+\medskip
+
+The feature selection process, rather a small pipeline itself, executes a sequential three-step logic to reduce the original feature space based on different filtering methods.
+First features are checked for collinearity and highly correlated ones, with an absolute Pearson correlation coefficient exceeding 0.90, are discarded. Next, the remaining features are filtered 
+by their mutual information which quantifies the statistical dependency between a feature and the target label measured in their shared entropy. This allows to capture complex non-linear 
+relationships that traditional linear correlation metrics may overlook. Finally, features that survived to this point are passed to a permutation importance filter which 
+evaluates a feature's predictive utility by measuring the degradation in model performance when that feature's values are randomly shuffled.
+
+\medskip
+
+This hierarchical approach ensures that the resulting feature set is found efficiently and is homogenous among all tournament models.
+
+
+\subsubsection{The M1-M2 Interaction to Generate Meta-Labels}\label{sec:meta_label_accumulation}
+
+Before the system can generate the meta-labels for the M2 model, M1 has to make predictions (see \ref{sec:label_filter_validate}). 
+The labels for M2 are generated by evaluating the performance of the primary M1 model on data it has never seen. For every signal generated by M1 on an inner validation fold, 
+the system compares the predicted directional side to the actual triple-barrier label at that time. If M1's directional bet matches the barrier realization, 
+the meta-label is assigned a value of 1 for success, otherwise, it is assigned 0 for failure. This allows M2 to specifically learn the behavioral weaknesses and 
+mistake patterns of the M1 architecture. In the current implementation M2 is operationalized using a RandomForest Classifier with minimal parameters.
+In order to accumulate the labels for M2 across inner folds while ensuring that M2 is not trained and doesn't make predictions on the same set of data, the training of M2 is 
+conducted iteratively across the inner folds. On the first inner fold M1 is trained and generates signals, but M2 remains idle as no historical data yet exists for this specific training block.
+In subsequent folds before M2 makes a prediction for the current fold, it is trained on the accumulated buffer of all features and meta-labels generated in prior folds. 
+This ensures that when M2 evaluates an M1 signal, it is doing so using a model that has never seen the current validation data, maintaining strict temporal separation.
+Once the inner walk-forward loop has completed the hyperparameter optimization, a final M2 model is trained on the entire accumulated dataset of the outer block. 
+The final M1 and M2 models are then passed to evaluate their performance on truly unseen data on the outer test block in order to provide an unbiased estimate of the 
+strategy's production-grade performance. As it would be quite wasteful to discard the historical M2 labels that accumulate across outer folds , a global memory is integrated by 
+which the M2 training set is further expanded with a sliding window of historical performance data from previous outer blocks. 
+This memory mitigates the problem that in early folds there exists no historical data and provides M2 with a larger, more robust statistical sample of M1's behavior.
+
+
+\subsubsection{Optimizing Model Architecture and Risk Management Hyperparameters}\label{sec:optimize}
+
+The optimization of the trading system is conducted through a Nested Hyperparameter Optimization (HPO) framework where the outer loop tunes the architectural hyperparameters of the M1 and M2 
+models and the inner loop tunes the trading specific hyperparameters. In the outer loop the engine searches for the optimal structural parameters for both the primary model (M1) 
+and the meta-filter (M2). For every trial, the system executes a full walk-forward accumulation as discussed in \ref{sec:meta_label_accumulation} to generate statistically unbiased 
+out-of-sample (OOS) signals and confidence scores for conformal filtering (see \ref{sec:conformal_preds}). For every architectural candidate proposed by the outer loop, 
+a second optimization study is launched in the inner loop which tunes the risk management parameters. These parameters include among others ATR-based stop-loss and take-profit multipliers, 
+the fraction applied to the kelly formula, and the conformal significance level applied to the conformal prediction logic.
+The objective function maximizes the average Sharpe ratio across the cross-section of currency pairs, ensuring that the winning configuration is robust to diverse market behaviors 
+rather than overfitted to a single instrument. To mitigate the "multiple testing" problem inherent in such an exhaustive search, the engine records the variance and total number of 
+trials to compute the deflated Sharpe ratio, providing a statistically corrected measure of performance.
+
+\medskip
+
+\textcite{lopez_de_prado_advances_2018} suggests a specific division of labor for meta-labeling wherein the primary M1 model should be configured for high recall, 
+acting as a wide net to identify as many potential opportunities as possible, while the secondary M2 model acts as a precision filter to remove false positives. 
+In this paradigm, M1 is often a simpler, "looser" rule-set, while M2 is the complex machine that does the "heavy lifting". Our methodology adopts a more integrated approach. 
+Rather than fixing M1 as a high-recall "pre-filter", we perform the joint architectural optimization as elaborated above in order to allow the HPO engine to find the global 
+optimum where M1 and M2 are most synergistic. By optimizing them together, we ensure that M1 acts as a "stable signal generator" whose errors are not random flukes, but
+are statistically significant events that the meta-model is architecturally equipped to recognize and filter.
+
+
+\subsubsection{Custom Backtester}\label{sec:custom_backtester}
+
+This engine uses Mark-to-Market (MTM) accounting as it updates the account's equity at every single time step, including "floating PnL" from open positions and strictly 
+deducts transaction costs (commissions) and slippage (price degradation) at both entry and exit to ensure results are more realistic. 
+The core logic of the backtester monitors the distinct exit conditions for every trade whereby it prefers the stop-loss over the take-profit 
+even if the take-profit was triggered in the same candle.\footnote{i.e. within the same hourly bar the current high was greater or equal than the take-profit of a long 
+but at the same time the current low fell below the stop-loss barrier of the same long, we would record a loss in that case.}
+Furthermore, a trade may also be automatically closed after a maximum holding time that was optimized (see \ref{sec:optimize}) or if the underlying model generates a signal in the opposite direction.
+It is also crucial to mention the limitation of the engine, as it simplifies the complexities of multi-asset margin management and thus treats each currency pair as an isolated portfolio. It
+also enforces a single-position-at-a-time constraint, meaning that no new trades are initiated while a position is already active for a given pair. This approach prioritizes
+the granular performance of the strategy on an asset-by-asset basis, effectively omitting cross-pair risk management or global capital allocation strategies in favor of a
+more transparent, independent evaluation of each currency pair.
+
+\medskip
+
+The calculation of position size within this framework follows a structured transition from classical gambling theory to modern financial risk management. The foundation
+of this approach is the Kelly Criterion \parencite[see][920]{Kelly1956}, which defines the optimal fraction \( \ell \) of capital to bet on an outcome to maximize the
+exponential growth of wealth:
+
+\begin{equation}
+    \begin{cases}
+        (1 + \ell) = 2q \\[4pt]
+        (1 - \ell) = 2p
+    \end{cases}
+    \quad\Longrightarrow\quad
+    \ell = q - p
+\end{equation}
+
+where \( \ell \) is the fraction of the gambler's current capital to bet, \( p \) is the probability of success, and \( q \) is the probability of failure. 
+This framework was later refined and popularized for general investment and gambling scenarios by \textcite[129]{thorp1984mathematics}, 
+who introduced the general formula for arbitrary payout ratios:
+
+\begin{equation}
+    f^* = \frac{e}{A} = \frac{(A + 1)p - 1}{A}
+    \;\Longrightarrow\;
+    \boxed{f^* = \frac{bp - q}{b}}
+    \qquad\text{where } A = b,\; q = 1-p
+\end{equation}
+
+In this formulation, \( f^* \) represents the optimal fraction of capital to bet, \( b \) (or \( A \)) denotes the payout ratio or net odds (net profit per unit risked), 
+\( p \) is the probability of success, and \( q \) is the probability of failure. The term \( e = bp - q \) represents the mathematical "edge" or expected value of the bet.
+
+As noted by \textcite[see][p. 876]{macLean2006capital} in \textcite{ziemba2007russell}, betting at or above the log-optimal (Kelly) fraction increases risk. 
+This suggests that the aggressive nature of the full Kelly Criterion may lead to excessive volatility and significant drawdowns, 
+which could be exceptionally negative in high-noise environments like forex trading.
+While the Kelly Criterion provides the idea of conviction-based scaling, the foundational unit of each trade is defined by a risk-parity framework.
+Thus, the backtesting engine also adopts the percent risk model introduced by \textcite[292f]{tharp1998trade}. Consequently, the bet in this system is not the total notional value of the portfolio, 
+but rather rather a function of equity, risk tolerance, and stop-loss distance, expressed as:
+
+\begin{equation}
+    \text{u} = \frac{\text{E} \times \text{R}}{\text{SL}}
+    \label{eq:pct_risk_model}
+\end{equation}
+
+where \(u\) represents the base position size, \(E\) is the current account capital, \(R\) is the fixed percentage of equity risked per trade, and \(SL\) is the initial stop-loss distance. 
+This base size ensures that a stop-loss event results in a loss of exactly \(R\%\) of the portfolio, assuming the signal is valid. To quantify the likelihood of that validity, 
+we compute a conformal confidence score \(c\) for each prediction using the calibration framework introduced by \textcite{shafer_tutorial_2008} and defined in Equation \ref{eq:conformal_p}. 
+To prevent over-aggressive capital allocation on marginal signals, we transform the conformal excess confidence into a dynamic conviction multiplier using the 
+Cumulative Distribution Function (CDF) of the standard Normal distribution, adapting the framework proposed by \textcite[143]{lopez_de_prado_advances_2018}. 
+By mapping the confidence score c into a normalized Z-score, the betting size follows a sigmoid curve. This ensures the strategy remains conservative near the significance threshold 
+while dynamically scaling towards full risk as statistical conviction increases, effectively penalizing "noisy" predictions in the vicinity of the decision boundary.
+
+\begin{equation}
+    \text{z} = \left( \frac{c - (1 - \varepsilon)}{\varepsilon} \right)
+\end{equation}
+
+\begin{equation}
+    \text{size} = \max\left(0, 2 \times \varPhi(\text{3z}) - 1 \right)
+    \label{eq:conviction_mult}
+\end{equation}
+
+In this formulation, \( \varepsilon \) represents the tuned significance level (see \ref{sec:optimize}), which serves two critical functions. 
+First, the term \( (1 - \varepsilon) \) acts as a statistical floor whereby any prediction with a confidence score c that fails to meet this threshold results in 
+\( \text{z} \leq 0 \), which the \( \max\left(0, ...\right) \) operator translates into a size of zero, effectively vetoing the trade. 
+Second, \( \varepsilon \) serves as the scaling denominator that normalizes the excess confidence. 
+To enable the strategy to reach full conviction (i.e., \( \text{size} \approx 1 \)), we introduce a scaling multiplier of 3 to the normalized Z-score calculation. 
+This choice ensures that the conviction multiplier (size) is permitted to traverse the full curvature of the Gaussian CDF, reaching a maximum value of approximately 0.997 
+only as the model reaches absolute statistical certainty (\( c = 1.0 \)), which represents the 99.7\% probability mass characteristic of the three-sigma rule.
+It is important to distinguish this from the classical Z-score used by \textcite[143]{lopez_de_prado_advances_2018}, which normalizes probabilities by 
+\( \text{z} = \frac{\text{p}\left[x=1\right] - \frac{1}{2}}{\sqrt{\text{p}\left[x=1\right] \left(1 - \text{p}\left[x=1\right]\right)}} \) with labels \( x \in \left\{-1,1\right\} \) to test 
+\( H_0 : \text{p}\left[x=1\right] = \frac{1}{2} \). In this research, we substitute the \( \sigma \) with the significance level \( \varepsilon \) since the execution logic only 
+considers trades where \( c > (1 - \varepsilon) \), the value of \( \varepsilon \) represents the total width of the discovery region \( (1-\varepsilon, 1.0] \). 
+Utilizing \( \varepsilon \) as the denominator ensures that the Z-score represents the relative position of the current confidence within this allowed margin. 
+This ensures $z=0$ at the threshold and $z=1$ at perfect model certainty, providing a stable and bounded input for the sigmoid transformation.
+Ultimately, the final bet size is derived by combining the risk-parity units ( Eq. \ref{eq:pct_risk_model}) with the conviction multiplier (Eq. \ref{eq:conviction_mult}), and 
+a tuned Kelly fraction:
+
+\begin{equation}
+    \text{Bet} = \text{u} \times \text{size} \times \text{fraction}
+    \label{eq:bet}
+\end{equation}
+
+This interaction ensures that capital allocation is not only adjusted for price volatility via the stop-loss distance but is also non-linearly scaled by the strength of the 
+statistical evidence provided by the conformal engine.
+
+
+\subsubsection{Evaluation on OOS Test Data}
+
+The final stage of the Nested Walk-Forward Validation (WFV) architecture is the unbiased evaluation of the optimized pipeline on the isolated outer test block. 
+This phase serves as the definitive assessment of the strategy's robustness, simulating a "live" deployment where the model encounters entirely unseen market regimes.
+To maintain strict out-of-sample (OOS) integrity, the evaluation begins with the application of the preprocessing logic established in \ref{sec:preprocessing_scaling}. 
+Specifically, the test data is transformed using the singular ColumnTransformer that was fitted exclusively on the corresponding outer training fold. 
+Similarly, the feature set is restricted to those identified by the hierarchical selection pipeline in \ref{sec:preprocessing_scaling}, ensuring that the architectural tournament 
+is conducted on a consistent and pruned informational subset.
+The predictive execution follows a dual-model flow where the primary model (M1) generates directional signals, while the secondary model (M2) provides the raw probability of M1's success. 
+As established in \ref{sec:meta_label_accumulation}, these raw probabilities are not utilized directly but are instead passed through a conformal filtering layer. 
+The system calculates a dynamic p-value for each prediction by comparing the current M2 probability to the calibration set of historical M1 mistakes accumulated from prior folds. 
+If the resulting p-value meets the per-pair significance threshold \( \varepsilon \) optimized in \ref{sec:optimize}, the trade is authorized.
+The authorized signals are subsequently processed by the backtesting engine (see \ref{sec:custom_backtester}), which implements the risk-parity and non-linear sigmoid sizing logic 
+defined in Equations \ref{eq:pct_risk_model} through \ref{eq:bet}. A distinguishing feature of this evaluation phase is the use of per-pair hyperparameter adaptation. 
+Unlike a "one-size-fits-all" approach, the backtester utilizes the unique ATR-based stop-loss, take-profit, and max-holding periods identified during the inner optimization study 
+(see \ref{sec:optimize}) for each specific currency pair.
+
+To validate the statistical "value-add" of the conformalized meta-labeling approach, the system benchmarks the resulting performance against five distinct strategies:
+\begin{enumerate}
+    \item Buy and Hold: A passive benchmark representing the raw beta of the currency pair.
+    \item SMA Crossover: A technical baseline using 50/200-period moving average logic.
+    \item M1 Only: An evaluation of the primary directional signals with optimized risk guardrails but without the meta-labeling filter.
+    \item M1 + M2 (Fixed): A version using the meta-model with a static 0.5 probability threshold, aiming to prove the necessity of the conformal calibration.
+    \item M1 + M2 (Global): A baseline utilizing the median hyperparameters across all pairs, which isolates the performance benefit gained from the "local" per-pair adaptation discussed in \ref{sec:optimize}.
+    \item M1 + M2 (Conformal): The full proposed pipeline utilizing optimized architectural parameters, per-pair risk hyperparameters, and conformalized conviction-based bet sizing.
+\end{enumerate}
+
+Finally, the strategies are subjected to several reported metrics, especially the deflated Sharpe ratio (DSR). By integrating the total number of trials and the variance of Sharpe ratios recorded during 
+the HPO phase (see \ref{sec:optimize}), the methodology provides a corrected estimate of performance that accounts for the selection bias inherent in hyperparameter search. 
+
+
+\subsubsection{Empirical Evaluation Metrics and Diagnostic Framework}\label{sec:empirical_framework}
+
+The final component of the methodology describes the framework through which the tournament models are evaluated. 
+To ensure a multi-dimensional assessment of performance, we employ a wide range of financial metrics which can be found among others in section \ref{sec:backtest_overfitting} 
+(Eq. \ref{eq:psr} and \ref{eq:sr_star}), and appendix \ref{app:metrics} (Eq. \ref{eq:sharpe_ratio} to \ref{eq:mintrl}).
+
+\medskip
+
+Beyond financial outcomes we ensure the feature selection pipeline (\ref{sec:preprocessing_scaling}) effectively prunes the informational space by utilizing nested correlation heatmaps 
+across outer folds to monitor multicollinearity. Furthermore, we conduct a post-mortem analysis of the model's decision-making process using permutation importance scores. 
+By tracking the stability of these importance rankings across different outer folds, we hope to distinguish between universal features that provide stable alpha and 
+regime-specific features that may indicate temporary over-fitting.
+
+\medskip
+
+To audit the efficacy of the conformal logic, we utilize a conformal signal analysis plot that scatter-maps M2 confidence against signal directions. 
+By color-coding these samples based on empirical correctness, we can visualize the separation between valid signals and noise. 
+An effective filter demonstrates a high concentration of correct predictions at high confidence levels, while incorrect predictions are concentrated within the conformal rejection
+zone defined by $\varepsilon$. Furthermore, we overlay a logistic sigmoid fit to this diagnostic plot to verify that the M2 probability estimates are well-calibrated 
+against the true empirical hit rate of the M1 signals.
+A logistical limitation of this visualization is its level of aggregation. To be fully exhaustive, an informative diagnostic would require rendering three panels 
+(Accuracy, Ground Truth, and Error Map) for every individual model-pair combination across all folds. In a tournament of six architectures and ten currency pairs, this would
+generate an unmanageable 60 plot-triplets per fold, totaling hundreds of figures. Consequently, we employ a lighter aggregated version in this study whereby the scatter plots displayed in 
+the results aggregate all currency pairs for a given architecture within a specific fold. This provides a global view of the architecture's robustness and its ability to
+generalize a conformal veto logic across the entire multi-pair universe without the visual overhead of per-pair reporting.
+
+\medskip
+
+Beyond financial outcomes, the integrity of the meta-labeling engine (M2) is evaluated through classification-specific diagnostics. We utilize confusion matrices to monitor the balance 
+between Type I errors (False Discoveries) and Type II errors (Missed Opportunities). To assess the probabilistic quality of the meta-model, we employ reliability diagrams (calibration curves), 
+which compare the predicted probabilities of M2 against the actual observed frequencies of M1's correctness. A well-calibrated model, where the curve aligns with the 45-degree diagonal, 
+ensures that the conformal p-values calculated in \ref{sec:conformal_preds} are grounded in realistic probability estimates.
+
+
+The integrity of the meta-labeling engine is further examined through classification-specific diagnostics, primarily utilizing nested confusion matrices and reliability diagrams. 
+The three-panel confusion matrix framework tracks signals from the base model (M1) through the meta-model (M2) to the final authorized trades. 
+It allows to follow the flow of the balance between Type I errors (False Discoveries) and Type II errors (Missed Opportunities). 
+To complement this, reliability diagrams and Brier scores are employed to assess the probabilistic quality of the meta-model. 
+By verifying that the calibration curve aligns with the 45-degree diagonal, we ensure that the conformal p-values calculated in \ref{sec:conformal_preds} are grounded in realistic 
+probability estimates.
+
+\medskip
+
+\paragraph{LOOK AT THIS AGAIN!}
+To identify the ultimate tournament winner, we utilize a reciprocal rank fusion (RRF) and aggregated performance ranking. Models are ranked based on their mean Sharpe Ratio across all 
+outer test folds and all currency pairs. This "Global Mean" approach penalizes architectures that perform exceptionally well in a single regime but fail to generalize across the 
+diverse liquidity and volatility profiles of the full multi-pair dataset.
+
+
+%%%%%%%%%%%%%%%%%%%%%
+% EMPIRICAL RESULTS %
+%%%%%%%%%%%%%%%%%%%%%
+\section{Empirical Results}
+\subsection{The Architecture Tournament}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Static Feature Space Definition Across All Tournament Models (Common Feature Set Per Fold) and Multicollinearity Filtering}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{data/figures/feature_selection/Tournament_nested_correlation_heatmap.png}
+    \caption{Correlation Filtering}
+    \label{fig:correlation filtering}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/feature_selection/Tournament_nested_feature_importances_RandomForest.png}
+    \caption{Feature Importances}
+    \label{fig:feature importances}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Pair- and Model-Specific Parameter Discovery and Financial Robustness}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/optimization/distributions/tournament_financial_dists_RandomForest.png}
+    \caption{Financial Statistic Distributions during Optimization}
+    \label{fig:distributions}
+\end{figure}
+
+\input{data/tables/tournament/trading_hps_table/hps_RandomForest_tournament.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{From Raw Signals to Conformal Predictions: Model- \& Pair-Specific Conformal-Q Filtering}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/conformal_predictions/Tournament_conformal_predictions_part1.png}
+        \caption{Model-Specific Conformal Filtering}
+        \label{fig:model-specific conformal filtering 1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/conformal_predictions/Tournament_conformal_predictions_part2.png}
+        \caption{Model-Specific Conformal Filtering (continued)}
+        \label{fig:model-specific conformal filtering 2}
+    \end{minipage}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Validation of Conformal-Q Filtering: Model- and Fold-Specific Confusion Matrices \& Calibration}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\paragraph{Confusion Matrices}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/confusion_matrices/Tournament_nested_confusion_matrices_part1.png}
+        \caption{Model-Specific Confusion Matrices}
+        \label{fig:model-specific confusion matrices 1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/confusion_matrices/Tournament_nested_confusion_matrices_part2.png}
+        \caption{Model-Specific Confusion Matrices (continued)}
+        \label{fig:model-specific confusion matrices 2}
+    \end{minipage}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\paragraph{Reliability Diagrams}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/reliability_diagrams/Tournament_reliability_diagrams_part1.png}
+        \caption{Model-Specific Reliability Diagrams}
+        \label{fig:model-specific reliability diagrams1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/reliability_diagrams/Tournament_reliability_diagrams_part2.png}
+        \caption{Model-Specific Reliability Diagrams}
+        \label{fig:model-specific reliability diagrams2}
+    \end{minipage}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Tournament Evaluation}
+\paragraph*{Overview}
+This chapter presents the final results of the Architecture Tournament.
+We evaluate model performance across backtests, analyze best- and worst-performing currency pairs, discuss model-specific limitations, and select the final architecture.
+
+\paragraph{Model-Specific Backtest Performance and Aggregated Performance Ranking}
+He expects you to argue:
+"We propose a single model architecture for FX trading. For each currency pair, we tune a small set of interpretable parameters
+(e.g., ATR multiplier, conformal threshold) that reflect that pair's unique volatility and liquidity characteristics.
+This approach is robust: performance across 10 pairs shows average Sharpe 1.2 with standard deviation 0.2.
+Majors outperform EMs as expected, but EMs remain profitable with adapted parameters."
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_RandomForest_part1.png}
+        \caption{Tournament Result}
+        \label{fig:tournament_result1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_RandomForest_part2.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_result2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_RandomForest_part3.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_result3}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_RandomForest_part4.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_result4}
+    \end{minipage}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{data/tables/tournament/summary_tables/all_models_tournament.tex}
+
+\input{data/tables/tournament/summary_tables/ranking_tournament.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\paragraph{Granular Performance Analysis and Best- and Worst-Performing Pairs per Model}
+
+is it because model failed? Is it because pair is untradeable? Answer questions
+Is it a data issue? Ie gaps overnight? More missing data than other pairs?
+Is the model fundamentally weong dor that regime?
+
+\input{data/tables/tournament/rrf_leaderboard/rrf_matrix_tournament.tex}
+
+\input{data/tables/tournament/rrf_leaderboard/rrf_summary_tournament.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{data/tables/tournament/performance_tables/perf_RandomForest_tournament.tex}
+
+
+\paragraph{Comparison Across Different Trading Strategies}
+
+\input{data/tables/tournament/strategy_comparison/strategy_comp_RandomForest_tournament.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\paragraph{Model-Specific Limitations}
+
+Limitation/affected pairs/ mitigation or future work
+Ie atr barriers assume continuius trading/ all em pairs with gaps/incorporate gap risk indicstor
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\paragraph{Picking the Tournament Winner}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{Global Production Refinement of the Winning Model}
+\subsubsection{Production Setup: Full Global Training \& Untouched Test Set}
+% 1 paragraph explaining Phase 2 methodology
+
+\subsubsection{Pair-Specific Trading Parameter Discovery}
+\input{data/tables/production/trading_hps_table/hps_RandomForest_production.tex}
+
+\subsubsection{Production Backtest: Final Out-of-Sample Performance}
+- Also talk about comparison across different trading strategies here but put the table in the appendix
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/production_results_RandomForest_part1.png}
+        \caption{Production Result}
+        \label{fig:production_result1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/production_results_RandomForest_part2.png}
+        \caption{Production Result (continued)}
+        \label{fig:production_result2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/production_results_RandomForest_part3.png}
+        \caption{Production Result (continued)}
+        \label{fig:production_result3}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/production_results_RandomForest_part4.png}
+        \caption{Production Result (continued)}
+        \label{fig:production_result4}
+    \end{minipage}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{data/tables/production/performance_tables/perf_RandomForest_production.tex}
+
+\input{data/tables/production/strategy_comparison/strategy_comp_RandomForest_production.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{data/tables/production/rrf_leaderboard/rrf_matrix_production.tex}
+\input{data/tables/production/rrf_leaderboard/rrf_summary_production.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsubsection{Tournament vs. Production: Robustness \& Performance Consistency}
+- comparison tables of ie financial statistics like sharpe etc (Metric / Tournament (mean) / Production / Change)
+- talk about best/worst performing pairs between tournament and production model but put the table in appendix
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
+Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%
+% DISCUSSION %
+%%%%%%%%%%%%%%
+\section{Discussion}
+
+%%%%%%%%%%%%%%
+% CONCLUSION %
+%%%%%%%%%%%%%%
+\section{Conclusion and Future Work}
+\subsection{Summary}
+The Efficacy of Meta-Labeling in Forex
+
+
+\subsection{Future Extensions}
+
+\subsubsection{Refactoring of the Code Base}
+Strengthen to make deployment and debugging better
+
+
+\subsubsection{Data Quality}
+
+While this study maintains high standards for data integrity through rigorous Sanity Checks (\ref{sec:sanity_checks}), a primary area for future extension is the further hardening of the 
+underlying data source. Our current pipeline orchestrates the merging of Polygon.io (via OpenBB) for primary transaction data and Dukascopy for binary-decoded bid/ask spreads
+and thus relies on a naive UTC timestamp synchronization (see \ref{sec:data_acquisition}). While every precaution was taken to ensure temporal alignment, the lack of a unified,
+high-precision institutional primary key (such as millisecond-accurate FIX sequence numbers) leaves a non-zero margin for micro-gaps or off-by-one errors during the left-join process.
+Consequently, future research should explore the utilization of a unified institutional liquidity provider (e.g., LMAX Exchange, Bloomberg, or Interactive Brokers' IDB feed). 
+Sourcing transaction prices and spreads from a single engine would eliminate the need for heuristic temporal merging and provide a more robust ground truth for the M2 meta-model. 
+Furthermore, extending the dataset to include tick-level order flow (Level 2 data) would allow the meta-model to move beyond simple OHLCV features and audit the efficacy of the conformal 
+veto logic within the context of market depth and order book imbalances.
+
+
+\subsubsection{More Insightful Feature Engineering}
+
+A primary limitation of the feature engineering framework discussed in \ref{sec:features_labels} is its exclusive reliance on endogenous variables. 
+While our current suite of, among others, momentum, volatility, and microstructural indicators provides a high-fidelity mapping of the instrument's own price-action
+dynamics, it operates within a macroeconomic vacuum. In the highly integrated global Forex market, currency valuations are fundamentally driven by inter-market relative value and 
+sovereign yield differentials. To move beyond the limitations of univariate price analysis, future extensions should incorporate exogenous features that capture the broader economic landscape. 
+Specifically, the integration of interest rate differentials (using 2-year and 10-year Treasury yield spreads), global equity market volatility (VIX), and commodity price indices 
+(e.g., WTI Crude for the CAD, or Gold for the AUD) could provide the meta-model with critical market regime context. These data streams could be sourced through high-frequency 
+macroeconomic APIs such as the Federal Reserve Economic Data (FRED) or Refinitiv Eikon. By augmenting the M1 signal generator with these external pressures, the meta-model (M2)
+could develop a more nuanced understanding of when a technical signal is aligned with or fighting against fundamental capital flows, thereby further refining the efficacy of the 
+conformal veto logic.
+
+
+%%%%%%%%%%%%%%%%
+% BIBLIOGRAPHY %
+%%%%%%%%%%%%%%%%
+\section{References}
+\printbibliography[heading=none]
+
+%%%%%%%%%%%%
+% APPENDIX %
+%%%%%%%%%%%%
+\section{Appendix}
+\appendix
+
+
+\section{Evaluation Metrics}\label{app:metrics}
+
+The primary measure of risk-adjusted return is the Sharpe Ratio, which we calculate using arithmetic returns \( r_t = \frac{(E_t - E_{t-1})}{E_{t-1}} \). 
+To ensure comparability across different time horizons, the ratio is annualized as follows:
+
+\begin{equation}
+    \text{SR} = \frac{\overline{r}}{\sigma_{r}} \times \sqrt{N}
+    \label{eq:sharpe_ratio}
+\end{equation}
+
+where $\overline{r}$ is the mean return, $\sigma_{r}$ is the standard deviation of returns, and N is the annualization factor (i.e., N=252 $\times$ 24 for hourly data).
+Unlike simple average returns, the compund annual growth rate (CAGR) represents the annualized geometric mean return that would provide the same final equity from the initial capital over time, 
+accounting for the compounding effect:
+
+\begin{equation}
+    \text{CAGR} = \left( \frac{E_T}{E_0} \right)^{\frac{1}{y}} - 1
+    \label{eq:cagr}
+\end{equation}
+
+where $E_T$ is the final equity, $E_0$ is the initial capital, and y is the total elapsed time in years.
+The maximum drawdown (MDD) measures the largest peak-to-trough decline in the account's history, serving as the primary indicator of absolute risk and investor pain:
+
+\begin{equation}
+    \text{MDD} = \max_{0 \leq t \leq T} \left( \frac{ \max_{0 \leq \tau \leq t} E_\tau - E_t }{ \max_{0 \leq \tau \leq t} E_\tau } \right)
+    \label{eq:mdd}
+\end{equation}
+
+where \(E_t\) is the equity at time \(t\), \(T\) is the total evaluation period, and \(\tau\) indexes all time points from the start up to the current time \(t\). 
+The inner maximum identifies the historical peak up to time \(t\), and the expression computes the percentage decline from that peak to the current equity \(E_t\). 
+The outer maximum then selects the largest such decline over the entire period.
+The profit factor (PF) measures the net profitability relative to net losses, providing a simple way to evaluate whether a strategy generates more profit than loss:
+
+\begin{equation}
+    \text{PF} = \frac{\sum_{i=1}^{n} \text{PnL}_i \cdot \mathbf{1}_{\{\text{PnL}_i > 0\}}}{\sum_{i=1}^{n} \left\|\text{PnL}_i\right\| \cdot \mathbf{1}_{\{\text{PnL}_i < 0\}}}
+    \label{eq:profit_factor}
+\end{equation}
+
+where \(\text{PnL}_i\) is the net profit or loss of the \(i\)-th trade (or period), \(n\) is the total number of trades. The numerator sums only positive outcomes, 
+while the denominator sums the absolute values of negative outcomes. A profit factor greater than 1 indicates a profitable strategy, whereas below 1 indicates a losing strategy.
+The win rate (WR) represents the proportion of trades that result in a net profit after accounting for all transaction costs, including both entry and exit fees as well as slippage. 
+Unlike a simple percentage of price-positive trades, this definition requires that the net round-trip profit strictly exceeds zero:
+
+\begin{equation}
+    \text{WR} = \frac{1}{n} \sum_{i=1}^{n} \mathbf{1}_{\{\text{PnL}_i > 0\}}
+    \label{eq:win_rate}
+\end{equation}
+
+where \(n\) is the total number of completed round-trip trades, \(\text{PnL}_i\) is the net profit or loss of the \(i\)-th trade after deducting both entry and exit transaction costs and 
+slippage, and \(\mathbf{1}_{\{\cdot\}}\) is the indicator function that equals 1 if the condition inside is true and 0 otherwise. 
+A win is strictly defined as \(\text{PnL}_i > 0\) such that trades with exactly zero net profit are not counted as wins. The win rate ranges from 0 to 1, 
+with higher values indicating a greater proportion of net-profitable trades.
+The instantaneous exposure at time \(t\) is defined as the percentage of mark-to-market equity that is deployed in active positions:
+
+\begin{equation}
+    \text{Exp}_t = \frac{\text{Notional}_t}{\text{E}_t} \times 100
+    \label{eq:exposure}
+\end{equation}
+
+where \(\text{Notional}_t\) is the total notional value of the open position at time \(t\) (calculated as \(\left\|\text{Bet} \times \text{Entry Price}\right\|\)), and 
+\(\text{E}_t\) is the mark-to-market account equity at time \(t\). Exposure values range from 0\% (fully in cash) to potentially over 100\% if leverage is employed.
+The average capital exposure (ACE) measures the time-weighted average percentage of account equity deployed in the market throughout the entire evaluation period, 
+including periods when the strategy is entirely in cash:
+
+\begin{equation}
+    \text{ACE} = \frac{1}{T} \sum_{t=1}^{T} \text{Exp}_t
+    \label{eq:avg_capital_exposure}
+\end{equation}
+
+where \(T\) is the total number of bars in the simulation and \(\text{Exp}_t\) is the instantaneous notional exposure at time \(t\) as a percentage of mark-to-market equity. 
+This metric provides a holistic view of the strategy's "market presence". A low ACE indicates a highly selective strategy that spends significant time in cash, whereas a high ACE reflects 
+a strategy with a frequent or persistent market footprint.
+The average trade size (ATS) quantifies the average capital commitment only during active trading periods. Unlike ACE, this metric excludes all bars where the portfolio is neutral, 
+thereby isolating the average intensity of the strategy's market participation when a position is actually held:
+
+\begin{equation}
+    \text{ATS} = \frac{\sum_{t=1}^{T} \text{Exp}_t \cdot \mathbf{1}_{\{\text{Exp}_t > 0\}}}{\sum_{t=1}^{T} \mathbf{1}_{\{\text{Exp}_t > 0\}}}
+    \label{eq:avg_trade_size}
+\end{equation}
+
+where \(\text{Exp}_t\) is the instantaneous exposure and \(\mathbf{1}_{\{\cdot\}}\) is the indicator function. The denominator represents the total number of bars during which the 
+strategy held an active position (\(\text{Exp}_t > 0\)). This metric is critical for evaluating the "typical" risk profile of the strategy's active bets, 
+specifically how risk-management guardrails and conformal conviction scaling modulate position sizes in accordance with the strength of the statistical evidence.
+The minimum track record length (MinTRL) defines the number of observations required to reject the null hypothesis that the observed Sharpe ratio is less than or equal to a target 
+benchmark \(\text{SR}^*\) at a given significance level \(\alpha\). Developed by \textcite[see Eq. 13]{bailey_sharpe_2012}, MinTRL accounts for the non-normality of financial returns by 
+incorporating the skewness and kurtosis of the return distribution:
+
+\begin{equation}
+    \text{MinTRL} = 1 + \left[ 1 - \hat{\gamma}_3 \widehat{\text{SR}} + \frac{\hat{\gamma}_4 - 1}{4} \widehat{\text{SR}}^2 \right] \left( \frac{Z_{\alpha}}{\widehat{\text{SR}} - \text{SR}^*} \right)^2
+    \label{eq:mintrl}
+\end{equation}
+
+where \(\widehat{\text{SR}}\) is the observed non-annualized Sharpe ratio, \(\text{SR}^*\) is the non-annualized benchmark Sharpe ratio (typically 0), 
+\(\hat{\gamma}_3\) and \(\hat{\gamma}_4\) are the skewness and Pearson kurtosis of the returns respectively, and \(Z_{\alpha}\) is the critical value for the \(1-\alpha\) quantile of the 
+standard normal distribution. This metric provides a critical verification hurdle for backtest results. If the actual duration of the simulation is shorter than the computed MinTRL, 
+the observed performance is considered statistically insufficient to distinguish the strategy's edge from random chance.
+
+
+\section{Tournament}\label{app:tournament}
+\subsection{Pair- and Model-Specific Parameter Discovery}
+\input{data/tables/tournament/trading_hps_table/hps_ExtraTrees_tournament.tex}
+\input{data/tables/tournament/trading_hps_table/hps_GRU_tournament.tex}
+\input{data/tables/tournament/trading_hps_table/hps_LightGBM_tournament.tex}
+\input{data/tables/tournament/trading_hps_table/hps_LSTM_tournament.tex}
+\input{data/tables/tournament/trading_hps_table/hps_XGBoost_tournament.tex}
+
+\subsection{Model-Specific Backtest Results}
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_ExtraTrees_part1.png}
+        \caption{Tournament Result}
+        \label{fig:tournament_results_ExtraTrees_1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_ExtraTrees_part2.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_ExtraTrees_2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_ExtraTrees_part3.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_ExtraTrees_3}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_ExtraTrees_part4.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_ExtraTrees_4}
+    \end{minipage}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_GRU_part1.png}
+        \caption{Tournament Result}
+        \label{fig:tournament_results_GRU_1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_GRU_part2.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_GRU_2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_GRU_part3.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_GRU_3}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_GRU_part4.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_GRU_4}
+    \end{minipage}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_LightGBM_part1.png}
+        \caption{Tournament Result}
+        \label{fig:tournament_results_LightGBM_1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_LightGBM_part2.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_LightGBM_2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_LightGBM_part3.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_LightGBM_3}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_LightGBM_part4.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_LightGBM_4}
+    \end{minipage}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_LSTM_part1.png}
+        \caption{Tournament Result}
+        \label{fig:tournament_results_LSTM_1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_LSTM_part2.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_LSTM_2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_LSTM_part3.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_LSTM_3}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_LSTM_part4.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_LSTM_4}
+    \end{minipage}
+\end{figure}
+
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_XGBoost_part1.png}
+        \caption{Tournament Result}
+        \label{fig:tournament_results_XGBoost_1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_XGBoost_part2.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_XGBoost_2}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_XGBoost_part3.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_XGBoost_3}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{data/figures/backtests/tournament_results_XGBoost_part4.png}
+        \caption{Tournament Result (continued)}
+        \label{fig:tournament_results_XGBoost_4}
+    \end{minipage}
+\end{figure}
+
+
+\subsection{Granular Performance of Other Models}
+\input{data/tables/tournament/performance_tables/perf_ExtraTrees_tournament.tex}
+\input{data/tables/tournament/performance_tables/perf_GRU_tournament.tex}
+\input{data/tables/tournament/performance_tables/perf_LightGBM_tournament.tex}
+\input{data/tables/tournament/performance_tables/perf_LSTM_tournament.tex}
+\input{data/tables/tournament/performance_tables/perf_XGBoost_tournament.tex}
+
+\subsection{Strategy Comparison of Other Models}
+\input{data/tables/tournament/strategy_comparison/strategy_comp_ExtraTrees_tournament.tex}
+\input{data/tables/tournament/strategy_comparison/strategy_comp_GRU_tournament.tex}
+\input{data/tables/tournament/strategy_comparison/strategy_comp_LightGBM_tournament.tex}
+\input{data/tables/tournament/strategy_comparison/strategy_comp_LSTM_tournament.tex}
+\input{data/tables/tournament/strategy_comparison/strategy_comp_XGBoost_tournament.tex}
+
+\section{Production Model}\label{app:second}
+\subsection{Production Model Feature Selection}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/feature_selection/Production_nested_correlation_heatmap.png}
+    \caption{Production Correlation Filtering}
+    \label{fig:prod corr filter}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/feature_selection/Production_nested_feature_importances_RandomForest.png}
+    \caption{Production Feature Importance Filtering}
+    \label{fig:prod featimp filter}
+\end{figure}
+
+\subsection{Production Model-Trading Parameter Cascade}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/optimization/distributions/production_financial_dists_RandomForest.png}
+    \caption{Production Statistic Distributions}
+    \label{fig:prod stat distributions}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/optimization/production/RandomForest/opt_history_model_randomforest.png}
+    \caption{Optimization History RandomForest}
+    \label{fig:opt hist rf}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/optimization/production/RandomForest/opt_history_trading_(best)_randomforest.png}
+    \caption{Optimization History Trading (Best) RandomForest}
+    \label{fig:opt hist trading rf}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/optimization/production/RandomForest/parallel_coordinate_model_randomforest.png}
+    \caption{Optimization Parallel Coordinate Model RandomForest}
+    \label{fig:opt parallel coordinate model rf}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/optimization/production/RandomForest/parallel_coordinate_trading_(best)_randomforest.png}
+    \caption{Optimization Parallel Coordinate Model Trading (Best) RandomForest}
+    \label{fig:opt parallel coordinate model trading rf}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/optimization/production/RandomForest/param_importance_trading_(best)_randomforest.png}
+    \caption{Optimization Parameter Importance Trading (Best) RandomForest}
+    \label{fig:opt param importance trading rf}
+\end{figure}
+
+
+\subsection{Conformal Filtering}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/conformal_predictions/Production_conformal_predictions.png}
+    \caption{Conformal Predictions Production}
+    \label{fig:prod conf preds}
+\end{figure}
+
+\subsection{Confusion Matrices}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/confusion_matrices/Production_nested_confusion_matrices.png}
+    \caption{Confusion Matrices Production}
+    \label{fig:prod confusion matrices}
+\end{figure}
+
+\subsection{Reliability Diagrams}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\linewidth]{data/figures/reliability_diagrams/Production_reliability_diagrams.png}
+    \caption{Reliability Curves Production}
+    \label{fig:prod reliability curves}
+\end{figure}
+
+\end{document}

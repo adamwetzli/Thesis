@@ -1,0 +1,288 @@
+================================================================================
+MODEL PERFORMANCE LEADERBOARD
+Generated: 2026-05-12 15:47:02
+================================================================================
+
+QUICK COMPARISON TABLE (Mean +/- StdDev)
+--------------------------------------------------------------------------------
+Model                | total_return | sharpe       | probabilisti | min_trl      | max_dd       | 
+--------------------------------------------------------------------------------
+RandomForest         | 0.0090+/-0.0029 | 1.9164+/-0.2573 | 0.4012+/-0.1290 |    inf+/-nan    | -0.0066+/-0.0057 | 
+ExtraTrees           | 0.0022+/-0.0001 | 2.4268+/-0.4350 | 0.5081+/-0.1547 |    inf+/-nan    | -0.0006+/-0.0002 | 
+XGBoost              | 0.0077+/-0.0026 | 2.2955+/-0.4400 | 0.5387+/-0.0874 |    inf+/-nan    | -0.0025+/-0.0008 | 
+LightGBM             | 0.0092+/-0.0017 | 2.2036+/-0.3845 | 0.4655+/-0.0351 |    inf+/-nan    | -0.0056+/-0.0045 | 
+LSTM                 | 0.0050+/-0.0026 | 0.8100+/-1.0027 | 0.3558+/-0.1174 |    inf+/-nan    | -0.0087+/-0.0071 | 
+GRU                  | 0.0046+/-0.0035 | 1.3018+/-0.6427 | 0.3031+/-0.2124 |    inf+/-nan    | -0.0048+/-0.0046 | 
+
+================================================================================
+
+DETAILED STATISTICS BY MODEL
+================================================================================
+
+>>> MODEL: RANDOMFOREST
+--------------------------------------------------------------------------------
+Statistic                 |       Mean |     StdDev |        Min |        Max |  Count
+--------------------------------------------------------------------------------
+total_return              |     0.0090 |     0.0029 |     0.0061 |     0.0119 |      2
+sharpe                    |     1.9164 |     0.2573 |     1.6591 |     2.1736 |      2
+probabilistic_sharpe      |     0.4012 |     0.1290 |     0.2722 |     0.5303 |      2
+min_trl                   |        inf |        nan |        inf |        inf |      2
+max_dd                    |    -0.0066 |     0.0057 |    -0.0123 |    -0.0009 |      2
+cagr                      |     0.0617 |     0.0251 |     0.0366 |     0.0869 |      2
+win_rate                  |     0.4678 |     0.2621 |     0.2058 |     0.7299 |      2
+profit_factor             |     1.8236 |     0.1618 |     1.6618 |     1.9855 |      2
+n_trades                  |       41.6 |       22.1 |         20 |         64 |      2
+avg_capital_exposure      |    11.5464 |     6.8155 |     4.7309 |    18.3618 |      2
+avg_trade_size            |    21.7477 |    11.5286 |    10.2191 |    33.2764 |      2
+deflated_sharpe           |     0.2899 |     0.0214 |     0.2685 |     0.3113 |      2
+deflated_min_trl          |        inf |        nan |        inf |        inf |      2
+pfdr                      |     1.0000 |     0.0000 |     1.0000 |     1.0000 |      2
+m2_brier                  |     0.2488 |     0.0034 |     0.2454 |     0.2521 |      2
+
+--------------------------------------------------------------------------------
+
+Raw Data (last 10 values shown):
+  total_return           : [np.float64(0.011871160394575354), np.float64(0.0060673694590499235)]
+  sharpe                 : [np.float64(1.6590909090909092), np.float64(2.173636363636364)]
+  probabilistic_sharpe   : [np.float64(0.5302636363636364), np.float64(0.2721727272727273)]
+  min_trl                : [np.float64(inf), np.float64(inf)]
+  max_dd                 : [np.float64(-0.012281818181818182), np.float64(-0.0008727272727272728)]
+  cagr                   : [np.float64(0.08686363636363637), np.float64(0.03661818181818182)]
+  win_rate               : [np.float64(0.7299), np.float64(0.20575454545454547)]
+  profit_factor          : [np.float64(1.9854545454545454), np.float64(1.6618181818181819)]
+  n_trades               : [np.float64(63.72727272727273), np.float64(19.545454545454547)]
+  avg_capital_exposure   : [np.float64(18.36181818181818), np.float64(4.730909090909091)]
+  avg_trade_size         : [np.float64(33.27636363636364), np.float64(10.21909090909091)]
+  deflated_sharpe        : [np.float64(0.31133636363636363), np.float64(0.2684909090909091)]
+  deflated_min_trl       : [np.float64(inf), np.float64(inf)]
+  pfdr                   : [np.float64(1.0), np.float64(1.0)]
+  m2_brier               : [np.float64(0.25212189842096494), np.float64(0.2453882695566253)]
+
+================================================================================
+
+>>> MODEL: EXTRATREES
+--------------------------------------------------------------------------------
+Statistic                 |       Mean |     StdDev |        Min |        Max |  Count
+--------------------------------------------------------------------------------
+total_return              |     0.0022 |     0.0001 |     0.0022 |     0.0023 |      2
+sharpe                    |     2.4268 |     0.4350 |     1.9918 |     2.8618 |      2
+probabilistic_sharpe      |     0.5081 |     0.1547 |     0.3533 |     0.6628 |      2
+min_trl                   |        inf |        nan |        inf |        inf |      2
+max_dd                    |    -0.0006 |     0.0002 |    -0.0008 |    -0.0004 |      2
+cagr                      |     0.0131 |     0.0005 |     0.0126 |     0.0136 |      2
+win_rate                  |     0.4428 |     0.1286 |     0.3143 |     0.5714 |      2
+profit_factor             |        inf |        nan |     1.7609 |        inf |      2
+n_trades                  |       41.1 |       20.8 |         20 |         62 |      2
+avg_capital_exposure      |     2.0927 |     0.3982 |     1.6945 |     2.4909 |      2
+avg_trade_size            |     4.8400 |     0.8400 |     4.0000 |     5.6800 |      2
+deflated_sharpe           |     0.3361 |     0.0593 |     0.2768 |     0.3953 |      2
+deflated_min_trl          |        inf |        nan |        inf |        inf |      2
+pfdr                      |     1.0000 |     0.0000 |     1.0000 |     1.0000 |      2
+m2_brier                  |     0.2472 |     0.0012 |     0.2460 |     0.2485 |      2
+
+--------------------------------------------------------------------------------
+
+Raw Data (last 10 values shown):
+  total_return           : [np.float64(0.002155781484553693), np.float64(0.0023413123395693266)]
+  sharpe                 : [np.float64(2.8618181818181823), np.float64(1.991818181818182)]
+  probabilistic_sharpe   : [np.float64(0.6627909090909091), np.float64(0.35331818181818186)]
+  min_trl                : [np.float64(inf), np.float64(inf)]
+  max_dd                 : [np.float64(-0.0007818181818181818), np.float64(-0.0004090909090909091)]
+  cagr                   : [np.float64(0.012581818181818182), np.float64(0.013636363636363636)]
+  win_rate               : [np.float64(0.5714090909090909), np.float64(0.31428181818181816)]
+  profit_factor          : [np.float64(1.760909090909091), np.float64(inf)]
+  n_trades               : [np.float64(61.90909090909091), np.float64(20.272727272727273)]
+  avg_capital_exposure   : [np.float64(1.6945454545454546), np.float64(2.4909090909090907)]
+  avg_trade_size         : [np.float64(4.0), np.float64(5.680000000000001)]
+  deflated_sharpe        : [np.float64(0.3953181818181818), np.float64(0.2768)]
+  deflated_min_trl       : [np.float64(inf), np.float64(inf)]
+  pfdr                   : [np.float64(1.0), np.float64(1.0)]
+  m2_brier               : [np.float64(0.2484762577687745), np.float64(0.24597844236814878)]
+
+================================================================================
+
+>>> MODEL: XGBOOST
+--------------------------------------------------------------------------------
+Statistic                 |       Mean |     StdDev |        Min |        Max |  Count
+--------------------------------------------------------------------------------
+total_return              |     0.0077 |     0.0026 |     0.0050 |     0.0103 |      2
+sharpe                    |     2.2955 |     0.4400 |     1.8555 |     2.7355 |      2
+probabilistic_sharpe      |     0.5387 |     0.0874 |     0.4513 |     0.6261 |      2
+min_trl                   |        inf |        nan |        inf |        inf |      2
+max_dd                    |    -0.0025 |     0.0008 |    -0.0032 |    -0.0017 |      2
+cagr                      |     0.0478 |     0.0167 |     0.0311 |     0.0645 |      2
+win_rate                  |     0.5307 |     0.1857 |     0.3451 |     0.7164 |      2
+profit_factor             |        inf |        nan |     2.1727 |        inf |      2
+n_trades                  |       47.3 |        9.0 |         38 |         56 |      2
+avg_capital_exposure      |     8.9595 |     3.0841 |     5.8755 |    12.0436 |      2
+avg_trade_size            |    27.3805 |    13.0895 |    14.2909 |    40.4700 |      2
+deflated_sharpe           |     0.4070 |     0.0566 |     0.3504 |     0.4636 |      2
+deflated_min_trl          |        inf |        nan |        inf |        inf |      2
+pfdr                      |     1.0000 |     0.0000 |     1.0000 |     1.0000 |      2
+m2_brier                  |     0.2459 |     0.0005 |     0.2453 |     0.2464 |      2
+
+--------------------------------------------------------------------------------
+
+Raw Data (last 10 values shown):
+  total_return           : [np.float64(0.005037829345514263), np.float64(0.010290955102713979)]
+  sharpe                 : [np.float64(2.7354545454545454), np.float64(1.8554545454545452)]
+  probabilistic_sharpe   : [np.float64(0.6261090909090908), np.float64(0.4513272727272728)]
+  min_trl                : [np.float64(inf), np.float64(inf)]
+  max_dd                 : [np.float64(-0.0032181818181818175), np.float64(-0.0017090909090909088)]
+  cagr                   : [np.float64(0.031127272727272726), np.float64(0.06451818181818182)]
+  win_rate               : [np.float64(0.716390909090909), np.float64(0.34507272727272725)]
+  profit_factor          : [np.float64(2.1727272727272724), np.float64(inf)]
+  n_trades               : [np.float64(56.27272727272727), np.float64(38.36363636363637)]
+  avg_capital_exposure   : [np.float64(5.875454545454545), np.float64(12.043636363636363)]
+  avg_trade_size         : [np.float64(14.29090909090909), np.float64(40.47)]
+  deflated_sharpe        : [np.float64(0.46357272727272725), np.float64(0.3504)]
+  deflated_min_trl       : [np.float64(inf), np.float64(inf)]
+  pfdr                   : [np.float64(1.0), np.float64(1.0)]
+  m2_brier               : [np.float64(0.24639534991793777), np.float64(0.2453156361274291)]
+
+================================================================================
+
+>>> MODEL: LIGHTGBM
+--------------------------------------------------------------------------------
+Statistic                 |       Mean |     StdDev |        Min |        Max |  Count
+--------------------------------------------------------------------------------
+total_return              |     0.0092 |     0.0017 |     0.0075 |     0.0109 |      2
+sharpe                    |     2.2036 |     0.3845 |     1.8191 |     2.5882 |      2
+probabilistic_sharpe      |     0.4655 |     0.0351 |     0.4304 |     0.5005 |      2
+min_trl                   |        inf |        nan |        inf |        inf |      2
+max_dd                    |    -0.0056 |     0.0045 |    -0.0102 |    -0.0011 |      2
+cagr                      |     0.0606 |     0.0149 |     0.0457 |     0.0754 |      2
+win_rate                  |     0.5389 |     0.1360 |     0.4029 |     0.6748 |      2
+profit_factor             |        inf |        nan |     6.8209 |        inf |      2
+n_trades                  |       25.0 |        2.2 |         23 |         27 |      2
+avg_capital_exposure      |     8.6564 |     0.9800 |     7.6764 |     9.6364 |      2
+avg_trade_size            |    29.6155 |    10.9555 |    18.6600 |    40.5709 |      2
+deflated_sharpe           |     0.3624 |     0.0030 |     0.3595 |     0.3654 |      2
+deflated_min_trl          |        inf |        nan |        inf |        inf |      2
+pfdr                      |     1.0000 |     0.0000 |     1.0000 |     1.0000 |      2
+m2_brier                  |     0.2481 |     0.0019 |     0.2462 |     0.2499 |      2
+
+--------------------------------------------------------------------------------
+
+Raw Data (last 10 values shown):
+  total_return           : [np.float64(0.01086552221092595), np.float64(0.00754298819319949)]
+  sharpe                 : [np.float64(1.8190909090909093), np.float64(2.588181818181818)]
+  probabilistic_sharpe   : [np.float64(0.5005454545454545), np.float64(0.43041818181818187)]
+  min_trl                : [np.float64(inf), np.float64(inf)]
+  max_dd                 : [np.float64(-0.010154545454545454), np.float64(-0.0011454545454545454)]
+  cagr                   : [np.float64(0.07541818181818181), np.float64(0.045690909090909095)]
+  win_rate               : [np.float64(0.6748454545454545), np.float64(0.4029)]
+  profit_factor          : [np.float64(6.820909090909091), np.float64(inf)]
+  n_trades               : [np.float64(27.181818181818183), np.float64(22.727272727272727)]
+  avg_capital_exposure   : [np.float64(9.636363636363635), np.float64(7.676363636363636)]
+  avg_trade_size         : [np.float64(40.5709090909091), np.float64(18.66)]
+  deflated_sharpe        : [np.float64(0.3594636363636364), np.float64(0.36537272727272724)]
+  deflated_min_trl       : [np.float64(inf), np.float64(inf)]
+  pfdr                   : [np.float64(1.0), np.float64(1.0)]
+  m2_brier               : [np.float64(0.24994480630210314), np.float64(0.24619797736171478)]
+
+================================================================================
+
+>>> MODEL: LSTM
+--------------------------------------------------------------------------------
+Statistic                 |       Mean |     StdDev |        Min |        Max |  Count
+--------------------------------------------------------------------------------
+total_return              |     0.0050 |     0.0026 |     0.0024 |     0.0076 |      2
+sharpe                    |     0.8100 |     1.0027 |    -0.1927 |     1.8127 |      2
+probabilistic_sharpe      |     0.3558 |     0.1174 |     0.2384 |     0.4733 |      2
+min_trl                   |        inf |        nan |        inf |        inf |      2
+max_dd                    |    -0.0087 |     0.0071 |    -0.0158 |    -0.0016 |      2
+cagr                      |     0.0327 |     0.0146 |     0.0181 |     0.0473 |      2
+win_rate                  |     0.3828 |     0.1580 |     0.2248 |     0.5408 |      2
+profit_factor             |        inf |        nan |     1.0873 |        inf |      2
+n_trades                  |       17.7 |        4.5 |         13 |         22 |      2
+avg_capital_exposure      |    13.1127 |     6.4464 |     6.6664 |    19.5591 |      2
+avg_trade_size            |    28.5086 |    13.6823 |    14.8264 |    42.1909 |      2
+deflated_sharpe           |     0.2899 |     0.0866 |     0.2033 |     0.3765 |      2
+deflated_min_trl          |        inf |        nan |        inf |        inf |      2
+pfdr                      |     1.0000 |     0.0000 |     1.0000 |     1.0000 |      2
+m2_brier                  |     0.2473 |     0.0021 |     0.2452 |     0.2495 |      2
+
+--------------------------------------------------------------------------------
+
+Raw Data (last 10 values shown):
+  total_return           : [np.float64(0.002389302753083941), np.float64(0.007596768208021374)]
+  sharpe                 : [np.float64(-0.1927272727272727), np.float64(1.8127272727272727)]
+  probabilistic_sharpe   : [np.float64(0.47325454545454543), np.float64(0.23836363636363636)]
+  min_trl                : [np.float64(inf), np.float64(inf)]
+  max_dd                 : [np.float64(-0.015763636363636365), np.float64(-0.0016454545454545457)]
+  cagr                   : [np.float64(0.018109090909090908), np.float64(0.04728181818181818)]
+  win_rate               : [np.float64(0.5408272727272727), np.float64(0.22477272727272724)]
+  profit_factor          : [np.float64(inf), np.float64(1.0872727272727274)]
+  n_trades               : [np.float64(22.181818181818183), np.float64(13.272727272727273)]
+  avg_capital_exposure   : [np.float64(19.55909090909091), np.float64(6.666363636363636)]
+  avg_trade_size         : [np.float64(42.19090909090909), np.float64(14.826363636363634)]
+  deflated_sharpe        : [np.float64(0.3765181818181818), np.float64(0.20328181818181817)]
+  deflated_min_trl       : [np.float64(inf), np.float64(inf)]
+  pfdr                   : [np.float64(1.0), np.float64(1.0)]
+  m2_brier               : [np.float64(0.24946430056653596), np.float64(0.24522087873402046)]
+
+================================================================================
+
+>>> MODEL: GRU
+--------------------------------------------------------------------------------
+Statistic                 |       Mean |     StdDev |        Min |        Max |  Count
+--------------------------------------------------------------------------------
+total_return              |     0.0046 |     0.0035 |     0.0011 |     0.0081 |      2
+sharpe                    |     1.3018 |     0.6427 |     0.6591 |     1.9445 |      2
+probabilistic_sharpe      |     0.3031 |     0.2124 |     0.0907 |     0.5154 |      2
+min_trl                   |        inf |        nan |        inf |        inf |      2
+max_dd                    |    -0.0048 |     0.0046 |    -0.0095 |    -0.0002 |      2
+cagr                      |     0.0306 |     0.0243 |     0.0063 |     0.0549 |      2
+win_rate                  |     0.4011 |     0.3192 |     0.0820 |     0.7203 |      2
+profit_factor             |        inf |        nan |     0.2936 |        inf |      2
+n_trades                  |       18.2 |       12.7 |          6 |         31 |      2
+avg_capital_exposure      |     7.2845 |     5.7536 |     1.5309 |    13.0382 |      2
+avg_trade_size            |    17.6100 |    14.0091 |     3.6009 |    31.6191 |      2
+deflated_sharpe           |     0.2382 |     0.1481 |     0.0901 |     0.3863 |      2
+deflated_min_trl          |        inf |        nan |        inf |        inf |      2
+pfdr                      |     1.0000 |     0.0000 |     1.0000 |     1.0000 |      2
+m2_brier                  |     0.2506 |     0.0039 |     0.2467 |     0.2546 |      2
+
+--------------------------------------------------------------------------------
+
+Raw Data (last 10 values shown):
+  total_return           : [np.float64(0.008056151570944555), np.float64(0.0010842326006904096)]
+  sharpe                 : [np.float64(1.9445454545454546), np.float64(0.6590909090909091)]
+  probabilistic_sharpe   : [np.float64(0.5154454545454545), np.float64(0.09068181818181818)]
+  min_trl                : [np.float64(inf), np.float64(inf)]
+  max_dd                 : [np.float64(-0.009463636363636365), np.float64(-0.0002)]
+  cagr                   : [np.float64(0.05485454545454545), np.float64(0.006309090909090909)]
+  win_rate               : [np.float64(0.7203272727272728), np.float64(0.08196363636363636)]
+  profit_factor          : [np.float64(inf), np.float64(0.29363636363636364)]
+  n_trades               : [np.float64(30.90909090909091), np.float64(5.545454545454546)]
+  avg_capital_exposure   : [np.float64(13.038181818181817), np.float64(1.530909090909091)]
+  avg_trade_size         : [np.float64(31.61909090909091), np.float64(3.600909090909091)]
+  deflated_sharpe        : [np.float64(0.3863), np.float64(0.09013636363636364)]
+  deflated_min_trl       : [np.float64(inf), np.float64(inf)]
+  pfdr                   : [np.float64(1.0), np.float64(1.0)]
+  m2_brier               : [np.float64(0.25455542624279826), np.float64(0.24674202124864086)]
+
+================================================================================
+
+RANKING SUMMARY (Best performer per metric)
+--------------------------------------------------------------------------------
+total_return             : HIGHER_IS_BETTER = True  BEST = LightGBM        (0.0092)
+sharpe                   : HIGHER_IS_BETTER = True  BEST = ExtraTrees      (2.4268)
+probabilistic_sharpe     : HIGHER_IS_BETTER = True  BEST = XGBoost         (0.5387)
+min_trl                  : HIGHER_IS_BETTER = False BEST = None            (inf)
+max_dd                   : HIGHER_IS_BETTER = True  BEST = ExtraTrees      (-0.0006)
+cagr                     : HIGHER_IS_BETTER = True  BEST = RandomForest    (0.0617)
+win_rate                 : HIGHER_IS_BETTER = True  BEST = LightGBM        (0.5389)
+profit_factor            : HIGHER_IS_BETTER = True  BEST = ExtraTrees      (inf)
+n_trades                 : HIGHER_IS_BETTER = False BEST = LSTM            (17.7273)
+avg_capital_exposure     : HIGHER_IS_BETTER = False BEST = ExtraTrees      (2.0927)
+avg_trade_size           : HIGHER_IS_BETTER = False BEST = ExtraTrees      (4.8400)
+deflated_sharpe          : HIGHER_IS_BETTER = True  BEST = XGBoost         (0.4070)
+deflated_min_trl         : HIGHER_IS_BETTER = False BEST = None            (inf)
+pfdr                     : HIGHER_IS_BETTER = False BEST = RandomForest    (1.0000)
+m2_brier                 : HIGHER_IS_BETTER = False BEST = XGBoost         (0.2459)
+
+================================================================================
+END OF REPORT
+================================================================================

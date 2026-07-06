@@ -1,0 +1,24 @@
+\begin{table}[H]
+\centering
+\caption{{Ranking Summary - Best Performer per Metric (Tournament Phase)}}
+\label{tab:ranking_tournament}
+\resizebox{\textwidth}{!}{\begin{tabular}{llll}
+\toprule
+Metric & Higher is Better & Best Model & Best Value \\
+\midrule
+Total Return (\%) & Yes & XGBoost & $0.0196$ \\
+Sharpe Ratio & Yes & XGBoost & $2.4727$ \\
+Probabilistic Sharpe (\%) & Yes & XGBoost & $0.4690$ \\
+Max Drawdown (\%) & Yes & RandomForest & $-0.0043$ \\
+CAGR (\%) & Yes & XGBoost & $0.1663$ \\
+Win Rate (\%) & Yes & XGBoost & $0.4389$ \\
+Profit Factor & Yes & XGBoost & $inf$ \\
+Number of Trades & No & GRU & $13.9545$ \\
+Avg Capital Exposure & No & GRU & $10.1123$ \\
+Avg Trade Size & No & ExtraTrees & $21.4973$ \\
+Deflated Sharpe & Yes & XGBoost & $0.3766$ \\
+PFDR & No & RandomForest & $1.0000$ \\
+M2 Brier & No & XGBoost & $0.2463$ \\
+\\ \midrule \textbf{Overall RRF Winner} & & \textbf{XGBoost} & \textbf{Score: 0.2083} \\\bottomrule
+\end{tabular}}
+\end{table}

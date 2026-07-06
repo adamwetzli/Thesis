@@ -1,0 +1,86 @@
+classDiagram
+    direction TB
+
+    namespace DomainLayer {
+        class MarketData {
+            <<dataclass>>
+            +symbol: str
+            +timestamp: datetime
+            +ohlcv: DataFrame
+        }
+        class Signal {
+            <<dataclass>>
+            +symbol: str
+            +direction: int
+            +confidence: float
+            +metadata: dict
+        }
+    }
+
+    namespace DataLayer {
+        class IDataProvider {
+            <<interface>>
+            +get_candles(symbol, timeframe) MarketData
+        }
+        class LMAX_ExchangeProvider { +get_candles() }
+        class BloombergProvider { +get_candles() }
+        class IBKR_MarketDataFeed { +get_candles() }
+        class PolygonProvider { +get_candles() }
+    }
+
+    IDataProvider <|-- LMAX_ExchangeProvider
+    IDataProvider <|-- BloombergProvider
+    IDataProvider <|-- IBKR_MarketDataFeed
+    IDataProvider <|-- PolygonProvider
+
+    namespace StrategyLayer {
+        class IStrategy {
+            <<interface>>
+            +generate_signal(MarketData) Signal
+        }
+        class ML_Strategy {
+            -BaseModel m1
+            -BaseModel m2
+            +generate_signal()
+        }
+        class ArbitrageStrategy {
+            +generate_signal()
+        }
+        class ConformalVetoDecorator {
+            -IStrategy inner_strategy
+            -BaseModel m2_conformal
+            +generate_signal()
+        }
+    }
+
+    IStrategy <|-- ML_Strategy
+    IStrategy <|-- ArbitrageStrategy
+    IStrategy <|-- ConformalVetoDecorator
+    ConformalVetoDecorator o-- IStrategy : wraps
+
+    namespace ExecutionLayer {
+        class IExecutionEngine {
+            <<interface>>
+            +send_order(Signal)
+        }
+        class BacktestSimEngine { +send_order() }
+        class IBKR_TWS_API { +send_order() }
+        class MT5_Bridge { +send_order() }
+    }
+
+    IExecutionEngine <|-- BacktestSimEngine
+    IExecutionEngine <|-- IBKR_TWS_API
+    IExecutionEngine <|-- MT5_Bridge
+
+    class TradingSystemFacade {
+        -IDataProvider data_feed
+        -IStrategy strategy_pipeline
+        -IExecutionEngine broker_api
+        +run_tick()
+    }
+
+    TradingSystemFacade --> IDataProvider : fetches
+    TradingSystemFacade --> IStrategy : consults
+    TradingSystemFacade --> IExecutionEngine : executes
+
+    note "<b>Legend</b>\n<|-- Inheritance (Implementation)\n--> Association (Usage)\no-- Aggregation (Decorator)"

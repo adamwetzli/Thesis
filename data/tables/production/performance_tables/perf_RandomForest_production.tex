@@ -1,0 +1,26 @@
+\begin{sidewaystable}
+\centering
+\caption{{Granular Performance Analysis RandomForest (Production Phase)}}
+\label{tab:perf_RandomForest_production}
+\resizebox{\textwidth}{!}{\begin{tabular}{llllllllllllllll}
+\toprule
+Fold & Metric & AUDUSD & EURUSD & GBPUSD & NZDUSD & USDCAD & USDCHF & USDCNH & USDJPY & USDMXN & USDTRY & USDZAR & Average & StDev & Interpretation \\
+\midrule
+Fold 1 & total return & -0.0020 & -0.0013 & 0.0041 & -0.01 & -0.0030 & -0.01 & 0.04 & 0.0033 & 0.21 & 0.06 & 0.11 & 0.04 & 0.07 &  \\
+ & sharpe & -4.16 & -0.97 & 0.54 & -1.08 & -0.43 & -1.55 & 5.94 & 0.99 & 8.69 & 10.09 & 5.22 & 2.12 & 4.41 &  \\
+ & probabilistic sharpe & 0.0031 & 0.33 & 0.59 & 0.32 & 0.42 & 0.25 & 1.00 & 0.67 & 1.00 & 1.00 & 0.99 & 0.60 & 0.34 &  \\
+ & min trl & inf & inf & 55859.00 & inf & inf & inf & 308.00 & 16634.00 & 216.00 & 182.00 & 619.00 & inf & nan &  \\
+ & max dd & -0.0021 & -0.0034 & -0.02 & -0.03 & -0.02 & -0.03 & -0.0070 & -0.0079 & -0.02 & -0.0062 & -0.03 & -0.02 & 0.01 &  \\
+ & cagr & -0.01 & -0.0068 & 0.02 & -0.06 & -0.02 & -0.07 & 0.21 & 0.02 & 1.68 & 0.34 & 0.72 & 0.26 & 0.50 &  \\
+ & win rate & 0.0000 & 0.33 & 0.59 & 0.52 & 0.41 & 0.47 & 0.50 & 0.33 & 0.66 & 0.69 & 0.59 & 0.46 & 0.19 &  \\
+ & profit factor & 0.0000 & 0.52 & 1.12 & 0.90 & 0.93 & 0.74 & 2.54 & 1.15 & 2.07 & 2.52 & 1.67 & 1.29 & 0.78 &  \\
+ & n trades & 2.00 & 3.00 & 39.00 & 27.00 & 80.00 & 70.00 & 64.00 & 40.00 & 292.00 & 298.00 & 211.00 & 102.36 & 105.57 &  \\
+ & avg capital exposure & 0.33 & 1.64 & 44.48 & 41.41 & 33.24 & 53.28 & 50.18 & 11.03 & 91.51 & 71.48 & 48.73 & 40.66 & 26.88 &  \\
+ & avg trade size & 22.66 & 92.55 & 53.22 & 61.30 & 79.72 & 58.88 & 63.57 & 31.77 & 91.59 & 71.73 & 48.77 & 61.43 & 21.19 &  \\
+ & deflated sharpe & 0.0001 & 0.12 & 0.31 & 0.11 & 0.18 & 0.08 & 0.99 & 0.38 & 1.00 & 1.00 & 0.94 & 0.46 & 0.40 &  \\
+ & deflated min trl & inf & inf & inf & inf & inf & inf & 597.00 & inf & 332.00 & 262.00 & 1343.00 & inf & nan &  \\
+ & pfdr & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 0.0000 &  \\
+ & m2 brier & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.0000 &  \\
+\bottomrule
+\end{tabular}}
+\end{sidewaystable}

@@ -1,0 +1,70 @@
+flowchart TB
+    subgraph COL1["<b><big>Data Preparation</big></b>"]
+        direction LR
+        SPACER1[" "]
+        SPACER1 ~~~ S1
+        S1["Raw Forex Data<br>openBB, Dukascopy, Merge"]
+        S2["Cleaning and Sanity Checks"]
+        S3["Feature Engineering<br>TBM MLP Labels<br>(y_side, y_truth)"]
+        S4["Global Split<br>Train Set | Test Set"]
+        S1-->S2-->S3-->S4
+    end
+
+    subgraph COL2["<b><big>Phase 1: Nested WFV Tournament Entirely on Global Train Set (Global Test Set Untouched)</big></b>"]
+        direction LR
+        SPACER2[" "]
+        SPACER2 ~~~ P1_A
+        P1_A["Split into n Outer Folds"]
+        P1_B["For Each Outer Fold:<br>Fit Preprocessor on Outer Train"]
+        P1_C["For Each Architecture:<br>Cross-Validated HPO<br>(Model + Trading Parameters)"]
+        P1_D["Train Final M1 + M2<br>on Outer Training Fold"]
+        P1_E["Evaluate on Outer Test Block<br>with Conformal Filtering"]
+        P1_F["Aggregate Leaderboard & Plots"]
+        P1_A-->P1_B-->P1_C-->P1_D-->P1_E-->P1_F
+    end
+
+    subgraph COL3["<b><big>Phase 2: Production Refinement of Winner Model on Full Global Train (Global Test Set Used)</big></b>"]
+        direction LR
+        SPACER3[" "]
+        SPACER3 ~~~ P2_A
+        P2_A["Select Tournament Winner"]
+        P2_B["Fit Preprocessor on Full Global Train Set"]
+        P2_C["Final Cross-Validated HPO<br>(Model + Trading Parameters)"]
+        P2_D["Train Final M1 + M2<br>on Full Global Training Fold"]
+        P2_E["Evaluate on Untouched Global Test Set<br>with Conformal Filtering"]
+        P2_F["Save Production Artifact<br>& Final Metrics"]
+        P2_A-->P2_B-->P2_C-->P2_D-->P2_E-->P2_F
+    end
+
+    COL1-->COL2-->COL3
+
+    classDef col1 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20
+    classDef col2 fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1
+    classDef col3 fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c
+    classDef spacer fill:none,stroke:none,color:white
+    classDef big font-size:20px,font-weight:bold
+    
+    class COL1 col1
+    class COL2 col2
+    class COL3 col3
+    class SPACER1,SPACER2,SPACER3 spacer
+    class S1,S2,S3,S4,P1_A,P1_B,P1_C,P1_D,P1_E,P1_F,P2_A,P2_B,P2_C,P2_D,P2_E,P2_F big
+    
+    style S1 fill:#c8e6c9,stroke:#2e7d32
+    style S2 fill:#c8e6c9,stroke:#2e7d32
+    style S3 fill:#c8e6c9,stroke:#2e7d32
+    style S4 fill:#c8e6c9,stroke:#2e7d32
+    style P1_A fill:#bbdefb,stroke:#1565c0
+    style P1_B fill:#bbdefb,stroke:#1565c0
+    style P1_C fill:#bbdefb,stroke:#1565c0
+    style P1_D fill:#bbdefb,stroke:#1565c0
+    style P1_E fill:#bbdefb,stroke:#1565c0
+    style P1_F fill:#bbdefb,stroke:#1565c0
+    style P2_A fill:#e1bee7,stroke:#7b1fa2
+    style P2_B fill:#e1bee7,stroke:#7b1fa2
+    style P2_C fill:#e1bee7,stroke:#7b1fa2
+    style P2_D fill:#e1bee7,stroke:#7b1fa2
+    style P2_E fill:#e1bee7,stroke:#7b1fa2
+    style P2_F fill:#e1bee7,stroke:#7b1fa2
+    
+    linkStyle default stroke-width:2px

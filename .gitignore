@@ -219,14 +219,20 @@ __marimo__/
 
 
 # Folders (trailing slash means it's a directory)
-bi5_files/
-bibliography/
-csv_files/
-figures/
-models/
-tables/
-txt_files/
 Morini (IPAI) Sigmoid Conformal Q Classification/
+bibliography/
 
 # Files
-*.pdf
+*.aux
+*.bbl
+*.bbl-SAVE-ERROR
+*.bcf
+*.blg
+*.lof
+*.lot
+*.out
+Thesis.run.xml
+*.synctex.gz
+*.toc
+*aggregated_complete_data.csv
+*.html

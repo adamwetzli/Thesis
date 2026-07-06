@@ -1,0 +1,25 @@
+\begin{table}[H]
+\centering
+\caption{{Cross-Strategy Performance Comparison: RandomForest (Production Phase) - Annualized Sharpe Ratio}}
+\label{tab:strategy_comparison_RandomForest_production}
+\resizebox{\textwidth}{!}{\begin{tabular}{llllllll}
+\toprule
+Fold & Pair & Buy and Hold & SMA Crossover & M1 Only & M1 + M2 (Fixed) & M1 + M2 (Global) & M1 + M2 (Conformal) \\
+\midrule
+Fold 1 & AUDUSD & 0.97 & -3.56 & -4.00 & -3.93 & -3.82 & -4.16 \\
+ & EURUSD & -0.94 & -1.32 & -14.64 & -13.98 & -4.38 & -0.97 \\
+ & GBPUSD & -0.86 & -2.16 & -4.38 & -4.51 & 2.27 & 0.54 \\
+ & NZDUSD & -0.79 & -1.85 & -3.21 & -2.81 & -0.03 & -1.08 \\
+ & USDCAD & 0.72 & -0.26 & -4.59 & -4.74 & -3.55 & -0.43 \\
+ & USDCHF & 0.59 & -3.19 & -3.37 & -1.01 & -6.08 & -1.55 \\
+ & USDCNH & -1.38 & -2.05 & 4.83 & 4.87 & 5.86 & 5.94 \\
+ & USDJPY & 0.31 & 0.70 & 3.71 & -1.84 & 0.64 & 0.99 \\
+ & USDMXN & 0.96 & -3.11 & 8.73 & 8.73 & 8.59 & 8.69 \\
+ & USDTRY & 4.54 & 4.07 & 9.03 & 9.03 & 6.13 & 10.09 \\
+ & USDZAR & 1.03 & -0.82 & 4.37 & 4.37 & 5.79 & 5.22 \\
+\midrule
+ & \textbf{AVERAGE} & \textbf{0.47 ($\pm$ 1.62)} & \textbf{-1.23 ($\pm$ 2.18)} & \textbf{-0.32 ($\pm$ 7.11)} & \textbf{-0.53 ($\pm$ 6.81)} & \textbf{1.04 ($\pm$ 5.06)} & \textbf{2.12 ($\pm$ 4.62)} \\
+\midrule
+\bottomrule
+\end{tabular}}
+\end{table}
