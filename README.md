@@ -10,8 +10,15 @@ git clone https://github.com/adamwetzli/master_thesis
 cd master_thesis
 ```
 
-### 3. Install the source package
+### 2.5 (Optional) Create a Virtual Environment
 ```bash
+python -m venv venv
+source venv\Scripts\activate
+```
+
+### 3. Install packages
+```bash
+pip install -r requirements.txt
 pip install -e .
 ```
 
