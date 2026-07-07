@@ -5,18 +5,18 @@
 \toprule
 Model & Fold & Best Performers (RRF) & Worst Performers (RRF) \\
 \midrule
-RandomForest & Fold 1 & USDZAR, USDTRY & EURUSD, NZDUSD \\
+RandomForest & Fold 1 & USDZAR, USDTRY & GBPUSD, USDMXN \\
+ & Fold 2 & USDTRY, USDZAR & USDCAD, USDJPY \\
+ExtraTrees & Fold 1 & USDTRY, USDZAR & GBPUSD, USDMXN \\
+ & Fold 2 & USDTRY, USDZAR & USDCAD, USDJPY \\
+XGBoost & Fold 1 & USDTRY, USDZAR & GBPUSD, AUDUSD \\
+ & Fold 2 & USDTRY, USDZAR & USDCNH, USDJPY \\
+LightGBM & Fold 1 & USDZAR, USDTRY & AUDUSD, USDJPY \\
  & Fold 2 & USDTRY, USDZAR & USDMXN, USDJPY \\
-ExtraTrees & Fold 1 & USDTRY, USDZAR & AUDUSD, GBPUSD \\
- & Fold 2 & USDTRY, USDZAR & AUDUSD, NZDUSD \\
-XGBoost & Fold 1 & USDTRY, USDZAR & EURUSD, AUDUSD \\
- & Fold 2 & USDTRY, USDCNH & USDJPY, USDMXN \\
-LightGBM & Fold 1 & USDTRY, USDZAR & GBPUSD, EURUSD \\
- & Fold 2 & USDTRY, USDZAR & USDJPY, NZDUSD \\
-LSTM & Fold 1 & USDTRY, USDZAR & GBPUSD, USDMXN \\
- & Fold 2 & USDZAR, USDTRY & USDMXN, USDJPY \\
-GRU & Fold 1 & USDZAR, USDTRY & GBPUSD, USDCAD \\
- & Fold 2 & USDTRY, USDCNH & USDJPY, NZDUSD \\
+LSTM & Fold 1 & USDCHF, USDZAR & EURUSD, USDMXN \\
+ & Fold 2 & USDZAR, USDCNH & USDJPY, NZDUSD \\
+GRU & Fold 1 & USDZAR, USDTRY & GBPUSD, EURUSD \\
+ & Fold 2 & USDZAR, USDTRY & USDCNH, USDJPY \\
 \bottomrule
 \end{tabular}
 \end{table}

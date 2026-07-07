@@ -1,3 +1,4 @@
+```mermaid
 classDiagram
     direction TB
 
@@ -84,3 +85,4 @@ classDiagram
     TradingSystemFacade --> IExecutionEngine : executes
 
     note "<b>Legend</b>\n<|-- Inheritance (Implementation)\n--> Association (Usage)\no-- Aggregation (Decorator)"
+```

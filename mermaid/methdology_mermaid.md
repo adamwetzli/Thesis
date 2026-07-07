@@ -1,3 +1,4 @@
+```mermaid
 flowchart TB
     subgraph COL1["<b><big>Data Preparation</big></b>"]
         direction LR
@@ -68,3 +69,4 @@ flowchart TB
     style P2_F fill:#e1bee7,stroke:#7b1fa2
     
     linkStyle default stroke-width:2px
+```
