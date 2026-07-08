@@ -338,7 +338,7 @@ def plot_nested_correlation_heatmap(Xs_folds: Dict[str, Tuple[pd.DataFrame, pd.D
                              squeeze=False)
     
     # Apply subplot adjustments FIRST so positions are calculated correctly
-    plt.subplots_adjust(left=0.18, right=0.92, top=0.91, bottom=0.08, wspace=0.48, hspace=0.52)
+    plt.subplots_adjust(left=0.20, right=0.92, top=0.91, bottom=0.08, wspace=0.74, hspace=0.48)
     
     for i, (fold_name, (X_before, X_after)) in enumerate(Xs_folds.items()):
         corr_before = X_before.corr().abs()
@@ -353,36 +353,36 @@ def plot_nested_correlation_heatmap(Xs_folds: Dict[str, Tuple[pd.DataFrame, pd.D
         # Place the fold label exactly at the center of this row
         fig.text(0.01, row_center, fold_name, 
                 rotation=90, ha='center', va='center', 
-                fontsize=25, fontweight='bold', color='darkblue',
+                fontsize=30, fontweight='bold', color='darkblue',
                 transform=fig.transFigure)
         
         # Left Column: Correlation heatmap before
         ax_before = axes[i, 0]
         heatmap_before = sns.heatmap(corr_before, ax=ax_before, cmap='YlOrRd', 
                                     square=True, 
-                                    cbar_kws={'shrink': 0.5, 'aspect': 20, 'label': '', 'pad': 0.05})
+                                    cbar_kws={'shrink': 0.65, 'aspect': 20, 'label': '', 'pad': 0.05})
         
         # Colorbar label font
         cbar_before = heatmap_before.collections[0].colorbar
-        cbar_before.set_label('Absolute Correlation', fontsize=11, fontweight='bold')
-        cbar_before.ax.tick_params(labelsize=9)
+        cbar_before.set_label('Absolute Correlation', fontsize=26, fontweight='bold')
+        cbar_before.ax.tick_params(labelsize=22)
         
-        ax_before.set_title(f"Correlation: BEFORE\n({len(X_before.columns)} Features)", fontsize=25)
+        ax_before.set_title(f"BEFORE\n({len(X_before.columns)} Features)", fontsize=25)
         
         # Show FEWER feature names but make them LARGER
         n_features_before = len(X_before.columns)
         if n_features_before > 60:
             step = max(1, n_features_before // 12)
-            label_fontsize = 20
+            label_fontsize = 24
         elif n_features_before > 40:
             step = max(1, n_features_before // 10)
-            label_fontsize = 22
+            label_fontsize = 26
         elif n_features_before > 20:
             step = max(1, n_features_before // 8)
-            label_fontsize = 24
+            label_fontsize = 28
         else:
             step = max(1, n_features_before // 6)
-            label_fontsize = 26
+            label_fontsize = 30
         
         ax_before.set_xticks(range(0, n_features_before, step))
         ax_before.set_yticks(range(0, n_features_before, step))
@@ -393,27 +393,27 @@ def plot_nested_correlation_heatmap(Xs_folds: Dict[str, Tuple[pd.DataFrame, pd.D
         ax_after = axes[i, 1]
         heatmap_after = sns.heatmap(corr_after, ax=ax_after, cmap='YlOrRd', 
                                    square=True, 
-                                   cbar_kws={'shrink': 0.5, 'aspect': 20, 'label': '', 'pad': 0.05})
+                                   cbar_kws={'shrink': 0.65, 'aspect': 20, 'label': '', 'pad': 0.05})
         
         cbar_after = heatmap_after.collections[0].colorbar
-        cbar_after.set_label('Absolute Correlation', fontsize=11, fontweight='bold')
-        cbar_after.ax.tick_params(labelsize=9)
+        cbar_after.set_label('Absolute Correlation', fontsize=26, fontweight='bold')
+        cbar_after.ax.tick_params(labelsize=22)
         
-        ax_after.set_title(f"Correlation: AFTER\n({len(X_after.columns)} Features)", fontsize=25)
+        ax_after.set_title(f"AFTER\n({len(X_after.columns)} Features)", fontsize=25)
         
         n_features_after = len(X_after.columns)
         if n_features_after > 60:
             step = max(1, n_features_after // 12)
-            label_fontsize = 20
+            label_fontsize = 22
         elif n_features_after > 40:
             step = max(1, n_features_after // 10)
-            label_fontsize = 22
+            label_fontsize = 24
         elif n_features_after > 20:
             step = max(1, n_features_after // 8)
-            label_fontsize = 24
+            label_fontsize = 26
         else:
             step = max(1, n_features_after // 6)
-            label_fontsize = 26
+            label_fontsize = 28
         
         ax_after.set_xticks(range(0, n_features_after, step))
         ax_after.set_yticks(range(0, n_features_after, step))
@@ -425,11 +425,11 @@ def plot_nested_correlation_heatmap(Xs_folds: Dict[str, Tuple[pd.DataFrame, pd.D
     
     # Wrap long title
     import textwrap
-    full_title = f"[{title_pre}] Correlations Before vs. After Filtering across {fold_txt}"
+    full_title = f"Correlations in {title_pre} Before vs. After Filtering across {fold_txt}"
     wrapped_title = "\n".join(textwrap.wrap(full_title, width=80))
 
     # Suptitle perfectly centered across entire figure (x=0.5 is figure center)
-    fig.suptitle(wrapped_title, fontsize=24, fontweight='bold', y=0.94, x=0.5, ha='center')
+    fig.suptitle(wrapped_title, fontsize=35, fontweight='bold', y=0.94, x=0.5, ha='center')
     
     os.makedirs("/data/figures/feature_selection", exist_ok=True)
     save_path = f"./data/figures/feature_selection/{title_pre}_nested_correlation_heatmap.png"

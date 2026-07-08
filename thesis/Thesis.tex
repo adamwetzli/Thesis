@@ -44,6 +44,12 @@
 
 \maketitle
 
+\pagebreak
+
+% Use roman numerals for front matter
+\pagenumbering{roman}
+\setcounter{page}{1}
+
 \begin{abstract}
 To summarize the current progress of the project as well as provide a glimpse into the planned research.
 \end{abstract}
@@ -68,6 +74,10 @@ To summarize the current progress of the project as well as provide a glimpse in
 %%%%%%%%%%%%%%%%
 % INTRODUCTION %
 %%%%%%%%%%%%%%%%
+% Switch to arabic numbers starting from here
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
 \section{Introduction}
 \subsection{Quantifying the Unknown}
 
@@ -630,7 +640,7 @@ This interaction ensures that capital allocation is not only adjusted for price 
 statistical evidence provided by the conformal engine.
 
 
-\subsubsection{Evaluation on OOS Test Data}
+\subsubsection{Evaluation on OOS Test Data}\label{sec:oos_evaluation}
 
 The final stage of the Nested Walk-Forward Validation (WFV) architecture is the unbiased evaluation of the optimized pipeline on the isolated outer test block. 
 This phase serves as the definitive assessment of the strategy's robustness, simulating a "live" deployment where the model encounters entirely unseen market regimes.
@@ -694,7 +704,6 @@ between Type I errors (False Discoveries) and Type II errors (Missed Opportuniti
 which compare the predicted probabilities of M2 against the actual observed frequencies of M1's correctness. A well-calibrated model, where the curve aligns with the 45-degree diagonal, 
 ensures that the conformal p-values calculated in \ref{sec:conformal_preds} are grounded in realistic probability estimates.
 
-
 The integrity of the meta-labeling engine is further examined through classification-specific diagnostics, primarily utilizing nested confusion matrices and reliability diagrams. 
 The three-panel confusion matrix framework tracks signals from the base model (M1) through the meta-model (M2) to the final authorized trades. 
 It allows to follow the flow of the balance between Type I errors (False Discoveries) and Type II errors (Missed Opportunities). 
@@ -716,22 +725,28 @@ diverse liquidity and volatility profiles of the full multi-pair dataset.
 \section{Empirical Results}
 \subsection{The Architecture Tournament}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This section presents the empirical findings of the Architecture Tournament, representing the first major phase of our experimental validation framework 
+(as outlined in Figure \ref{fig:methodology flowchart}). The primary objective of this phase is to conduct an unbiased, out-of-sample peer comparison of the candidate 
+model architectures detailed in \ref{sec:tournament_models} across the currency pairs. To prevent the pervasive issue of backtest overfitting discussed in 
+\ref{sec:backtest_overfitting}, the tournament is executed within a nested walk-forward validation framework as illustrated in Figure \ref{fig:pipeline structure}. 
+The operational pipeline for the tournament proceeds through the following sequential steps:
+
+\begin{itemize}
+\item \textbf{Feature Preprocessing}: Before training, the information space is pruned to exclude multicollinear features using the hierarchical selection 
+pipeline in \ref{sec:preprocessing_scaling}. This ensures a static, homogeneous feature space across all competing architectures for a given fold.
+
+\item \textbf{Conformal Filtering}: Raw probability predictions from the meta-model \ref{sec:conformal_preds} are mapped to dynamical 
+conformal p-values. Signals that fall within the conformal rejection zone defined by the significance level are vetoed.
+
+\item \textbf{Hyperparameter Optimization}: The combined signals are evaluated using the custom backtester (see \ref{sec:custom_backtester}). 
+Hyperparameters are optimized to maximize the Sharpe ratio.
+
+\item \textbf{Reciprocal Rank Fusion (RRF)}: The competing models are ranked globally based on their average performance across all outer folds and currency pairs. 
+The tournament winner is selected using the aggregated RRF matrix framework described in Section \ref{sec:empirical_framework}.
+\end{itemize}
+
+By evaluating the architectures through this multi-layered protocol, we ensure that the top-performing model is not merely a product of regime-specific luck, 
+but a robust architecture capable of generating stable, conformalized alpha.
 
 
 \subsubsection{Static Feature Space Definition Across All Tournament Models (Common Feature Set Per Fold) and Multicollinearity Filtering}
