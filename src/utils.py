@@ -473,7 +473,11 @@ def plot_nested_feature_importances(mi_pi_folds: Dict[str, Tuple[pd.Series, pd.S
         sns.barplot(x=top_mi.values, y=top_mi.index, ax=ax_mi, palette='viridis', hue=top_mi.index, legend=False)
         ax_mi.set_title("")
         ax_mi.set_xlabel("Mutual Info Score", fontsize=15, fontweight='bold')
-        ax_mi.set_ylabel("")  
+        ax_mi.set_ylabel("")
+
+        # --- CONTROL THE TICK LABELS (what's written on the axis) ---
+        ax_mi.tick_params(axis='x', labelsize=14)   # Size of the score numbers on x-axis
+        ax_mi.tick_params(axis='y', labelsize=12)   # Size of the feature names on y-axis
         
         # Right Column: Permutation Importance
         ax_pi = axes[i, 1]
@@ -481,7 +485,11 @@ def plot_nested_feature_importances(mi_pi_folds: Dict[str, Tuple[pd.Series, pd.S
         sns.barplot(x=top_pi.values, y=top_pi.index, ax=ax_pi, palette='magma', hue=top_pi.index, legend=False)
         ax_pi.set_title("")
         ax_pi.set_xlabel("Permutation Importance Score", fontsize=15, fontweight='bold')
-        ax_pi.set_ylabel("") 
+        ax_pi.set_ylabel("")
+
+        # --- CONTROL THE TICK LABELS (what's written on the axis) ---
+        ax_pi.tick_params(axis='x', labelsize=14)   # Size of the score numbers on x-axis
+        ax_pi.tick_params(axis='y', labelsize=12)   # Size of the feature names on y-axis
 
     # For depicted model, that was used in permutation importance, in the figure title
     if pi_model == 'RF':
@@ -496,8 +504,8 @@ def plot_nested_feature_importances(mi_pi_folds: Dict[str, Tuple[pd.Series, pd.S
         fold_txt = 'Folds'
 
     # Balanced rect to center the subplots grid as much as possible
-    plt.subplots_adjust(left=0.14, right=0.95, top=0.85, bottom=0.08, wspace=0.4, hspace=0.4)
-    fig.suptitle(f"[{title_pre}] Mutual Information and Permutation Importance\n[{model_txt}] across {fold_txt}", 
+    plt.subplots_adjust(left=0.16, right=0.95, top=0.9, bottom=0.08, wspace=0.4, hspace=0.2)
+    fig.suptitle(f"Mutual Information and Permutation Importances during {title_pre}\nacross {fold_txt}", 
              fontsize=20, fontweight='bold', y=0.98, x=0.5, ha='center')
     
     os.makedirs("data/figures/feature_selection", exist_ok=True)
