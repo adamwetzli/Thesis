@@ -972,10 +972,10 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
             p75 = np.percentile(values, 75)
             
             # Add vertical lines
-            mean_line = ax.axvline(mean_val, color='red', linestyle='--', linewidth=1.2, alpha=0.7)
-            median_line = ax.axvline(median_val, color='green', linestyle='--', linewidth=1.2, alpha=0.7)
-            p25_line = ax.axvline(p25, color='blue', linestyle='--', linewidth=1.2, alpha=0.7)
-            p75_line = ax.axvline(p75, color='purple', linestyle='--', linewidth=1.2, alpha=0.7)
+            mean_line = ax.axvline(mean_val, color='red', linestyle='--', linewidth=2, alpha=1)
+            median_line = ax.axvline(median_val, color='green', linestyle='--', linewidth=2, alpha=1)
+            p25_line = ax.axvline(p25, color='blue', linestyle='--', linewidth=2, alpha=1)
+            p75_line = ax.axvline(p75, color='purple', linestyle='--', linewidth=2, alpha=1)
             
             # Collect handles and labels from the first subplot only
             if not legend_created:
@@ -995,10 +995,47 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
                 legend_created = True
         
         # Customize subplot
+        RENAME_MAP = {
+            # Financial metrics
+            'total_return': 'Total Return',
+            'sharpe': 'Sharpe Ratio',
+            'probabilistic_sharpe': 'Probabilistic Sharpe Ratio',
+            'deflated_sharpe': 'Deflated Sharpe Ratio',
+            'min_trl': 'Minimum TRL',
+            'max_dd': 'Maximum Drawdown',
+            'cagr': 'CAGR',
+            'calmar_ratio': 'Calmar Ratio',
+            'win_rate': 'Win Rate',
+            'profit_factor': 'Profit Factor',
+            'n_trades': 'Number of Trades',
+            'avg_capital_exposure': 'Avg Capital Exposure',
+            'avg_trade_size': 'Avg Trade Size'
+            }
+        if stat_name in RENAME_MAP:
+            stat_name = RENAME_MAP[stat_name]
+        
+        # Identify which statistics should be displayed as percentages
+        percent_stats = ['Total Return', 
+                         'Maximum Drawdown', 
+                         'CAGR', 'Win Rate', 
+                         "Probabilistic Sharpe Ratio", 
+                         "Deflated Sharpe Ratio"]
+        already_percent_stats = ['Avg Capital Exposure', 'Avg Trade Size']
+
         ax.set_xlim(min(values), max(values))
-        ax.set_xlabel(stat_name, fontsize=10)
-        ax.set_ylabel('Frequency', fontsize=10)
-        ax.set_title(stat_name, fontsize=12, fontweight='bold')
+        ax.set_xlabel(stat_name, fontsize=16)
+        ax.set_ylabel('Frequency', fontsize=16)
+        ax.tick_params(axis='x', labelsize=14)  # X-axis tick labels
+        ax.tick_params(axis='y', labelsize=14)  # Y-axis tick labels
+
+        # Format x-ticks based on stat type
+        if stat_name in percent_stats:
+            # Decimal to percentage (0.15 → 15%)
+            ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1.0, decimals=0, symbol='%'))
+        elif stat_name in already_percent_stats:
+            # Already a percentage (45.0 → 45%), just add % symbol
+            ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=100.0, decimals=0, symbol='%'))
+
         ax.grid(True, alpha=0.3, linestyle='--')
         
     # Turn off any unused subplots
@@ -1011,19 +1048,19 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
                   labels=legend_labels,
                   loc='lower center',
                   bbox_to_anchor=(0.5, 0.02),  
-                  ncol=min(5, len(legend_handles)),
+                  ncol=min(6, len(legend_handles)),
                   frameon=True,
                   fancybox=True,
                   shadow=True,
-                  fontsize=10)
+                  fontsize=20)
     
     # Add title - slightly increased spacing from subplots
-    fig.suptitle(f'Distribution of Financial Statistics Across Optimization Trials [{model_name}]', 
-                 fontsize=16, fontweight='bold', y=0.96)  
+    fig.suptitle(f'Distribution of Financial Statistics during {title} across Optimization Trials', 
+                 fontsize=20, fontweight='bold', y=0.96)  
     
-    plt.subplots_adjust(bottom=0.1, top=0.92)  
+    plt.subplots_adjust(bottom=0.12, top=0.92, left=0.03, right=0.97, wspace=0.3, hspace=0.3)  
     os.makedirs("data/figures/optimization/distributions", exist_ok=True)
-    save_path = f"./data/figures/optimization/distributions/{title}_{model_name}.png"
+    save_path = f"./data/figures/optimization/distributions/{title}_financial_dist_{model_name}.png"
     plt.savefig(save_path)
     plt.close()
 

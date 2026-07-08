@@ -898,7 +898,7 @@ def run_nested_wfv(data: pd.DataFrame,
             plot_multiple_financial_distributions(stat_dict=hpo_meta_copy,
                                                   model_name=m_name,
                                                   bins_dict=bins_dict,
-                                                  title='tournament_financial_dists')
+                                                  title='Tournament')
 
             # 1. Build the Calibration Set from the memory window of past folds
             cal_probs = []
@@ -1126,7 +1126,7 @@ def run_wfv(data: pd.DataFrame,
     plot_multiple_financial_distributions(stat_dict=hpo_meta_copy,
                                           model_name=winner_name,
                                           bins_dict=bins_dict,
-                                          title='production_financial_dists')
+                                          title='Production')
     
     # Extract the final calibration set: the probabilities M2 gave to M1's mistakes
     _, f_labs, f_probs = final_mistakes
