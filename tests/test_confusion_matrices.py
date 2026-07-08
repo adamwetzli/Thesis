@@ -8,8 +8,6 @@ def generate_mock_confusion_data(n_models, n_folds, n_samples=1000):
     Generates synthetic data for testing nested confusion matrices.
     """
     model_names = [f"Model_{i+1}" for i in range(n_models)]
-    if n_models >= 3:
-        model_names = ["RandomForest", "XGBoost", "GaussianNB"]
         
     model_conf_preds_folds = {m_name: [] for m_name in model_names}
     

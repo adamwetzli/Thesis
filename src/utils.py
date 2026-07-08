@@ -1283,14 +1283,14 @@ def plot_nested_confusion_matrices(model_conf_preds_folds, n_outer_splits, title
     n_folds = n_outer_splits
     
     if rows_are_models:
-        y_label_font = 20
-        ax_title_font = 20
-        x_label_font = 20
+        y_label_font = 26
+        ax_title_font = 26
+        x_label_font = 26
         top_margin = 0.02
-        stats_font = 18
+        stats_font = 20
         bottom_margin = 0.055
-        annot_fontsize = 18
-        tick_font = 12
+        annot_fontsize = 30
+        tick_font = 24
     else:
         y_label_font = 16
         ax_title_font = 16
@@ -1304,7 +1304,9 @@ def plot_nested_confusion_matrices(model_conf_preds_folds, n_outer_splits, title
     def add_colorbar(im, ax):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
-        plt.colorbar(im, cax=cax)
+        cbar = plt.colorbar(im, cax=cax)
+        cbar.ax.tick_params(labelsize=14)
+        return cbar
 
     for j in range(n_folds):
         if rows_are_models:
@@ -1386,21 +1388,20 @@ def plot_nested_confusion_matrices(model_conf_preds_folds, n_outer_splits, title
             # Metrics
             m1_errors = (side_m1 != y_truth).sum()
             final_errors = (side_m1_acc != y_truth_acc).sum() if len(y_truth_acc) > 0 else 0
-            error_reduction = (m1_errors - final_errors) / m1_errors * 100 if m1_errors > 0 else 0
             
             # --- TITLES & LABELS ---
             # Group titles (Column headers)
             if rows_are_models:
                 if i == 0:
                     ax_b.set_title(f'FOLD {j+1}', fontsize=ax_title_font, fontweight='bold', pad=35)
-                    ax_a.set_title("Panel A: M1 Signals", fontsize=ax_title_font-4, color='dimgrey', pad=10)
-                    ax_b.text(0.5, 1.05, "Panel B: M2 Meta-Model", transform=ax_b.transAxes, ha='center', fontsize=ax_title_font-4, color='dimgrey')
-                    ax_c.set_title("Panel C: Final (Filtered)", fontsize=ax_title_font-4, color='dimgrey', pad=10)
+                    ax_a.set_title("Panel A: M1 Signals", fontsize=ax_title_font, color='black', pad=10)
+                    ax_b.text(0.5, 1.05, "Panel B: M2 Meta-Model", transform=ax_b.transAxes, ha='center', fontsize=ax_title_font, color='black')
+                    ax_c.set_title("Panel C: Final (Filtered)", fontsize=ax_title_font, color='black', pad=10)
             else:
                 ax_b.set_title(f'{model_name}', fontsize=ax_title_font, fontweight='bold', pad=35)
-                ax_a.set_title("Panel A: M1 Signals", fontsize=ax_title_font-4, color='dimgrey', pad=10)
-                ax_b.text(0.5, 1.05, "Panel B: M2 Meta-Model", transform=ax_b.transAxes, ha='center', fontsize=ax_title_font-4, color='dimgrey')
-                ax_c.set_title("Panel C: Final (Filtered)", fontsize=ax_title_font-4, color='dimgrey', pad=10)
+                ax_a.set_title("Panel A: M1 Signals", fontsize=ax_title_font, color='black', pad=10)
+                ax_b.text(0.5, 1.05, "Panel B: M2 Meta-Model", transform=ax_b.transAxes, ha='center', fontsize=ax_title_font, color='black')
+                ax_c.set_title("Panel C: Final (Filtered)", fontsize=ax_title_font, color='black', pad=10)
             
             # Row labels
             if rows_are_models:
@@ -1408,20 +1409,22 @@ def plot_nested_confusion_matrices(model_conf_preds_folds, n_outer_splits, title
             else:
                 ax_a.set_ylabel(f'FOLD {j+1}\nActual', fontsize=y_label_font, fontweight='bold')
             
-            ax_a.set_xlabel('Predicted', fontsize=x_label_font)
-            ax_b.set_xlabel('M2 Prediction', fontsize=x_label_font)
+            if i == n_models-1:
+                ax_a.set_xlabel('Predicted', fontsize=x_label_font)
+                ax_b.set_xlabel('M2 Prediction', fontsize=x_label_font)
+                ax_c.set_xlabel('Predicted', fontsize=x_label_font)
+
             ax_b.set_ylabel('Actual (M1 Correct?)', fontsize=y_label_font)
-            ax_c.set_xlabel('Predicted', fontsize=x_label_font)
             ax_c.set_ylabel('Actual', fontsize=y_label_font)
             
             # Stats for Panel C
-            stats_txt = f'Rejected: {(~accept_mask).sum()}\nErrors -{error_reduction:.1f}%'
+            stats_txt = f'Rejected: {(~accept_mask).sum()}'
             ax_c.text(0.98, 0.02, stats_txt, transform=ax_c.transAxes, fontsize=stats_font, ha='right', va='bottom',
                       bbox=dict(boxstyle='round', facecolor='white', alpha=0.7, edgecolor='lightgrey'))
 
         plt.suptitle('Nested Confusion Matrices: M1 → M2 → Conformal Filtering\n'
-                    'M1: Base Signals | M2: Meta-Model Judgment | Final: Accepted Signals Only',
-                    fontsize=20, fontweight='bold', y=0.98)
+                    'M1: Base Sigs | M2: Meta-Model Judgment | Final: Accepted Sigs',
+                    fontsize=30, fontweight='bold', y=0.98)
         
         plt.tight_layout(rect=[0, bottom_margin, 1, 1-top_margin])
         
