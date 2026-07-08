@@ -1512,92 +1512,94 @@ def generate_performance_table(granular_dfs: List[pd.DataFrame], model_name: str
 
 
 def generate_trading_hps_table(t_hps_list: List[dict], model_name: str, phase_name: str = 'tournament'):
-    """
-    Generates a professional LaTeX table showing the optimized trading 
-    hyperparameters for each currency pair across multiple folds.
-    """
     if not t_hps_list:
         return
 
-    all_fold_dfs = []
+    # 1. Parse data
+    all_records = []
+    suffixes = ['_sl_mult', '_tp_mult', '_risk_pct', '_kelly_fraction', '_mh', 
+                '_max_notional_exposure_pct', '_meta_significance']
+    
+    param_names = {
+        '_sl_mult': 'SL Mult.',
+        '_tp_mult': 'TP Mult.',
+        '_risk_pct': 'Risk Pct.',
+        '_kelly_fraction': 'Kelly F.',
+        '_mh': 'MH',
+        '_max_notional_exposure_pct': 'Max Exp.',
+        '_meta_significance': 'Meta Sig.'
+    }
+
     for i, t_hps in enumerate(t_hps_list):
-        # 1. Parse the flat dictionary into a structured format
-        parsed_data = {}
+        fold_name = f"Fold {i+1}"
         for key, val in t_hps.items():
-            suffixes = ['_sl_mult', '_tp_mult', '_risk_pct', '_kelly_fraction', '_mh', 
-                        '_max_notional_exposure_pct', '_meta_significance']
-            
             for suffix in suffixes:
                 if key.endswith(suffix):
                     pair = key.replace(suffix, '')
-                    param = suffix.lstrip('_')
-                    
-                    if pair not in parsed_data:
-                        parsed_data[pair] = {}
-                    parsed_data[pair][param] = val
+                    param = param_names.get(suffix, suffix.lstrip('_').replace('_', ' '))
+                    all_records.append({'Fold': fold_name, 'Pair': pair, 'Param': param, 'Value': val})
                     break
-        
-        if parsed_data:
-            fold_df = pd.DataFrame.from_dict(parsed_data, orient='index')
-            fold_df.index.name = 'Pair'
-            all_fold_dfs.append(fold_df)
 
-    if not all_fold_dfs:
-        print("!!! Warning: No per-pair trading HPs found to report.")
-        return
+    df = pd.DataFrame(all_records)
+    pivot_df = df.pivot_table(index=['Fold', 'Param'], columns='Pair', values='Value', aggfunc='first')
+    pivot_df = pivot_df.map(lambda x: f"{x:.4f}" if abs(x) < 0.01 else f"{x:.2f}")
 
-    # 2. Combine all folds
-    fold_keys = [f"Fold {i+1}" for i in range(len(all_fold_dfs))]
-    full_df = pd.concat(all_fold_dfs, keys=fold_keys)
-    full_df.index.names = ['Fold', 'Pair']
-    
-    # 3. Clean up for LaTeX
-    final_table = full_df.reset_index()
-    
-    # Replace underscores in column names and values
-    final_table.columns = [c.replace('_', ' ') for c in final_table.columns]
-    
-    # Clear duplicate Fold labels
-    final_table['Fold'] = final_table['Fold'].str.replace('_', ' ', regex=False)
-    final_table['Fold'] = final_table['Fold'].mask(final_table['Fold'].duplicated(), "")
-    
-    # Add empty Interpretation column
-    final_table['Interpretation'] = ""
+    pairs = pivot_df.columns.tolist()
+    n_pairs = len(pairs)
+    n_params = len(pivot_df.index.levels[1])
 
-    # Format numbers
-    def format_val(x):
-        if isinstance(x, (int, float)):
-            if abs(x) < 0.01: return f"{x:.4f}"
-            return f"{x:.2f}"
-        return x
-
-    formatted_table = final_table.map(format_val)
-
-    # 4. Export to LaTeX (Rotated & Scaled)
     os.makedirs(f"data/tables/{phase_name}/trading_hps_table", exist_ok=True)
     filename = f"data/tables/{phase_name}/trading_hps_table/hps_{model_name}_{phase_name}.tex"
-    
-    safe_model = model_name.replace('_', ' ')
-    safe_phase = phase_name.replace('_', ' ').capitalize()
-    caption = f"{{Optimized Per-Pair Trading Hyperparameters {safe_model} ({safe_phase} Phase)}}"
-    label = f"tab:hps_{model_name}_{phase_name}"
-    
-    latex_code = formatted_table.style.hide(axis='index').to_latex(
-        caption=caption,
-        label=label,
-        environment="sidewaystable",
-        position_float="centering",
-        hrules=True
-    )
 
-    # Apply "Fit to Width" scaling
-    latex_code = latex_code.replace(r'\begin{tabular}', r'\resizebox{\textwidth}{!}{\begin{tabular}')
-    latex_code = latex_code.replace(r'\end{tabular}', r'\end{tabular}}')
+    latex_lines = []
+    
+    # Start the table environment with centering
+    latex_lines.append(r"\begin{table}[H]")
+    latex_lines.append(r"\centering")
+    
+    # Add table title/caption
+    latex_lines.append(rf"\caption{{Hyperparameters for {model_name} Model ({phase_name.capitalize()} Phase)}}")
+    latex_lines.append(rf"\label{{tab:hps_{model_name}_{phase_name}}}")
+    
+    # Only ONE left column now (for parameter names)
+    col_format = f"{{l{'c' * n_pairs}}}"
+    latex_lines.append(r"\begin{tabular}" + col_format)
+    latex_lines.append(r"\toprule")
+
+    # Header row: empty first cell + rotated pair names
+    header = " & " + " & ".join([f"\\rot{{{pair}}}" for pair in pairs]) + r" \\"
+    latex_lines.append(header)
+    latex_lines.append(r"\midrule")
+
+    folds = pivot_df.index.levels[0]
+    for fold_idx, fold in enumerate(folds):
+        if fold_idx > 0:
+            latex_lines.append(r"\midrule")
+        
+        fold_data = pivot_df.xs(fold)
+        param_list = fold_data.index.tolist()
+        
+        # First row: Fold label centered across all currency columns
+        fold_row = rf"\multicolumn{{{n_pairs}}}{{c}}{{\textbf{{{fold}}}}} \\"
+        latex_lines.append(fold_row)
+        latex_lines.append(r"\midrule")
+        
+        # Parameter rows
+        for param in param_list:
+            row_values = fold_data.loc[param].tolist()
+            row = f"{param} & " + " & ".join(row_values) + r" \\"
+            latex_lines.append(row)
+
+    latex_lines.append(r"\bottomrule")
+    latex_lines.append(r"\end{tabular}")
+    
+    # Close the table environment
+    latex_lines.append(r"\end{table}")
 
     with open(filename, 'w') as f:
-        f.write(latex_code)
-    
-    print(f"   ... Professional Trading HPs table saved to: {filename}")
+        f.write("\n".join(latex_lines))
+
+    print(f" ... Table saved to: {filename}")
 
 
 def generate_strategy_comparison_table(comparison_data: dict, phase_name: str = 'tournament'):
