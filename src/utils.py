@@ -1140,17 +1140,16 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
                     for ax in [ax_a, ax_b]:
                         ax.plot(m2_range, y_probs, color='black', linewidth=1.5, zorder=5, alpha=0.8)
                         if x_mid is not None and 0 <= x_mid <= 1:
-                            ax.axvline(x_mid, color='purple', linestyle='--', alpha=0.5, linewidth=1)
+                            ax.axvline(x_mid, color='purple', linestyle='--', alpha=1, linewidth=2)
                 except: pass
             
             # --- Common Plotting Elements ---
             for ax in [ax_a, ax_b]:
-                ax.axvline(conformal_threshold, color='darkorange', linestyle=':', alpha=0.7, linewidth=1.5)
-                ax.axvline(1 - conformal_threshold, color='darkorange', linestyle=':', alpha=0.7, linewidth=1.5)
-                ax.axhline(0.5, color='forestgreen', linestyle='--', alpha=0.3, linewidth=1) # 50% line
+                ax.axvline(conformal_threshold, color='darkorange', linestyle=':', alpha=1, linewidth=2)
+                ax.axvline(1 - conformal_threshold, color='darkorange', linestyle=':', alpha=1, linewidth=2)
+                ax.axhline(0.5, color='forestgreen', linestyle='--', alpha=1, linewidth=2) # 50% line
                 ax.set_xlim(0, 1)
                 ax.set_ylim(-0.1, 1.1)
-                ax.grid(True, alpha=0.1, linestyle='--')
             
             # --- PANEL A: SIGNAL vs CONFIDENCE (Correctness Colored) ---
             is_correct = (side_m1_c == y_truth_c)
@@ -1162,20 +1161,25 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
                                             '#8b0000')) # Miss (Dark Red)
             
             ax_a.scatter(probs_dir, y_sig_binary, c=colors_a, alpha=0.5, s=30, zorder=3, edgecolors='none')
+            ax_a.tick_params(axis='x', labelsize=20)
+            ax_a.tick_params(axis='y', labelsize=20)
             
             # Row labels
             if rows_are_models:
-                ax_a.set_ylabel(f'{model_name}\nSignal Direction', fontsize=21, fontweight='bold')
+                ax_a.set_ylabel(f'{model_name}\nSignal Direction', fontsize=28, fontweight='bold')
             else:
-                ax_a.set_ylabel(f'GLOBAL TEST FOLD {j+1}\nSignal Direction', fontsize=13, fontweight='bold')
+                ax_a.set_ylabel(f'Global Test Fold {j+1}\nSignal Direction', fontsize=13, fontweight='bold')
             
             # --- PANEL B: GROUND TRUTH vs CONFIDENCE ---
             mask_l = (y_truth_binary == 1)
             mask_s = (y_truth_binary == 0)
             ax_b.scatter(probs_dir[mask_l], np.ones(mask_l.sum()), color='royalblue', alpha=0.4, s=30, zorder=3)
             ax_b.scatter(probs_dir[mask_s], np.zeros(mask_s.sum()), color='crimson', alpha=0.4, s=30, zorder=3)
+            ax_b.tick_params(axis='x', labelsize=20)
+            ax_b.tick_params(axis='y', labelsize=20)
+
             if rows_are_models:
-                ax_b.set_ylabel('Ground Truth', fontsize=21, fontweight='bold')
+                ax_b.set_ylabel('Ground Truth', fontsize=28, fontweight='bold')
             else:
                 ax_b.set_ylabel('Ground Truth', fontsize=13, fontweight='bold')
             
@@ -1185,21 +1189,23 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
             ax_c.axhline(0, color='black', linewidth=1, alpha=0.4)
             ax_c.set_ylim(-2.5, 2.5)
             if rows_are_models:
-                ax_c.set_ylabel('Signal - Truth Error', fontsize=21, fontweight='bold')
+                ax_c.set_ylabel('Signal - Truth Error', fontsize=28, fontweight='bold')
             else:
                 ax_c.set_ylabel('Signal - Truth Error', fontsize=13, fontweight='bold')
             ax_c.set_yticks([-2, 0, 2])
             ax_c.set_yticklabels(['F-Short', 'Correct', 'F-Long'])
+            ax_c.tick_params(axis='x', labelsize=18)
+            ax_c.tick_params(axis='y', labelsize=22)
             ax_c.grid(True, alpha=0.1, axis='y')
             
             # --- TITLES & FORMATTING ---
             # Group titles (Column headers)
             if rows_are_models:
                 if i == 0:
-                    ax_b.set_title(f'FOLD {j+1}', fontsize=18, fontweight='bold', pad=35)
-                    ax_a.set_title("Panel A: Signal Accuracy", fontsize=18, color='black', pad=20)
-                    ax_b.text(0.5, 1.05, "Panel B: Ground Truth", transform=ax_b.transAxes, ha='center', fontsize=18, color='black')
-                    ax_c.set_title("Panel C: Error Map", fontsize=18, color='black', pad=10)
+                    ax_b.set_title(f'FOLD {j+1}', fontsize=26, fontweight='bold', pad=35)
+                    ax_a.set_title("Panel A: Signal Accuracy", fontsize=26, color='black', pad=20)
+                    ax_b.text(0.5, 1.05, "Panel B: Ground Truth", transform=ax_b.transAxes, ha='center', fontsize=26, color='black')
+                    ax_c.set_title("Panel C: Error Map", fontsize=26, color='black', pad=10)
             else:
                 # Titles for every model in the row
                 ax_b.set_title(f'{model_name}', fontsize=16, fontweight='bold', pad=35)
@@ -1210,7 +1216,7 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
             # Bottom labels
             if rows_are_models:
                 if i == n_models - 1:
-                    for ax in [ax_a, ax_b, ax_c]: ax.set_xlabel('Directional Meta-Confidence (M2)', fontsize=18)
+                    for ax in [ax_a, ax_b, ax_c]: ax.set_xlabel('Directional Meta-Confidence (M2)', fontsize=22)
             else:
                 # Every model in the row gets x-labels
                 for ax in [ax_a, ax_b, ax_c]: ax.set_xlabel('Directional Meta-Confidence (M2)', fontsize=15)
@@ -1220,7 +1226,7 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
             miss = (is_accepted & ~is_correct).sum()
             rej = (~is_accepted).sum()
             mid_txt = f'Mid:{x_mid:.2f}' if x_mid is not None else 'Mid:N/A'
-            stats_txt = f'Hits:{hits} Miss:{miss}\nRej:{rej}\nα:{significance:.3f}\n{mid_txt}'
+            stats_txt = f'Hits:{hits}\nMiss:{miss}\nRej:{rej}\nα:{significance:.3f}\n{mid_txt}'
             
             ax_a.text(0.98, 0.05, stats_txt, 
                      transform=ax_a.transAxes, fontsize=18, ha='right', va='bottom',
@@ -1239,15 +1245,15 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
             Line2D([0], [0], color='darkorange', linestyle=':', label='Conformal Rejection Zone Boundary')
         ]
         if rows_are_models:
-            legend_font = 18
+            legend_font = 20
         else:
             legend_font = 12
         fig.legend(handles=legend_elements, loc='upper center', ncol=3, frameon=True, 
                    framealpha=1.0, edgecolor='black', bbox_to_anchor=(0.5, 0.025), fontsize=legend_font)
 
         plt.suptitle(f'Conformal Signal Analysis: {title_pref} - Fold {j+1}', 
-                     fontsize=22, fontweight='bold', y=0.98)
-        plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+                     fontsize=30, fontweight='bold', y=0.98)
+        plt.subplots_adjust(left=0.01, right=0.95, top=0.93, bottom=0.05, wspace=0.5, hspace=0.2)
 
         os.makedirs("data/figures/conformal_predictions", exist_ok=True)
         if n_folds > 1:
