@@ -75,14 +75,14 @@ if __name__ == "__main__":
     # --- SCENARIO 1: THE TOURNAMENT (Large Grid) ---
     # 4 models, 5 folds = 20 subplots. Tests scaling and label placement.
     n_models_t = 6
-    n_folds_t = 3
+    n_folds_t = 2
     print(f"\n[TEST 1] Simulating Tournament: {n_models_t} Models x {n_folds_t} Folds...")
     tournament_data = generate_mock_data(n_models_t, n_folds_t)
     
     plot_nested_reliability_diagrams(
         model_conf_preds_folds=tournament_data,
         n_outer_splits=n_folds_t,
-        title_pref='Tournament_StressTest',
+        title_pref='Tournament_t',
         rows_are_models=True
     )
     print("   -> Generated Tournament plot in ./data/figures/conformal_predictions/")
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     plot_nested_reliability_diagrams(
         model_conf_preds_folds=production_data,
         n_outer_splits=n_folds_p,
-        title_pref='Production_StressTest',
+        title_pref='Production_t',
         rows_are_models=False
     )
     print("   -> Generated Production plot in ./data/figures/conformal_predictions/")

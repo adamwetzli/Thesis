@@ -1852,14 +1852,14 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
         
         if rows_are_models:
             n_rows, n_cols = n_current_models, n_folds
-            legend_font = 20
-            y_label_font = 20
-            ax_title_font = 20
-            x_label_font = 20
+            legend_font = 22
+            y_label_font = 26
+            ax_title_font = 26
+            x_label_font = 26
             top_margin = 0.02
-            stats_font = 20
+            stats_font = 24
             if n_current_models == 3:
-                bottom_margin = 0.03
+                bottom_margin = 0.06
                 legend_y = -0.01
             elif n_current_models < 3:
                 bottom_margin = 0.055
@@ -1918,6 +1918,8 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
                 ax.set_ylim(0, 1)
                 ax.set_xticks(np.arange(0, 1.1, 0.1))
                 ax.set_yticks(np.arange(0, 1.1, 0.1))
+                ax.tick_params(axis='y', labelsize=20)
+                ax.set_xticklabels(np.round(np.arange(0, 1.1, 0.1), 2), rotation=90, fontsize=20)
                 ax.grid(True, alpha=0.2, linestyle=':')
                 
                 stats_box = f"Brier Score: {brier:.4f}"
@@ -1934,8 +1936,8 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
                     if j == 0: ax.set_title(f"{model_name}", fontsize=ax_title_font, fontweight='bold', pad=15)
                     if j == n_folds - 1: ax.set_xlabel("Mean Predicted Confidence", fontsize=x_label_font)
 
-        fig.suptitle(f"Nested Reliability Analysis: M2 Confidence Calibration ({title_pref})", 
-                     fontsize=22, fontweight='bold', y=0.98)
+        fig.suptitle(f"Reliability Analysis: M2 Confidence Calibration\nduring {title_pref}", 
+                     fontsize=30, fontweight='bold', y=0.98)
         
         # Global Legend
         legend_elements = [
@@ -1943,7 +1945,7 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
             Line2D([0], [0], color='#3498db', marker='s', label='Observed Calibration'),
             Line2D([0], [0], color='grey', alpha=0.2, label='Confidence Density (Samples)')
         ]
-        fig.legend(handles=legend_elements, loc='lower center', ncol=3, frameon=True, 
+        fig.legend(handles=legend_elements, loc='lower center', ncol=2, frameon=True, 
                    framealpha=1.0, fontsize=legend_font, edgecolor='black', bbox_to_anchor=(0.5, legend_y))
 
         plt.tight_layout(rect=[0, bottom_margin, 1, 1-top_margin])
