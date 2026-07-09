@@ -607,282 +607,195 @@ def plot_backtest_results(ohlc: pd.DataFrame,
     plt.savefig(f"./data/figures/{filename}")
     plt.show()
 
-def plot_nested_wfv_dashboard(model_name: str, 
-                              all_fold_results: List[Dict[str, Dict]], 
-                              title_pref: str = 'tournament',
-                              max_pairs: int = 3) -> None:
-    """
-    Generates high-resolution tournament dashboards for a specific architecture.
-    Splits into multiple figures if number of pairs exceeds max_pairs.
-    """
-    if not all_fold_results: return
-    
+
+def plot_nested_wfv_dashboard(
+    model_name: str,
+    all_fold_results: List[Dict[str, Dict]],
+    title_pref: str = 'tournament',
+    max_pairs: int = 3,
+    style_overrides: Optional[dict] = None,
+    output_dir: str = "data/figures/backtests",
+) -> None:
+    """Generate tournament dashboards for a specific architecture."""
+    if not all_fold_results:
+        return
+    style_overrides = style_overrides or {}
+
+    # ------------------------------------------------------------------
+    # Config: base style + tier presets
+    # ------------------------------------------------------------------
+    base_style = dict(
+        base_width_per_fold=6.0, base_height_per_row=3.5,
+        min_fig_width=12.0, min_fig_height=8.0,
+        max_total_width=20.0, max_total_height=30.0,
+        subplot_left=0.08, subplot_right=0.98, subplot_bottom=0.05,
+        subplot_hspace=0.15, subplot_wspace=0.22,
+        max_marker_size=25, min_marker_size=10,
+        max_bubble_scale=15, min_bubble_scale=5,
+        max_date_ticks=8, thin_line_width=0.8, thick_line_width=1.5,
+    )
+
+    tier_presets = [
+        (3, dict(title_font=26, fold_font=24, label_font=24, pair_font=24, stats_font=15,
+                 legend_font=17, tick_font=18, legend_ncol=4,
+                 subplot_top=0.88, legend_y=0.95, title_y=0.98,
+                 label_x_offset=-0.11, pair_x_offset=-0.16, title_y_offset=0.01)),
+        (5, dict(title_font=22, fold_font=16, label_font=8, pair_font=12, stats_font=7,
+                 legend_font=10, tick_font=8, legend_ncol=5,
+                 subplot_top=0.925, legend_y=0.955, title_y=0.97,
+                 label_x_offset=-0.065, pair_x_offset=-0.10, title_y_offset=0.01)),
+        (8, dict(title_font=18, fold_font=14, label_font=10, pair_font=11, stats_font=6.5,
+                 legend_font=9, tick_font=7, legend_ncol=4,
+                 subplot_top=0.92, legend_y=0.95, title_y=0.965,
+                 label_x_offset=-0.033, pair_x_offset=-0.0555, title_y_offset=-0.015)),
+        (12, dict(title_font=16, fold_font=10, label_font=5, pair_font=10, stats_font=5.5,
+                  legend_font=8, tick_font=6, legend_ncol=4,
+                  subplot_top=0.93, legend_y=0.95, title_y=0.96,
+                  label_x_offset=-0.035, pair_x_offset=-0.045, title_y_offset=-0.02)),
+    ]
+    tier_default = dict(title_font=14, fold_font=9, label_font=4.5, pair_font=9, stats_font=4,
+                        legend_font=7, tick_font=6, legend_ncol=3,
+                        subplot_top=0.9175, legend_y=0.9375, title_y=0.95,
+                        label_x_offset=-0.035, pair_x_offset=-0.045, title_y_offset=-0.02)
+
+    def resolve_style(n_pairs: int) -> dict:
+        tier = tier_default
+        for upper_bound, values in tier_presets:
+            if n_pairs <= upper_bound:
+                tier = values
+                break
+        merged = {**base_style, **tier, **style_overrides}
+        return merged
+
+    legend_elements = [
+        Line2D([0], [0], color='blue', alpha=0.4, lw=1.5, label='Price'),
+        Line2D([0], [0], color='purple', lw=2.0, label='Strategy (MTM)'),
+        Line2D([0], [0], color='black', lw=1.0, alpha=0.4, label='Benchmark'),
+        Line2D([0], [0], marker='^', color='w', markerfacecolor='green', label='Enter Long', markersize=8, linestyle='None'),
+        Line2D([0], [0], marker='v', color='w', markerfacecolor='green', alpha=0.6, label='Exit Long', markersize=8, linestyle='None'),
+        Line2D([0], [0], marker='v', color='w', markerfacecolor='red', label='Enter Short', markersize=8, linestyle='None'),
+        Line2D([0], [0], marker='^', color='w', markerfacecolor='red', alpha=0.6, label='Exit Short', markersize=8, linestyle='None'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor='green', alpha=0.6, label='Profit Bubble', markersize=8, linestyle='None', markeredgecolor='black'),
+        Line2D([0], [0], marker='o', color='w', markerfacecolor='red', alpha=0.6, label='Loss Bubble', markersize=8, linestyle='None', markeredgecolor='black'),
+    ]
+
+    def stats_text(stats: dict, n_pairs: int) -> str:
+        if n_pairs <= 5:
+            return (f"Return: {stats.get('total_return', 0):.2%}\nSharpe: {stats.get('sharpe', 0):.2f}\n"
+                    f"PSR: {stats.get('probabilistic_sharpe', 0):.2%}\nDSR: {stats.get('deflated_sharpe', 0):.2%}\n"
+                    f"MDD: {stats.get('max_dd', 0):.2%}\nCAGR: {stats.get('cagr', 0):.2%}\n"
+                    f"Win%: {stats.get('win_rate', 0):.2%}\nPFactor: {stats.get('profit_factor', 0):.2f}\n"
+                    f"Trades: {stats.get('n_trades', 0)}\nAvg Exp: {stats.get('avg_capital_exposure', 0):.1f}%\n"
+                    f"Avg Size: {stats.get('avg_trade_size', 0):.1f}%")
+        return (f"DSR: {stats.get('deflated_sharpe', 0):.2%}\nSharpe: {stats.get('sharpe', 0):.2f}\n"
+                f"MDD: {stats.get('max_dd', 0):.2%}\nAvg Exp: {stats.get('avg_capital_exposure', 0):.1f}%\n"
+                f"Avg Size: {stats.get('avg_trade_size', 0):.1f}%")
+
     n_folds = len(all_fold_results)
     all_pairs = list(all_fold_results[0].keys())
     n_total_pairs = len(all_pairs)
-    
+    rows_per_pair = 3
     num_parts = (n_total_pairs + max_pairs - 1) // max_pairs
-    
+
     for part_idx in range(num_parts):
         start_idx = part_idx * max_pairs
         end_idx = min((part_idx + 1) * max_pairs, n_total_pairs)
-        pairs = all_pairs[start_idx:end_idx]
-        n_pairs = len(pairs)
         
-        rows_per_pair = 3
+        # Padded pairs for consistent layout
+        raw_pairs = all_pairs[start_idx:end_idx]
+        pairs = raw_pairs + ["NO_DATA"] * (max_pairs - len(raw_pairs))
+        n_pairs = max_pairs 
         total_rows = n_pairs * rows_per_pair
-        
-        # ========== DYNAMIC FIGURE SIZING ==========
-        # Base sizes
-        base_width_per_fold = 6
-        base_height_per_row = 3.5
-        
-        # Scale down for many pairs/folds
-        width_scale = min(1.0, 20 / (n_folds * base_width_per_fold))
-        height_scale = min(1.0, 30 / (total_rows * base_height_per_row))
-        
-        fig_width = max(12, n_folds * base_width_per_fold * width_scale)
-        fig_height = max(8, total_rows * base_height_per_row * height_scale)
-        
-        # ========== DYNAMIC FONT SIZES ==========
-        # Base font sizes that scale with number of elements
-        if n_pairs <= 3:
-            title_font = 26
-            fold_font = 18
-            label_font = 15
-            pair_font = 14
-            stats_font = 13
-            legend_font = 16
-            tick_font = 9
-            legend_ncol = 4
-            top_margin = 0.92
-            legend_y = 0.96
-            title_y = 0.98
-        elif n_pairs <= 5:
-            title_font = 22
-            fold_font = 16
-            label_font = 8
-            pair_font = 12
-            stats_font = 7
-            legend_font = 10
-            tick_font = 8
-            legend_ncol = 5
-            top_margin = 0.925
-            legend_y = 0.955
-            title_y = 0.97
-        elif n_pairs <= 8:
-            title_font = 18
-            fold_font = 14
-            label_font = 10
-            pair_font = 11
-            stats_font = 6.5
-            legend_font = 9
-            tick_font = 7
-            legend_ncol = 4
-            top_margin = 0.92
-            legend_y = 0.95
-            title_y = 0.965
-        elif n_pairs <= 12:
-            title_font = 16
-            fold_font = 10
-            label_font = 5
-            pair_font = 10
-            stats_font = 5.5
-            legend_font = 8
-            tick_font = 6
-            legend_ncol = 4
-            top_margin = 0.93
-            legend_y = 0.95
-            title_y = 0.96
-        else:  # >12 pairs
-            title_font = 14
-            fold_font = 9
-            label_font = 4.5
-            pair_font = 9
-            stats_font = 4
-            legend_font = 7
-            tick_font = 6
-            legend_ncol = 3
-            top_margin = 0.9175
-            legend_y = 0.9375
-            title_y = 0.95
-        
-        # Create figure
-        fig, axes = plt.subplots(nrows=total_rows, ncols=n_folds, 
-                                 figsize=(fig_width, fig_height),
-                                 squeeze=False, sharex='col')
-        
-        # Global Title
-        part_text = f" (Part {part_idx + 1}/{num_parts})" if num_parts > 1 else ""
-        fig.suptitle(f"{title_pref.title()} Performance: {model_name.upper()}{part_text}", 
-                     fontsize=title_font, fontweight='bold', y=title_y)
 
-        # Global Legend
-        legend_elements = [
-            Line2D([0], [0], color='blue', alpha=0.4, lw=1.5, label='Price'),
-            Line2D([0], [0], color='purple', lw=2.0, label='Strategy (MTM)'),
-            Line2D([0], [0], color='black', lw=1.0, alpha=0.4, label='Benchmark'),
-            Line2D([0], [0], marker='^', color='w', markerfacecolor='green', label='Enter Long', markersize=8, linestyle='None'),
-            Line2D([0], [0], marker='v', color='w', markerfacecolor='green', alpha=0.6, label='Exit Long', markersize=8, linestyle='None'),
-            Line2D([0], [0], marker='v', color='w', markerfacecolor='red', label='Enter Short', markersize=8, linestyle='None'),
-            Line2D([0], [0], marker='^', color='w', markerfacecolor='red', alpha=0.6, label='Exit Short', markersize=8, linestyle='None'),
-            Line2D([0], [0], marker='o', color='w', markerfacecolor='green', alpha=0.6, label='Profit Bubble', markersize=8, linestyle='None', markeredgecolor='black'),
-            Line2D([0], [0], marker='o', color='w', markerfacecolor='red', alpha=0.6, label='Loss Bubble', markersize=8, linestyle='None', markeredgecolor='black'),
-        ]
-        
-        fig.legend(handles=legend_elements, loc='upper center', ncol=legend_ncol, 
-                   fontsize=legend_font, frameon=True, bbox_to_anchor=(0.5, legend_y),
-                   edgecolor='grey', fancybox=True, shadow=False)
+        s = resolve_style(n_pairs)
+        width_scale = min(1.0, s['max_total_width'] / (n_folds * s['base_width_per_fold']))
+        height_scale = min(1.0, s['max_total_height'] / (total_rows * s['base_height_per_row']))
+        fig_width = max(s['min_fig_width'], n_folds * s['base_width_per_fold'] * width_scale)
+        fig_height = max(s['min_fig_height'], total_rows * s['base_height_per_row'] * height_scale)
+
+        fig, axes = plt.subplots(nrows=total_rows, ncols=n_folds, figsize=(fig_width, fig_height), squeeze=False, sharex='col')
+
+        part_text = f" (Part {part_idx + 1}/{num_parts})" if num_parts > 1 else ""
+        fig.suptitle(f"{title_pref.title()} Performance:\n{model_name}{part_text}", fontsize=s['title_font'], fontweight='bold', y=s['title_y'])
+        fig.legend(handles=legend_elements, loc='upper center', ncol=s['legend_ncol'], fontsize=s['legend_font'], frameon=True, bbox_to_anchor=(0.5, s['legend_y']), edgecolor='grey', fancybox=True, shadow=False)
 
         for f_idx, fold_data in enumerate(all_fold_results):
             for p_idx, pair in enumerate(pairs):
+                # Handle empty placeholder
+                if pair == "NO_DATA":
+                    for r in range(rows_per_pair):
+                        ax = axes[p_idx * rows_per_pair + r, f_idx]
+                        ax.axis('off')
+                    continue
+
                 res = fold_data.get(pair)
                 if not res: continue
-                
-                ohlc = res['ohlc']
-                trade_history = res['trade_history']
-                equity_df = res['equity_history']
-                stats = res['stats']
-                initial_cash = res['initial_cash']
-                
+
+                ohlc, trade_history, equity_df, stats, initial_cash = res['ohlc'], res['trade_history'], res['equity_history'], res['stats'], res['initial_cash']
                 ax_exec = axes[p_idx * rows_per_pair + 0, f_idx]
-                ax_pnl  = axes[p_idx * rows_per_pair + 1, f_idx]
-                ax_cum  = axes[p_idx * rows_per_pair + 2, f_idx]
-                
-                # --- 1. Execution Log ---
-                ax_exec.plot(ohlc.index, ohlc["close"], color="blue", alpha=0.3, linewidth=0.8 if n_pairs > 8 else 1.5)
-                
-                # Adjust marker sizes for many pairs
-                marker_size = max(10, min(25, 30 - n_pairs))
+                ax_pnl = axes[p_idx * rows_per_pair + 1, f_idx]
+                ax_cum = axes[p_idx * rows_per_pair + 2, f_idx]
+
+                # Execution log
+                line_w = s['thin_line_width'] if n_pairs > 8 else s['thick_line_width']
+                ax_exec.plot(ohlc.index, ohlc["close"], color="blue", alpha=0.3, linewidth=line_w)
+                marker_size = max(s['min_marker_size'], min(s['max_marker_size'], 30 - n_pairs))
                 for t in trade_history:
                     color = "green" if t["direction"] == "long" else "red"
-                    e_marker = "^" if t["direction"] == "long" else "v"
-                    x_marker = "v" if t["direction"] == "long" else "^"
-                    ax_exec.scatter(t["entry_time"], t["entry_price_raw"], marker=e_marker, color=color, s=marker_size)
-                    ax_exec.scatter(t["exit_time"], t["exit_price_raw"], marker=x_marker, color=color, s=marker_size, alpha=0.6)
+                    ax_exec.scatter(t["entry_time"], t["entry_price_raw"], marker="^" if t["direction"] == "long" else "v", color=color, s=marker_size)
+                    ax_exec.scatter(t["exit_time"], t["exit_price_raw"], marker="v" if t["direction"] == "long" else "^", color=color, s=marker_size, alpha=0.6)
                 ax_exec.grid(True, alpha=0.3)
 
-                # --- 2. Trade PnL Bubbles ---
+                # Trade PnL bubbles
                 if trade_history:
                     t_df = pd.DataFrame(trade_history)
                     t_df["exit_time"] = pd.to_datetime(t_df["exit_time"])
-                    grouped = t_df.groupby("exit_time").agg({
-                        "net_pnl": "sum", 
-                        "size": lambda x: (x.abs() * t_df.loc[x.index, "entry_price_slippage"]).sum()
-                    })
+                    grouped = t_df.groupby("exit_time").agg({"net_pnl": "sum", "size": lambda x: (x.abs() * t_df.loc[x.index, "entry_price_slippage"]).sum()})
                     pnl_pct = (grouped["net_pnl"] / (grouped["size"] + 1e-7)) * 100
-                    # Scale bubble sizes for many pairs
-                    bubble_scale = max(5, min(15, 20 - n_pairs // 2))
-                    ax_pnl.scatter(grouped.index, pnl_pct, s=np.abs(grouped["net_pnl"])*0.5 + bubble_scale, 
-                                   c=["green" if x >= 0 else "red" for x in pnl_pct], 
-                                   alpha=0.6, edgecolors="black")
+                    bubble_scale = max(s['min_bubble_scale'], min(s['max_bubble_scale'], 20 - n_pairs // 2))
+                    ax_pnl.scatter(grouped.index, pnl_pct, s=np.abs(grouped["net_pnl"]) * 0.5 + bubble_scale, c=["green" if x >= 0 else "red" for x in pnl_pct], alpha=0.6, edgecolors="black")
                 ax_pnl.axhline(0, color='black', lw=0.8, alpha=0.5)
                 ax_pnl.yaxis.set_major_formatter(mtick.PercentFormatter(decimals=1))
                 ax_pnl.grid(True, alpha=0.3)
 
-                # --- 3. Cumulative Performance ---
+                # Cumulative performance
                 if not equity_df.empty:
                     strat_ret = equity_df['equity'] / initial_cash
                     bench_ret = ohlc["close"] / ohlc["close"].iloc[0]
-                    
-                    ax_cum.plot(strat_ret.index, strat_ret, color="purple", lw=1.0 if n_pairs > 8 else 1.5)
+                    ax_cum.plot(strat_ret.index, strat_ret, color="purple", lw=line_w)
                     ax_cum.plot(ohlc.index, bench_ret, color="black", lw=0.8, alpha=0.4)
                     ax_cum.fill_between(strat_ret.index, 1.0, strat_ret, where=(strat_ret >= 1.0), color="green", alpha=0.1)
                     ax_cum.fill_between(strat_ret.index, 1.0, strat_ret, where=(strat_ret < 1.0), color="red", alpha=0.1)
-                    
                     if stats:
-                        if n_pairs <= 5:
-                            s_text = (f"Return: {stats.get('total_return', 0):.2%}\n"
-                                      f"Sharpe: {stats.get('sharpe', 0):.2f}\n"
-                                      f"PSR: {stats.get('probabilistic_sharpe', 0):.2%}\n"
-                                      f"DSR: {stats.get('deflated_sharpe', 0):.2%}\n"
-                                      f"MDD: {stats.get('max_dd', 0):.2%}\n"
-                                      f"CAGR: {stats.get('cagr', 0):.2%}\n"
-                                      f"Win%: {stats.get('win_rate', 0):.2%}\n"
-                                      f"PFactor: {stats.get('profit_factor', 0):.2f}\n"
-                                      f"Trades: {stats.get('n_trades', 0)}\n"
-                                      f"Avg Exp: {stats.get('avg_capital_exposure', 0):.1f}%\n"
-                                      f"Avg Size: {stats.get('avg_trade_size', 0):.1f}%")
-                        else:
-                            s_text = (f"DSR: {stats.get('deflated_sharpe', 0):.2%}\n"
-                                      f"Sharpe: {stats.get('sharpe', 0):.2f}\n"
-                                      f"MDD: {stats.get('max_dd', 0):.2%}\n"
-                                      f"Avg Exp: {stats.get('avg_capital_exposure', 0):.1f}%\n"
-                                      f"Avg Size: {stats.get('avg_trade_size', 0):.1f}%")
-                        
-                        stats_x = 0.02
-                        stats_y = 0.05
-                        
-                        ax_cum.text(stats_x, stats_y, s_text, transform=ax_cum.transAxes, fontsize=stats_font, 
-                                    family='monospace', verticalalignment='bottom',
-                                    bbox=dict(facecolor='white', alpha=0.5, edgecolor='grey', pad=1))
-
-                ax_cum.xaxis.set_major_locator(mdates.AutoDateLocator(maxticks=5 if n_pairs > 8 else 8))
+                        ax_cum.text(0.02, 0.05, stats_text(stats, n_pairs), transform=ax_cum.transAxes, fontsize=s['stats_font'], family='monospace', verticalalignment='bottom', bbox=dict(facecolor='white', alpha=0.5, edgecolor='grey', pad=1))
+                ax_cum.xaxis.set_major_locator(mdates.AutoDateLocator(maxticks=5 if n_pairs > 8 else s['max_date_ticks']))
                 ax_cum.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-                plt.setp(ax_cum.get_xticklabels(), rotation=90, ha='center', fontsize=tick_font)
-                
-                for a in [ax_exec, ax_pnl, ax_cum]:
-                    a.tick_params(axis='both', which='major', labelsize=tick_font)
-                    a.grid(True, alpha=0.2)
+                plt.setp(ax_cum.get_xticklabels(), rotation=90, ha='center', fontsize=s['tick_font'])
+                for a in (ax_exec, ax_pnl, ax_cum): a.tick_params(axis='both', which='major', labelsize=s['tick_font']); a.grid(True, alpha=0.2)
 
-        # Apply tight_layout
-        plt.tight_layout(rect=[0.08, 0.02, 0.98, top_margin])
-        
-        # Add side labels (left side) AFTER layout
-        for f_idx in range(n_folds):
-            if f_idx == 0:
-                for p_idx, pair in enumerate(pairs):
-                    ax_exec = axes[p_idx * rows_per_pair + 0, f_idx]
-                    ax_pnl = axes[p_idx * rows_per_pair + 1, f_idx]
-                    ax_cum = axes[p_idx * rows_per_pair + 2, f_idx]
-                    
-                    bbox_exec = ax_exec.get_position()
-                    bbox_pnl = ax_pnl.get_position()
-                    bbox_cum = ax_cum.get_position()
-                    
-                    # Adjust label X positions based on number of pairs
-                    label_x_offset = -0.065 if n_pairs <= 5 else (-0.033 if n_pairs <= 8 else -0.035)
-                    pair_x_offset = -0.1 if n_pairs <= 5 else (-0.0555 if n_pairs <= 8 else -0.045)
-                    
-                    fig.text(bbox_exec.x0 + label_x_offset, bbox_exec.y0 + bbox_exec.height/2, 
-                            "Execution\nLog", rotation=90, ha='center', va='center', 
-                            fontsize=label_font, fontweight='bold')
-                    
-                    fig.text(bbox_pnl.x0 + pair_x_offset, bbox_pnl.y0 + bbox_pnl.height/2, 
-                            pair, rotation=90, ha='center', va='center', 
-                            fontsize=pair_font, fontweight='bold', color='darkred')
+        fig.subplots_adjust(left=s['subplot_left'], right=s['subplot_right'], top=s['subplot_top'], bottom=s['subplot_bottom'], hspace=s['subplot_hspace'], wspace=s['subplot_wspace'])
 
-                    fig.text(bbox_pnl.x0 + label_x_offset, bbox_pnl.y0 + bbox_pnl.height/2, 
-                            'Trade Return\nProfile', rotation=90, ha='center', va='center', 
-                            fontsize=label_font, fontweight='bold')
-                    
-                    fig.text(bbox_cum.x0 + label_x_offset, bbox_cum.y0 + bbox_cum.height/2, 
-                            'Cumulative\nPerformance', rotation=90, ha='center', va='center', 
-                            fontsize=label_font, fontweight='bold')
-        
-        # Add column titles (top)
+        # Draw labels only for real pairs
+        for p_idx, pair in enumerate(raw_pairs):
+            ax_exec = axes[p_idx * rows_per_pair + 0, 0]
+            ax_pnl = axes[p_idx * rows_per_pair + 1, 0]
+            ax_cum = axes[p_idx * rows_per_pair + 2, 0]
+            
+            fig.text(ax_exec.get_position().x0 + s['label_x_offset'], ax_exec.get_position().y0 + ax_exec.get_position().height / 2, "Execution\nLog", rotation=90, ha='center', va='center', fontsize=s['label_font'], fontweight='bold')
+            fig.text(ax_pnl.get_position().x0 + s['pair_x_offset'], ax_pnl.get_position().y0 + ax_pnl.get_position().height / 2, pair, rotation=90, ha='center', va='center', fontsize=s['pair_font'], fontweight='bold', color='darkred')
+            fig.text(ax_pnl.get_position().x0 + s['label_x_offset'], ax_pnl.get_position().y0 + ax_pnl.get_position().height / 2, 'Trade Return\nProfile', rotation=90, ha='center', va='center', fontsize=s['label_font'], fontweight='bold')
+            fig.text(ax_cum.get_position().x0 + s['label_x_offset'], ax_cum.get_position().y0 + ax_cum.get_position().height / 2, 'Cumulative\nPerformance', rotation=90, ha='center', va='center', fontsize=s['label_font'], fontweight='bold')
+
         for f_idx in range(n_folds):
-            if n_folds == 1:
-                txt = 'Global Test Fold'
-            else:
-                txt = f"Fold {f_idx+1}"
-            
-            ax_first = axes[0, f_idx]
-            bbox = ax_first.get_position()
-            
-            # Dynamic title Y offset
-            title_y_offset = 0.01 if n_pairs <= 5 else (-0.015 if n_pairs <= 8 else -0.02)
-            title_y = bbox.y0 + bbox.height + title_y_offset
-            
-            fig.text(bbox.x0 + bbox.width/2, title_y, txt, 
-                     ha='center', va='bottom', fontsize=fold_font, 
-                     fontweight='bold', color='darkblue')
-        
-        os.makedirs("data/figures/backtests", exist_ok=True)
+            txt = 'Global Test Fold' if n_folds == 1 else f"Fold {f_idx + 1}"
+            bbox = axes[0, f_idx].get_position()
+            fig.text(bbox.x0 + bbox.width / 2, bbox.y0 + bbox.height + s['title_y_offset'], txt, ha='center', va='bottom', fontsize=s['fold_font'], fontweight='bold', color='darkblue')
+
+        os.makedirs(output_dir, exist_ok=True)
         suffix = f"_part{part_idx + 1}" if num_parts > 1 else ""
-        save_path = f"./data/figures/backtests/{title_pref}_results_{model_name}{suffix}.png"
+        save_path = f"{output_dir}/{title_pref}_results_{model_name}{suffix}.png"
         plt.savefig(save_path, dpi=200, bbox_inches='tight')
-        plt.close()
+        plt.close(fig)
         print(f"   ... Tournament dashboard saved to {save_path}")
 
 

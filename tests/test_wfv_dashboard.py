@@ -337,29 +337,20 @@ def test_dashboard_visuals():
     print("="*80)
     
     # Test Case 1: Single fold with 3 pairs (Quick test)
-    print("\n[INFO] Test 1: Production Dashboard (1 Fold, 3 Pairs)...")
-    single_fold_data = create_multi_pair_synthetic_data(n_folds=1, n_pairs=3)
+    single_fold_data = create_multi_pair_synthetic_data(n_folds=1, n_pairs=10)
     plot_nested_wfv_dashboard(
-        model_name="Synthetic_Prod_3Pairs",
+        model_name="Synthetic_Prod_10Pairs",
         all_fold_results=single_fold_data,
-        title_pref="production"
+        title_pref="a_production"
     )
     
     # Test Case 2: Two folds with 5 pairs (Medium test)
-    print("\n[INFO] Test 2: Tournament Dashboard (2 Folds, 3 Pairs)...")
-    multi_fold_data = create_multi_pair_synthetic_data(n_folds=2, n_pairs=3)
+    multi_fold_data = create_multi_pair_synthetic_data(n_folds=2, n_pairs=10)
     plot_nested_wfv_dashboard(
-        model_name="Synthetic_Tourney_3Pairs",
+        model_name="Synthetic_Tourney_10Pairs",
         all_fold_results=multi_fold_data,
-        title_pref="tournament"
+        title_pref="a_tournament"
     )
-    
-    print("\n" + "="*80)
-    print("TEST COMPLETE: Check ./data/figures/backtests/ folder for:")
-    print("  - production_results_Synthetic_Prod_3Pairs.png")
-    print("  - tournament_results_Synthetic_Tourney_3Pairs.png")
-    print("="*80)
-
 
 if __name__ == "__main__":
     test_dashboard_visuals()
