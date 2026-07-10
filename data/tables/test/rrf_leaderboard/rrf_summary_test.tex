@@ -1,0 +1,22 @@
+\begin{table}[H]
+\caption{{RRF Performance Summary: Best and Worst Performing Pairs (Test Phase)}}
+\label{tab:rrf_summary_test}
+\begin{tabular}{l l p{5cm} p{5cm}}
+\toprule
+Model & Fold & Best Performers (RRF) & Worst Performers (RRF) \\
+\midrule
+RandomForest & Fold 1 & GBPUSD, USDCHF & USDJPY, USDZAR \\
+ & Fold 2 & USDCAD, EURUSD & NZDUSD, AUDUSD \\
+ExtraTrees & Fold 1 & USDCNH, USDZAR & AUDUSD, USDMXN \\
+ & Fold 2 & USDCAD, USDMXN & USDZAR, USDCHF \\
+XGBoost & Fold 1 & USDCAD, USDMXN & AUDUSD, EURUSD \\
+ & Fold 2 & USDTRY, USDJPY & GBPUSD, EURUSD \\
+LightGBM & Fold 1 & USDJPY, USDMXN & USDZAR, NZDUSD \\
+ & Fold 2 & USDCAD, GBPUSD & USDCHF, USDZAR \\
+LSTM & Fold 1 & NZDUSD, USDZAR & USDCHF, GBPUSD \\
+ & Fold 2 & AUDUSD, USDZAR & USDCAD, EURUSD \\
+GRU & Fold 1 & USDZAR, USDMXN & USDJPY, AUDUSD \\
+ & Fold 2 & USDZAR, USDMXN & USDTRY, USDJPY \\
+\bottomrule
+\end{tabular}
+\end{table}

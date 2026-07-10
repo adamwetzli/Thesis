@@ -1624,6 +1624,7 @@ def generate_strategy_comparison_table(comparison_data: dict, phase_name: str = 
         
         print(f"   ... Professional Strategy Comparison table for {model_name} saved to: {filename}")
 
+
 def generate_rrf_leaderboard(consolidated_results: Dict[str, List[pd.DataFrame]], 
                              phase_name: str = "tournament", 
                              top_n: int = 2):
@@ -1711,22 +1712,46 @@ def generate_rrf_leaderboard(consolidated_results: Dict[str, List[pd.DataFrame]]
         f.write(summary_tex)
 
     # --- TABLE 2: GRANULAR MATRIX ---
-    matrix_path = f"data/tables/{phase_name}/rrf_leaderboard/rrf_matrix_{phase_name}.tex"
-    matrix_caption = f"{{RRF Granular rankings and Fused Scores ({phase_name.capitalize()} Phase)}}"
-    matrix_label = f"tab:rrf_matrix_{phase_name}"
+    # Structure: matrix_data[model][fold] = Series(index=pairs, values=rank_score_str)
+    matrix_data = {}
     
-    # Generate LaTeX with sidewaystable environment for width
-    matrix_tex = df_matrix.style.hide(axis="index").to_latex(
-        environment="sidewaystable",
-        caption=matrix_caption,
-        label=matrix_label,
-        hrules=True
+    for m_name, folds in consolidated_results.items():
+        for f_idx, df_fold in enumerate(folds):
+            valid_metrics = [m for m in rrf_metrics if m in df_fold.columns]
+            if not valid_metrics: continue
+
+            # Calculate scores
+            ranks = df_fold[valid_metrics].rank(ascending=False, method="min")
+            rrf_scores = (1.0 / (k + ranks)).sum(axis=1)
+            final_ranks = rrf_scores.rank(ascending=False, method="min").astype(int)
+            
+            # Store in dict indexed by (Model, Fold)
+            col_name = (m_name, f"Fold {f_idx + 1}")
+            matrix_data[col_name] = [f"{final_ranks.loc[p]} ({rrf_scores.loc[p]:.3f})" for p in df_fold.index]
+
+    # Create DataFrame: Pairs are now the Index
+    df_matrix = pd.DataFrame(matrix_data, index=df_fold.index)
+    df_matrix.index.name = "Currency Pair"
+
+    # 2. Setup LaTeX-friendly rotated headers
+    # We create a MultiIndex that includes the rotation command
+    df_matrix.columns = pd.MultiIndex.from_tuples(
+        [(rf"\rotatebox{{90}}{{{m}}}", rf"\rotatebox{{90}}{{{f}}}") for m, f in df_matrix.columns]
     )
+
+    # 3. Export to LaTeX
+    matrix_path = f"data/tables/{phase_name}/rrf_leaderboard/rrf_matrix_{phase_name}.tex"
     
-    # Apply Resizebox scaling to fit text width
-    matrix_tex = matrix_tex.replace(r"\begin{tabular}", r"\resizebox{\textwidth}{!}{\begin{tabular}")
-    matrix_tex = matrix_tex.replace(r"\end{tabular}", r"\end{tabular}}")
-    
+    # Use Styler
+    matrix_tex = df_matrix.style.to_latex(
+        environment="sidewaystable",
+        caption=f"RRF Granular rankings and Fused Scores ({phase_name.capitalize()} Phase)",
+        label=f"tab:rrf_matrix_{phase_name}",
+        hrules=True,
+        column_format="l" + "c" * len(df_matrix.columns)
+    )
+
+    # Clean up and ensure formatting
     with open(matrix_path, "w") as f:
         f.write(matrix_tex)
     

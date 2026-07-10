@@ -1,0 +1,46 @@
+\documentclass[12pt, a4paper]{article}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\newcommand*\rot{\rotatebox{90}}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{float}
+\usepackage{setspace}
+\usepackage{times}  % Times New Roman
+\usepackage{rotating}
+\usepackage[backend=biber, style=authoryear, natbib=true]{biblatex}
+\addbibresource{../data/bibliography/references.bib} 
+
+% Margins: 2cm all around
+\geometry{
+    a4paper,
+    top=2cm,
+    bottom=2cm,
+    left=2cm,
+    right=2cm
+}
+
+% Line spacing: 1.15
+\setstretch{1.15}
+
+% Rest of your preamble (tocdepth, secnumdepth, etc.)
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+
+\begin{document}
+
+\input{../data/tables/test/rrf_leaderboard/rrf_summary_test.tex}
+
+\input{../data/tables/test/rrf_leaderboard/rrf_matrix_test.tex}
+
+\end{document}
