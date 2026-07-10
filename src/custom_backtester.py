@@ -24,75 +24,6 @@ def estimate_pi0(p_values, lambdas):
         pi0_estimates.append(min(pi0, 1.0)) # pi0 cannot exceed 100%
     return np.array(pi0_estimates)
 
-def calculate_pfdr(p_values, alpha=0.05, lambda_grid=None):
-    """
-    Full implementation of Storey (2001) Algorithm 2 for Optimal pFDR.
-    """
-    if lambda_grid is None:
-        lambda_grid = np.arange(0.05, 0.96, 0.05)
-    
-    # Filter out NaNs and Inf to prevent calculation breakdown
-    p_values = np.array(p_values)
-    p_values = p_values[np.isfinite(p_values)]
-    
-    if len(p_values) == 0:
-        return {'pfdr': 1.0, 'pi0': 1.0, 'best_lambda': 0.5, 'mse': 0}
-
-    n = len(p_values)
-    r_alpha = np.sum(p_values <= alpha)
-    
-    # Guardrail: If no discoveries are found, the probability of discovery being a fluke is 100%
-    if r_alpha == 0:
-        return {'pfdr': 1.0, 'pi0': 1.0, 'best_lambda': 0.5, 'mse': 0}
-    
-    r_alpha = max(r_alpha, 1) # Total discoveries (R)
-    
-    # --- Step 1: Initial pFDR estimates for each lambda ---
-    # pFDR = (pi0 * alpha) / (R/n)
-    pi0_grid = estimate_pi0(p_values, lambda_grid)
-    pfdr_grid = (pi0_grid * alpha) / (r_alpha / n)
-    
-    # --- Step 2: Jackknife Variance Estimation ---
-    # We drop one p-value at a time and re-calculate pFDR
-    var_grid = []
-    for l_idx, l in enumerate(lambda_grid):
-        jackknife_estimates = []
-        for i in range(n):
-            # Create subset omitting index i
-            p_subset = np.delete(p_values, i)
-            n_sub = len(p_subset)
-            r_sub = max(np.sum(p_subset <= alpha), 1)
-            
-            # Re-estimate pi0 and pFDR
-            pi0_sub = np.sum(p_subset > l) / (n_sub * (1 - l))
-            pfdr_sub = (pi0_sub * alpha) / (r_sub / n_sub)
-            jackknife_estimates.append(pfdr_sub)
-        
-        # Jackknife Variance Formula (Eq. 38)
-        mean_pfdr = np.mean(jackknife_estimates)
-        variance = ((n - 1) / n) * np.sum((jackknife_estimates - mean_pfdr)**2)
-        var_grid.append(variance)
-    
-    var_grid = np.array(var_grid)
-    
-    # --- Step 3: Bias Estimation (Min-Plug-in) ---
-    # Formula (Eq. 40): Bias = Estimate - Minimum possible estimate
-    min_pfdr = np.min(pfdr_grid)
-    bias_grid = pfdr_grid - min_pfdr
-    
-    # --- Step 4: MSE Minimization ---
-    # MSE = Bias^2 + Variance
-    mse_grid = (bias_grid**2) + var_grid
-    best_idx = np.argmin(mse_grid)
-    best_lambda = lambda_grid[best_idx]
-    final_pfdr = pfdr_grid[best_idx]
-    
-    return {
-        'pfdr': final_pfdr,
-        'best_lambda': best_lambda,
-        'pi0': pi0_grid[best_idx],
-        'mse': mse_grid[best_idx]
-    }
 
 def sharpe_ratio_(equity_series, periods_per_year=252*24):
     """
@@ -795,10 +726,6 @@ class CustomBacktester:
             stats['deflated_min_trl'] = calculate_mintrl_(
                 equity_series, benchmark_sharpe=sr_star, periods_per_year=252*24
             )
-
-        if p_values is not None:
-            res = calculate_pfdr(p_values, alpha=0.05, lambda_grid=np.arange(0.05, 0.96, 0.05))
-            stats['pfdr'] = res['pfdr']
         
         if brier_tuple is not None:
             m1_correct = brier_tuple[0]

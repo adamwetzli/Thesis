@@ -872,7 +872,7 @@ def run_nested_wfv(data: pd.DataFrame,
             model_trading_hps_folds[m_name].append(t_hps)
 
             # Plot Distribution of Metrics from Optimization
-            to_remove = ["variance", "n_trials", "pfdrs"]
+            to_remove = ["variance", "n_trials"]
             bins_dict = {}
             hpo_meta_copy = hpo_meta.copy()
             for k in list(hpo_meta_copy.keys()):
@@ -1100,7 +1100,7 @@ def run_wfv(data: pd.DataFrame,
                                                                        selected_features=selected_features,
                                                                        enable_plotting=True)
         
-    to_remove = ["variance", "n_trials", "pfdrs"]
+    to_remove = ["variance", "n_trials"]
     bins_dict = {}
     hpo_meta_copy = hpo_meta.copy()
     for k in list(hpo_meta_copy.keys()):

@@ -1877,59 +1877,54 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
 
 
 def generate_tournament_summary_tables(consolidated_results: Dict[str, List[pd.DataFrame]], 
-                                       phase_name: str = 'tournament'):
+                                      phase_name: str = 'tournament'):
     """
-    Generates high-level summary tables for the thesis:
-    1. tab:all_models: Detailed Statistics by Model (mean ± std format)
-    2. tab:ranking: Best performer per metric + Overall RRF Winner (Global Means)
+    Generates summary tables for the thesis, handling percentage formatting 
+    and rounding to 2 decimal places.
     """
     if not consolidated_results:
         return
 
+    # Metadata structure: (Display Name, Higher Is Better, Type)
+    # Type 'decimal_pct': needs * 100 before formatting
+    # Type 'value_pct': already in %, just needs the symbol
+    # Type 'raw': standard numeric
+    metric_meta = {
+        'total_return': ('Total Return (\\%)', True, 'decimal_pct'),
+        'sharpe': ('Sharpe Ratio', True, 'raw'),
+        'probabilistic_sharpe': ('Probabilistic Sharpe (\\%)', True, 'decimal_pct'),
+        'max_dd': ('Max Drawdown (\\%)', True, 'decimal_pct'),
+        'cagr': ('CAGR (\\%)', True, 'decimal_pct'),
+        'win_rate': ('Win Rate (\\%)', True, 'decimal_pct'),
+        'profit_factor': ('Profit Factor', True, 'raw'),
+        'n_trades': ('Number of Trades', False, 'raw'),
+        'avg_capital_exposure': ('Avg Capital Exposure (\\%)', False, 'value_pct'),
+        'avg_trade_size': ('Avg Trade Size (\\%)', False, 'value_pct'),
+        'deflated_sharpe': ('Deflated Sharpe (\\%)', True, 'decimal_pct'),
+        'm2_brier': ('M2 Brier', False, 'raw')
+    }
+
     # 1. AGGREGATE DATA
     model_stats = {}
-    model_means = {} # For RRF calculation
-
-    # Standard metric metadata
-    metric_meta = {
-        'total_return': ('Total Return (\\%)', True),
-        'sharpe': ('Sharpe Ratio', True),
-        'probabilistic_sharpe': ('Probabilistic Sharpe (\\%)', True),
-        'max_dd': ('Max Drawdown (\\%)', True),
-        'cagr': ('CAGR (\\%)', True),
-        'win_rate': ('Win Rate (\\%)', True),
-        'profit_factor': ('Profit Factor', True),
-        'n_trades': ('Number of Trades', False),
-        'avg_capital_exposure': ('Avg Capital Exposure', False),
-        'avg_trade_size': ('Avg Trade Size', False),
-        'deflated_sharpe': ('Deflated Sharpe', True),
-        'pfdr': ('PFDR', False),
-        'm2_brier': ('M2 Brier', False)
-    }
+    model_means = {} 
 
     for m_name, folds in consolidated_results.items():
         if not folds: continue
-        # Pool all pairs across all folds for this model
         df_full = pd.concat(folds)
-
         means = df_full.mean(numeric_only=True)
         stds = df_full.std(numeric_only=True)
-
         model_means[m_name] = means
 
-        # Build "mean ± std" formatted strings
         formatted_summary = {}
-        for key, (display_name, _) in metric_meta.items():
+        for key, (display_name, _, p_type) in metric_meta.items():
             if key in means.index:
-                m = means[key]
-                s = stds[key]
-
-                # Check if it's a percentage metric
-                if "(%)" in display_name:
-                    formatted_summary[display_name] = f"${m*100:.2f}\\% \\pm {s*100:.2f}\\%$"
+                m, s = means[key], stds[key]
+                if p_type == 'decimal_pct':
+                    formatted_summary[display_name] = f"${m*100:.2f} \\pm {s*100:.2f}$"
+                elif p_type == 'value_pct':
+                    formatted_summary[display_name] = f"${m:.2f} \\pm {s:.2f}$"
                 else:
-                    formatted_summary[display_name] = f"${m:.4f} \\pm {s:.4f}$"
-
+                    formatted_summary[display_name] = f"${m:.2f} \\pm {s:.2f}$"
         model_stats[m_name] = formatted_summary
 
     # 2. CREATE TABLE 1: Detailed Statistics
@@ -1937,88 +1932,69 @@ def generate_tournament_summary_tables(consolidated_results: Dict[str, List[pd.D
     df_all_models.index.name = 'Statistic'
     df_all_models = df_all_models.reset_index()
 
-    # 3. CREATE TABLE 2: Ranking Summary + RRF
+    # 3. CREATE TABLE 2: Ranking Summary
     df_means_matrix = pd.DataFrame(model_means)
     ranking_rows = []
 
-    # Calculate RRF Scores based on Global Means
+    # Calculate RRF Scores
     k_rrf = 60
-    # Higher is better metrics
     hb_metrics = [k for k, v in metric_meta.items() if v[1]]
-    # Lower is better metrics
     lb_metrics = [k for k, v in metric_meta.items() if not v[1]]
-
-    # Ranks for RRF
     ranks_hb = df_means_matrix.loc[df_means_matrix.index.intersection(hb_metrics)].rank(ascending=False, axis=1)
     ranks_lb = df_means_matrix.loc[df_means_matrix.index.intersection(lb_metrics)].rank(ascending=True, axis=1)
     all_ranks = pd.concat([ranks_hb, ranks_lb])
-
     rrf_scores = (1.0 / (k_rrf + all_ranks)).sum(axis=0)
     rrf_winner = rrf_scores.idxmax()
     rrf_winner_score = rrf_scores.max()
 
-    # Build the metric-by-metric ranking rows
-    for key, (display_name, higher_is_better) in metric_meta.items():
+    for key, (display_name, higher_is_better, p_type) in metric_meta.items():
         if key not in df_means_matrix.index: continue
-
         vals = df_means_matrix.loc[key]
-        best_model = vals.idxmax() if higher_is_better else vals.idxmin()
         best_val_raw = vals.max() if higher_is_better else vals.min()
+        best_model = vals.idxmax() if higher_is_better else vals.idxmin()
 
-        # Format the best value in math mode
-        if "(%)" in display_name:
+        if p_type == 'decimal_pct':
             best_val = f"${best_val_raw*100:.2f}\\%$"
+        elif p_type == 'value_pct':
+            best_val = f"${best_val_raw:.2f}\\%$"
         else:
-            best_val = f"${best_val_raw:.4f}$"
+            best_val = f"${best_val_raw:.2f}$"
 
-        ranking_rows.append({
-            'Metric': display_name,
-            'Higher is Better': 'Yes' if higher_is_better else 'No',
-            'Best Model': best_model,
-            'Best Value': best_val
-        })
+        ranking_rows.append({'Metric': display_name, 'Best Model': best_model, 'Best Value': best_val})
 
     df_ranking = pd.DataFrame(ranking_rows)
 
     # 4. EXPORT TO LATEX
     os.makedirs(f"data/tables/{phase_name}/summary_tables", exist_ok=True)
-
-    # Clean phase name for display in captions
     display_phase = phase_name.replace('_', ' ').capitalize()
 
-    # --- tab:all_models ---
-    path_all = f"data/tables/{phase_name}/summary_tables/all_models_{phase_name}.tex"
-    caption_all = f"{{Detailed Statistics by Model (Mean $\\pm$ Std) - {display_phase} Phase}}"
-    label_all = f"tab:all_models_{phase_name}"
+    def save_to_latex(df, filename, caption, label, add_rrf=False, fit_to_width=False):
+        tex = df.style.hide(axis='index').to_latex(
+            caption=caption, label=label, position="H", position_float="centering", hrules=True
+        )
+        
+        if add_rrf:
+            rrf_row = f"\\\\ \\midrule \\textbf{{Overall RRF Winner}} & \\textbf{{{rrf_winner}}} & \\textbf{{Score: {rrf_winner_score:.2f}}} \\\\"
+            tex = tex.replace(r'\bottomrule', rrf_row + r'\bottomrule')
+        
+        if fit_to_width:
+            # Table 1: Force fit to width
+            tex = tex.replace(r'\begin{tabular}', r'\resizebox{\textwidth}{!}{\begin{tabular}')
+            tex = tex.replace(r'\end{tabular}', r'\end{tabular}}')
+        else:
+            # Table 2: Use fixed small font size, don't force stretch
+            tex = tex.replace(r'\begin{tabular}', r'\small \begin{tabular}')
+            
+        with open(filename, 'w') as f:
+            f.write(tex)
 
-    tex_all = df_all_models.style.hide(axis='index').to_latex(
-        caption=caption_all, label=label_all, position="H", position_float="centering", hrules=True
-    )
-    # Fit to width
-    tex_all = tex_all.replace(r'\begin{tabular}', r'\resizebox{\textwidth}{!}{\begin{tabular}')
-    tex_all = tex_all.replace(r'\end{tabular}', r'\end{tabular}}')
+    # Call them with the specific constraints:
+    save_to_latex(df_all_models, f"data/tables/{phase_name}/summary_tables/all_models_{phase_name}.tex", 
+                  f"{{Detailed Statistics by Model - {display_phase}}}", f"tab:all_models_{phase_name}", 
+                  fit_to_width=True)
+    
+    save_to_latex(df_ranking, f"data/tables/{phase_name}/summary_tables/ranking_{phase_name}.tex", 
+                  f"{{Ranking Summary - {display_phase}}}", f"tab:ranking_{phase_name}", 
+                  add_rrf=True, fit_to_width=False)
 
-    with open(path_all, 'w') as f:
-        f.write(tex_all)
-
-    # --- tab:ranking ---
-    path_rank = f"data/tables/{phase_name}/summary_tables/ranking_{phase_name}.tex"
-    caption_rank = f"{{Ranking Summary - Best Performer per Metric ({display_phase} Phase)}}"
-    label_rank = f"tab:ranking_{phase_name}"
-    # Generate base ranking table
-    tex_rank = df_ranking.style.hide(axis='index').to_latex(
-        caption=caption_rank, label=label_rank, position="H", position_float="centering", hrules=True
-    )
-
-    # Insert the RRF winner row before the end of the tabular
-    rrf_row = f"\\\\ \\midrule \\textbf{{Overall RRF Winner}} & & \\textbf{{{rrf_winner}}} & \\textbf{{Score: {rrf_winner_score:.4f}}} \\\\"
-    tex_rank = tex_rank.replace(r'\bottomrule', rrf_row + r'\bottomrule')
-
-    # Fit to width
-    tex_rank = tex_rank.replace(r'\begin{tabular}', r'\resizebox{\textwidth}{!}{\begin{tabular}')
-    tex_rank = tex_rank.replace(r'\end{tabular}', r'\end{tabular}}')
-
-    with open(path_rank, 'w') as f:
-        f.write(tex_rank)
-
-    print(f"   ... Tournament Summary tables generated in data/tables/{phase_name}/summary_tables/")
+    print(f"Summary tables generated in data/tables/{phase_name}/summary_tables/")
