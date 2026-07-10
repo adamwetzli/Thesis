@@ -1628,81 +1628,63 @@ def generate_strategy_comparison_table(comparison_data: dict, phase_name: str = 
 def generate_rrf_leaderboard(consolidated_results: Dict[str, List[pd.DataFrame]], 
                              phase_name: str = "tournament", 
                              top_n: int = 2):
-    """
-    Consolidates per-pair metrics across folds and identifies the best/worst 
-    performing pairs using Reciprocal Rank Fusion (RRF).
-    
-    This function generates two tables:
-    1. A summary table listing the Top and Bottom pairs per fold.
-    2. A granular matrix showing the absolute Rank and RRF score for every pair.
-    """
     if not consolidated_results:
         return
 
-    # Metrics to include in RRF (higher is better for all of these)
-    # max_dd is expected to be negative, so -0.05 (better) is > -0.15 (worse)
     rrf_metrics = ["total_return", "sharpe", "probabilistic_sharpe", 
                    "deflated_sharpe", "max_dd", "win_rate", "profit_factor", "cagr"]
     
     summary_rows = []
-    matrix_rows = []
-    k = 60  # RRF constant as per Cormack et al. (2009)
+    # This list will hold rows of: {'Pair': p, 'Fold': f, 'Model1': v, 'Model2': v...}
+    matrix_data = []
+    k = 60
 
-    # 1. Process each model and its list of fold DataFrames
+    # 1. Process data
+    # We first collect data per Pair + Fold, then pivot to get Models as columns
+    pair_fold_map = {}
+
     for m_name, folds in consolidated_results.items():
         for f_idx, df_fold in enumerate(folds):
-            # Ensure we only use metrics present in the DataFrame
             valid_metrics = [m for m in rrf_metrics if m in df_fold.columns]
-            
-            if not valid_metrics:
-                continue
+            if not valid_metrics: continue
 
-            # Calculate RRF scores for this specific fold
-            # rank(ascending=False) ensures highest values get rank 1
             ranks = df_fold[valid_metrics].rank(ascending=False, method="min")
             rrf_scores = (1.0 / (k + ranks)).sum(axis=1)
-            
-            # Create final rankings based on the fused scores
             final_ranks = rrf_scores.rank(ascending=False, method="min").astype(int)
             
-            # Build Matrix Row (Rank + Score in brackets)
-            m_row = {"Model": m_name, "Fold": f"Fold {f_idx+1}"}
-            for pair in df_fold.index:
-                score = rrf_scores.loc[pair]
-                rank = final_ranks.loc[pair]
-                m_row[pair] = f"{rank} ({score:.3f})"
-            matrix_rows.append(m_row)
+            fold_label = f"Fold {f_idx + 1}"
             
-            # Build Summary Row (Best/Worst N pairs)
+            # Store for Summary
             sorted_pairs = rrf_scores.sort_values(ascending=False).index.tolist()
             summary_rows.append({
-                "Model": m_name,
-                "Fold": f"Fold {f_idx+1}",
+                "Model": m_name, "Fold": fold_label,
                 "Best Performers (RRF)": ", ".join(sorted_pairs[:top_n]),
                 "Worst Performers (RRF)": ", ".join(sorted_pairs[-top_n:][::-1])
             })
 
-    # 2. Convert to DataFrames and format for LaTeX
-    df_summary = pd.DataFrame(summary_rows)
-    df_matrix = pd.DataFrame(matrix_rows)
-
-    # Mask repeating Model/Fold names for visual clarity
-    for df in [df_summary, df_matrix]:
-        model_changed = df["Model"] != df["Model"].shift(1)
-        df["Model"] = df["Model"].where(model_changed, "")
-        df["Fold"] = df["Fold"].where(model_changed | (df["Fold"] != df["Fold"].shift(1)), "")
+            # Store for Matrix
+            for pair in df_fold.index:
+                key = (pair, fold_label)
+                if key not in pair_fold_map:
+                    pair_fold_map[key] = {'Currency Pair': pair, 'Fold': fold_label}
+                pair_fold_map[key][m_name] = f"{final_ranks.loc[pair]} ({rrf_scores.loc[pair]:.3f})"
 
     os.makedirs(f"data/tables/{phase_name}/rrf_leaderboard", exist_ok=True)
-    
+
     # --- TABLE 1: SUMMARY ---
-    summary_path = f"data/tables/{phase_name}/rrf_leaderboard/rrf_summary_{phase_name}.tex"
-    summary_caption = f"{{RRF Performance Summary: Best and Worst Performing Pairs ({phase_name.capitalize()} Phase)}}"
-    summary_label = f"tab:rrf_summary_{phase_name}"
+    df_summary = pd.DataFrame(summary_rows)
     
-    # Use Styler for more robust LaTeX export
+    # Mask repeating Model names so it only shows on the first fold
+    df_summary['Model'] = df_summary['Model'].mask(
+        df_summary['Model'] == df_summary['Model'].shift(1), 
+        ""
+    )
+    
+    summary_path = f"data/tables/{phase_name}/rrf_leaderboard/rrf_summary_{phase_name}.tex"
+    
     summary_tex = df_summary.style.hide(axis="index").to_latex(
-        caption=summary_caption,
-        label=summary_label,
+        caption=f"RRF Performance Summary: Best and Worst Performing Pairs ({phase_name.capitalize()} Phase)",
+        label=f"tab:rrf_summary_{phase_name}",
         position="H",
         column_format="l l p{5cm} p{5cm}",
         hrules=True
@@ -1711,51 +1693,40 @@ def generate_rrf_leaderboard(consolidated_results: Dict[str, List[pd.DataFrame]]
     with open(summary_path, "w") as f:
         f.write(summary_tex)
 
-    # --- TABLE 2: GRANULAR MATRIX ---
-    # Structure: matrix_data[model][fold] = Series(index=pairs, values=rank_score_str)
-    matrix_data = {}
-    
-    for m_name, folds in consolidated_results.items():
-        for f_idx, df_fold in enumerate(folds):
-            valid_metrics = [m for m in rrf_metrics if m in df_fold.columns]
-            if not valid_metrics: continue
+    # --- TABLE 2: Granular Matrix Table ---
+    df_matrix = pd.DataFrame(list(pair_fold_map.values()))
+    # Sort by Pair then Fold
+    df_matrix = df_matrix.sort_values(by=['Currency Pair', 'Fold'])
 
-            # Calculate scores
-            ranks = df_fold[valid_metrics].rank(ascending=False, method="min")
-            rrf_scores = (1.0 / (k + ranks)).sum(axis=1)
-            final_ranks = rrf_scores.rank(ascending=False, method="min").astype(int)
-            
-            # Store in dict indexed by (Model, Fold)
-            col_name = (m_name, f"Fold {f_idx + 1}")
-            matrix_data[col_name] = [f"{final_ranks.loc[p]} ({rrf_scores.loc[p]:.3f})" for p in df_fold.index]
-
-    # Create DataFrame: Pairs are now the Index
-    df_matrix = pd.DataFrame(matrix_data, index=df_fold.index)
-    df_matrix.index.name = "Currency Pair"
-
-    # 2. Setup LaTeX-friendly rotated headers
-    # We create a MultiIndex that includes the rotation command
-    df_matrix.columns = pd.MultiIndex.from_tuples(
-        [(rf"\rotatebox{{90}}{{{m}}}", rf"\rotatebox{{90}}{{{f}}}") for m, f in df_matrix.columns]
+    # Mask duplicate Currency Pair names
+    # This checks if the current row's 'Currency Pair' is the same as the previous
+    df_matrix['Currency Pair'] = df_matrix['Currency Pair'].mask(
+        df_matrix['Currency Pair'] == df_matrix['Currency Pair'].shift(1), 
+        ""
     )
 
-    # 3. Export to LaTeX
-    matrix_path = f"data/tables/{phase_name}/rrf_leaderboard/rrf_matrix_{phase_name}.tex"
-    
-    # Use Styler
-    matrix_tex = df_matrix.style.to_latex(
-        environment="sidewaystable",
-        caption=f"RRF Granular rankings and Fused Scores ({phase_name.capitalize()} Phase)",
+    # Rotate Model column headers
+    model_cols = [c for c in df_matrix.columns if c not in ['Currency Pair', 'Fold']]
+    new_cols = {c: rf"\rotatebox{{90}}{{{c}}}" for c in model_cols}
+    df_matrix = df_matrix.rename(columns=new_cols)
+
+    # Generate LaTeX
+    matrix_tex = df_matrix.style.hide(axis="index").to_latex(
+        environment="table", # Normal table format
+        caption=f"RRF Granular Rankings ({phase_name.capitalize()} Phase)",
         label=f"tab:rrf_matrix_{phase_name}",
         hrules=True,
-        column_format="l" + "c" * len(df_matrix.columns)
+        column_format="l l " + "c" * len(model_cols)
     )
 
-    # Clean up and ensure formatting
-    with open(matrix_path, "w") as f:
+    # Resize
+    matrix_tex = matrix_tex.replace(r"\begin{table}", r"\begin{table}[H] \centering")
+    matrix_tex = matrix_tex.replace(r"\begin{tabular}", r"\small \begin{tabular}")
+
+    with open(f"data/tables/{phase_name}/rrf_leaderboard/rrf_matrix_{phase_name}.tex", "w") as f:
         f.write(matrix_tex)
     
-    print(f"   ... RRF Summary and Matrix tables saved to data/tables/{phase_name}/rrf_leaderboard")
+    print(f"... Tables saved to data/tables/{phase_name}/rrf_leaderboard")
 
 
 def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, title_pref, rows_are_models=True):
