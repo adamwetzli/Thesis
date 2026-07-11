@@ -14,8 +14,6 @@ def generate_mock_data(n_models, n_folds, n_samples=2000):
     - Model 4: Random Noise (No resolution)
     """
     model_names = [f"Arch_{i+1}" for i in range(n_models)]
-    if n_models >= 4:
-        model_names = ["RandomForest", "XGBoost", "LSTM", "GaussianNB"]
         
     model_conf_preds_folds = {m_name: [] for m_name in model_names}
     

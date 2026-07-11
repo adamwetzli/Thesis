@@ -2,7 +2,7 @@ from utils import load_and_split, plot_nested_feature_importances, BlockingTimeS
 from forex_feature_preprocessing import preprocess_features, run_feature_selection_pipeline
 import os
 
-def test_nested_feat_imp(n_outer_splits):
+def test_nested_feat_imp(n_outer_splits, title):
     # 1. Load available master data
     agg_file = "./data/csv_files/forex_master_data/aggregated_complete_data.csv"
     if not os.path.exists(agg_file):
@@ -49,7 +49,8 @@ def test_nested_feat_imp(n_outer_splits):
         Xs_folds[f"Fold {i+1}"] = Xs_series # Stores the before/after features in correct fold key
 
     if mi_pi_folds:
-        plot_nested_feature_importances(mi_pi_folds=mi_pi_folds, title_pre='Test', pi_model="RF")
+        plot_nested_feature_importances(mi_pi_folds=mi_pi_folds, title_pre=title, pi_model="RF")
 
 if __name__ == "__main__":
-    test_nested_feat_imp(2)
+    test_nested_feat_imp(2, "test_tournament")
+    test_nested_feat_imp(1, "test_production")

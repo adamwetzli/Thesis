@@ -1850,7 +1850,10 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
             legend_font = 22
             y_label_font = 26
             ax_title_font = 26
+            suptitle_font = 30
             x_label_font = 26
+            x_tick_font = 20
+            y_tick_font = 20
             top_margin = 0.02
             stats_font = 24
             if n_current_models == 3:
@@ -1858,17 +1861,20 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
                 legend_y = -0.01
             elif n_current_models < 3:
                 bottom_margin = 0.055
-                legend_y = -0.045
+                legend_y = -0.06
         else:
             n_rows, n_cols = n_folds, n_models
-            legend_font = 16
-            legend_y = -0.045
-            y_label_font = 16
-            ax_title_font = 16
-            x_label_font = 14
-            bottom_margin = 0.03
-            top_margin = 0.05
-            stats_font = 10
+            legend_font = 8
+            legend_y = -0.03
+            y_label_font = 8
+            ax_title_font = 12
+            suptitle_font = 12
+            x_label_font = 10
+            bottom_margin = 0.05
+            x_tick_font = 8
+            y_tick_font = 8
+            top_margin = 0.01
+            stats_font = 12
             
         fig, axes = plt.subplots(n_rows, n_cols, 
                                  figsize=(6 * n_cols, 6 * n_rows),
@@ -1913,8 +1919,8 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
                 ax.set_ylim(0, 1)
                 ax.set_xticks(np.arange(0, 1.1, 0.1))
                 ax.set_yticks(np.arange(0, 1.1, 0.1))
-                ax.tick_params(axis='y', labelsize=20)
-                ax.set_xticklabels(np.round(np.arange(0, 1.1, 0.1), 2), rotation=90, fontsize=20)
+                ax.tick_params(axis='y', labelsize=y_tick_font)
+                ax.set_xticklabels(np.round(np.arange(0, 1.1, 0.1), 2), rotation=90, fontsize=x_tick_font)
                 ax.grid(True, alpha=0.2, linestyle=':')
                 
                 stats_box = f"Brier Score: {brier:.4f}"
@@ -1932,7 +1938,7 @@ def plot_nested_reliability_diagrams(model_conf_preds_folds, n_outer_splits, tit
                     if j == n_folds - 1: ax.set_xlabel("Mean Predicted Confidence", fontsize=x_label_font)
 
         fig.suptitle(f"Reliability Analysis: M2 Confidence Calibration\nduring {title_pref}", 
-                     fontsize=30, fontweight='bold', y=0.98)
+                     fontsize=suptitle_font, fontweight='bold', y=0.98)
         
         # Global Legend
         legend_elements = [
