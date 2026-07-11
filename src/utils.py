@@ -1558,8 +1558,9 @@ def generate_trading_hps_table(t_hps_list: List[dict], model_name: str, phase_na
     latex_lines.append(rf"\caption{{Hyperparameters for {model_name} Model ({phase_name.capitalize()} Phase)}}")
     latex_lines.append(rf"\label{{tab:hps_{model_name}_{phase_name}}}")
     
-    # Only ONE left column now (for parameter names)
+    # Wrap the tabular in resizebox to fit textwidth
     col_format = f"{{l{'c' * n_pairs}}}"
+    latex_lines.append(r"\resizebox{\textwidth}{!}{%")
     latex_lines.append(r"\begin{tabular}" + col_format)
     latex_lines.append(r"\toprule")
 
@@ -1589,6 +1590,7 @@ def generate_trading_hps_table(t_hps_list: List[dict], model_name: str, phase_na
 
     latex_lines.append(r"\bottomrule")
     latex_lines.append(r"\end{tabular}")
+    latex_lines.append(r"}%")  # Close resizebox
     
     # Close the table environment
     latex_lines.append(r"\end{table}")

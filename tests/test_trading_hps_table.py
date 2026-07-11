@@ -3,7 +3,7 @@ from utils import generate_trading_hps_table
 
 def get_synthetic_hps_data(folds=2):
     currencies = [
-        'EURUSD', 'GBPUSD', 'NZDUSD', 'USDCAD', 'USDCHF', 
+        'AUDUSD', 'EURUSD', 'GBPUSD', 'NZDUSD', 'USDCAD', 'USDCHF', 
         'USDCNH', 'USDJPY', 'USDMXN', 'USDTRY', 'USDZAR'
     ]
     params = [
@@ -24,6 +24,8 @@ def get_synthetic_hps_data(folds=2):
                     val = round(random.uniform(1.0, 5.0), 2)
                 elif p == 'mh':
                     val = float(random.randint(5, 50))
+                elif p == 'max_notional_exposure_pct':
+                    val = float(random.randint(40, 70))
                 else:
                     val = round(random.uniform(0.1, 1.0), 2)
                 
