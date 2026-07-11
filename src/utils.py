@@ -1355,82 +1355,139 @@ def plot_nested_confusion_matrices(model_conf_preds_folds, n_outer_splits, title
 def generate_performance_table(granular_dfs: List[pd.DataFrame], model_name: str, phase_name: str = 'tournament'):
     """
     Generates a professional LaTeX table for inclusion in the thesis.
-    Stacks results from multiple test folds (Outer Folds) and adds Average, 
-    StDev, and an empty Interpretation column for manual entry.
+    Rows: currency pair (written once) with each fold listed beneath it.
+    Columns: metrics (renamed via metric_meta, headers rotated vertically).
+    Final row: Average / StDev across all pair/fold rows, stacked vertically per cell.
     """
+    metric_meta = {
+        'total_return': ('Total Return (\\%)', True, 'decimal_pct'),
+        'sharpe': ('Sharpe Ratio', True, 'raw'),
+        'probabilistic_sharpe': ('Probabilistic Sharpe (\\%)', True, 'decimal_pct'),
+        'max_dd': ('Max Drawdown (\\%)', True, 'decimal_pct'),
+        'cagr': ('CAGR (\\%)', True, 'decimal_pct'),
+        'win_rate': ('Win Rate (\\%)', True, 'decimal_pct'),
+        'profit_factor': ('Profit Factor', True, 'raw'),
+        'n_trades': ('Number of Trades', False, 'raw'),
+        'avg_capital_exposure': ('Avg Capital Exposure (\\%)', False, 'value_pct'),
+        'avg_trade_size': ('Avg Trade Size (\\%)', False, 'value_pct'),
+        'deflated_sharpe': ('Deflated Sharpe (\\%)', True, 'decimal_pct'),
+        'm2_brier': ('M2 Brier', False, 'raw')
+    }
+
     if not granular_dfs:
         return
 
-    # 1. Combine all folds into a MultiIndex DataFrame
     fold_keys = [f"Fold {i+1}" for i in range(len(granular_dfs))]
-    full_df = pd.concat(granular_dfs, keys=fold_keys)
-    full_df.index.names = ['Fold', 'Pair']
 
-    # 2. Reshape to Metric-centric view
-    reshaped_list = []
-    for fold in fold_keys:
-        fold_data = full_df.xs(fold, level='Fold').T
-        fold_data.index.name = 'Metric'
-        reshaped_list.append(fold_data)
-    
-    combined_metrics = pd.concat(reshaped_list, keys=fold_keys)
-    combined_metrics.index.names = ['Fold', 'Metric']
+    # 1. Build (Pair, Fold) rows, preserving the original pair order from the first fold
+    rows = []
+    row_index = []
+    for pair in granular_dfs[0].index:
+        for fold_key, df in zip(fold_keys, granular_dfs):
+            if pair in df.index:
+                rows.append(df.loc[pair])
+                row_index.append((pair, fold_key))
 
-    # 3. Add Average and StDev columns
-    combined_metrics['Average'] = combined_metrics.mean(axis=1)
-    combined_metrics['StDev'] = combined_metrics.std(axis=1)
+    combined = pd.DataFrame(rows, index=pd.MultiIndex.from_tuples(row_index, names=['Pair', 'Fold']))
 
-    # 4. Add Empty Interpretation Column
-    combined_metrics['Interpretation'] = ""
+    # 2. Scale 'decimal_pct' columns to percentage points BEFORE renaming
+    #    (e.g. 0.0842 -> 8.42), leave 'value_pct' and 'raw' untouched
+    for raw_key, (_, _, value_type) in metric_meta.items():
+        if raw_key in combined.columns and value_type == 'decimal_pct':
+            combined[raw_key] = combined[raw_key] * 100
 
-    # 5. Clean up for LaTeX
-    final_table = combined_metrics.reset_index()
+    # 3. Rename + reorder metric columns using metric_meta (display name only)
+    rename_map = {k: v[0] for k, v in metric_meta.items()}
+    combined = combined.rename(columns=rename_map)
+    ordered_cols = [rename_map[k] for k in metric_meta if rename_map[k] in combined.columns]
+    combined = combined[ordered_cols]
 
-    # Replace underscores with spaces for LaTeX compatibility
-    final_table['Metric'] = final_table['Metric'].str.replace('_', ' ', regex=False)
-    final_table['Fold'] = final_table['Fold'].str.replace('_', ' ', regex=False)
-    
-    # Clear duplicate Fold labels
-    final_table['Fold'] = final_table['Fold'].mask(final_table['Fold'].duplicated(), "")
+    # Map display name -> value_type, for formatting later
+    type_by_display_name = {v[0]: v[2] for v in metric_meta.values()}
 
-    # Format numbers
-    def format_val(x):
+    # 4. Compute Average / StDev per metric column (on already-scaled numeric values)
+    mean_row = combined.mean(numeric_only=True)
+    std_row = combined.std(numeric_only=True)
+
+    # 5. Format numbers, adding "%" for decimal_pct and value_pct columns
+    def format_val(x, value_type):
         if isinstance(x, (int, float)):
-            if abs(x) < 0.01: return f"{x:.4f}"
-            return f"{x:.2f}"
+            if abs(x) < 0.01:
+                formatted = f"{x:.4f}"
+            else:
+                formatted = f"{x:.2f}"
+            if value_type in ('decimal_pct', 'value_pct'):
+                formatted = f"{formatted}\\%"
+            return formatted
         return x
 
-    formatted_table = final_table.map(format_val)
+    formatted_table = combined.copy()
+    for col in formatted_table.columns:
+        value_type = type_by_display_name.get(col, 'raw')
+        formatted_table[col] = formatted_table[col].apply(lambda x, vt=value_type: format_val(x, vt))
 
-    # 6. Export to LaTeX
+    # Build the summary row as a stacked "mean / ± std" cell (two lines, not side-by-side)
+    summary_values = {}
+    for col in combined.columns:
+        value_type = type_by_display_name.get(col, 'raw')
+        mean_str = format_val(mean_row[col], value_type)
+        std_str = format_val(std_row[col], value_type)
+        summary_values[col] = f"\\shortstack{{{mean_str} \\\\ $\\pm$ {std_str}}}"
+
+    # 6. Reset index, blank out repeated Pair labels
+    final_table = formatted_table.reset_index()
+    final_table['Pair'] = final_table['Pair'].mask(final_table['Pair'].duplicated(), "")
+
+    # Append the summary row
+    summary_row = {'Pair': 'Average / StDev', 'Fold': ''}
+    summary_row.update(summary_values)
+    final_table = pd.concat([final_table, pd.DataFrame([summary_row])], ignore_index=True)
+
+    # 7. Rotate metric column headers vertically to save horizontal space
+    def rotate_header(name):
+        return f"\\rotatebox{{90}}{{{name}}}"
+
+    rotated_cols = {col: rotate_header(col) for col in combined.columns}
+    final_table = final_table.rename(columns=rotated_cols)
+
+    # 8. Export to LaTeX (regular table, not sideways)
     os.makedirs(f"data/tables/{phase_name}/performance_tables", exist_ok=True)
     filename = f"data/tables/{phase_name}/performance_tables/perf_{model_name}_{phase_name}.tex"
-    
-    # Clean model name and phase for caption
+
     safe_model = model_name.replace('_', ' ')
     safe_phase = phase_name.replace('_', ' ').capitalize()
-    
-    # Use double braces in caption as per user's working fix
+
     caption = f"{{Granular Performance Analysis {safe_model} ({safe_phase} Phase)}}"
     label = f"tab:perf_{model_name}_{phase_name}"
-    
-    # Generate the base LaTeX code using sidewaystable
-    latex_code = formatted_table.style.hide(axis='index').to_latex(
+
+    # Right-align every column
+    n_cols = len(final_table.columns)
+    column_format = 'll' + 'r' * (n_cols - 2)
+
+    latex_code = final_table.style.hide(axis='index').to_latex(
         caption=caption,
         label=label,
-        environment="sidewaystable",
+        environment="table",
+        position="H",
         position_float="centering",
-        hrules=True
+        hrules=True,
+        column_format=column_format
     )
 
-    # --- IMPLEMENT "FIT TO WIDTH" ---
+    # --- Insert a double rule between the last data row and the summary row ---
+    latex_code = latex_code.replace(
+        "Average / StDev",
+        "\\midrule\n\\midrule\nAverage / StDev"
+    )
+
+    # --- "Fit to width" ---
     latex_code = latex_code.replace(r'\begin{tabular}', r'\resizebox{\textwidth}{!}{\begin{tabular}')
     latex_code = latex_code.replace(r'\end{tabular}', r'\end{tabular}}')
 
     with open(filename, 'w') as f:
         f.write(latex_code)
-    
-    print(f"   ... Professional performance table (Rotated & Scaled) saved to: {filename}")
+
+    print(f"   ... Professional performance table saved to: {filename}")
 
 
 def generate_trading_hps_table(t_hps_list: List[dict], model_name: str, phase_name: str = 'tournament'):
