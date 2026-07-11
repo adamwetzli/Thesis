@@ -52,5 +52,5 @@ def test_nested_feat_imp(n_outer_splits, title):
         plot_nested_feature_importances(mi_pi_folds=mi_pi_folds, title_pre=title, pi_model="RF")
 
 if __name__ == "__main__":
-    test_nested_feat_imp(2, "test_tournament")
+    # test_nested_feat_imp(2, "test_tournament")
     test_nested_feat_imp(1, "test_production")

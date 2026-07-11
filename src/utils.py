@@ -439,20 +439,79 @@ def plot_nested_correlation_heatmap(Xs_folds: Dict[str, Tuple[pd.DataFrame, pd.D
 
 
 def plot_nested_feature_importances(mi_pi_folds: Dict[str, Tuple[pd.Series, pd.Series]], title_pre, pi_model, 
-                                    top_k: int = 15) -> None:
+                                    top_k: int = 15, layout_overrides: dict = None) -> None:
     """
     Plots Mutual Information and Permutation Importance scores for each outer fold.
     
     Args:
         mi_pi_folds: Dictionary mapping fold names to (mi_series, pi_series).
         top_k: Number of top features to display in each plot.
+        layout_overrides: optional dict to override any style/layout key below,
+            applied on top of whichever preset (single-fold / multi-fold) is active.
     """
     n_folds = len(mi_pi_folds)
     if n_folds == 0:
         return
 
-    # Width 22, balanced right margin, generous left margin for vertical labels
-    fig, axes = plt.subplots(n_folds, 2, figsize=(22, 6 * n_folds), squeeze=False)
+    # ============================================================
+    # STYLE / LAYOUT CONFIG — edit these to tune the figure
+    # ============================================================
+    style_multi_fold = dict(
+        # --- figure sizing ---
+        fig_width=22,
+        fig_height_per_row=6,
+
+        # --- subplots_adjust margins ---
+        left=0.16, right=0.95, top=0.9, bottom=0.08,
+        wspace=0.4, hspace=0.2,
+
+        # --- suptitle ---
+        suptitle_fontsize=20,
+        suptitle_y=0.98,
+
+        # --- fold label (vertical text on left, per row) ---
+        fold_label_fontsize=20,
+        fold_label_x=0.02,
+
+        # --- axis labels (x-axis titles under each panel) ---
+        xlabel_fontsize=15,
+
+        # --- tick label sizes ---
+        tick_fontsize_x=14,   # score numbers on x-axis
+        tick_fontsize_y=12,   # feature names on y-axis
+    )
+
+    style_single_fold = dict(
+        # --- figure sizing ---
+        fig_width=22,
+        fig_height_per_row=6,
+
+        # --- subplots_adjust margins ---
+        left=0.16, right=0.95, top=0.88, bottom=0.05,
+        wspace=0.4, hspace=0.2,
+
+        # --- suptitle ---
+        suptitle_fontsize=20,
+        suptitle_y=0.995,
+
+        # --- fold label ---
+        fold_label_fontsize=20,
+        fold_label_x=0.02,
+
+        # --- axis labels ---
+        xlabel_fontsize=15,
+
+        # --- tick label sizes ---
+        tick_fontsize_x=14,
+        tick_fontsize_y=12,
+    )
+
+    cfg = style_multi_fold if n_folds > 1 else style_single_fold
+    if layout_overrides:
+        cfg.update(layout_overrides)
+    # ============================================================
+
+    fig, axes = plt.subplots(n_folds, 2, figsize=(cfg['fig_width'], cfg['fig_height_per_row'] * n_folds), squeeze=False)
     
     # Calculate the vertical position for each fold label
     # This properly centers each label vertically within its corresponding row
@@ -462,9 +521,9 @@ def plot_nested_feature_importances(mi_pi_folds: Dict[str, Tuple[pd.Series, pd.S
         ax_position = axes[i, 0].get_position()
         row_center_figure = (ax_position.y0 + ax_position.y1) / 2
         
-        fig.text(0.02, row_center_figure, fold_name, 
+        fig.text(cfg['fold_label_x'], row_center_figure, fold_name, 
                 rotation=90, ha='center', va='center', 
-                fontsize=20, fontweight='bold', color='darkblue',
+                fontsize=cfg['fold_label_fontsize'], fontweight='bold', color='darkblue',
                 transform=fig.transFigure)
         
         # Left Column: Mutual Information
@@ -472,24 +531,24 @@ def plot_nested_feature_importances(mi_pi_folds: Dict[str, Tuple[pd.Series, pd.S
         top_mi = mi_series.sort_values(ascending=False).head(top_k)
         sns.barplot(x=top_mi.values, y=top_mi.index, ax=ax_mi, palette='viridis', hue=top_mi.index, legend=False)
         ax_mi.set_title("")
-        ax_mi.set_xlabel("Mutual Info Score", fontsize=15, fontweight='bold')
+        ax_mi.set_xlabel("Mutual Info Score", fontsize=cfg['xlabel_fontsize'], fontweight='bold')
         ax_mi.set_ylabel("")
 
         # --- CONTROL THE TICK LABELS (what's written on the axis) ---
-        ax_mi.tick_params(axis='x', labelsize=14)   # Size of the score numbers on x-axis
-        ax_mi.tick_params(axis='y', labelsize=12)   # Size of the feature names on y-axis
+        ax_mi.tick_params(axis='x', labelsize=cfg['tick_fontsize_x'])   # Size of the score numbers on x-axis
+        ax_mi.tick_params(axis='y', labelsize=cfg['tick_fontsize_y'])   # Size of the feature names on y-axis
         
         # Right Column: Permutation Importance
         ax_pi = axes[i, 1]
         top_pi = pi_series.sort_values(ascending=False).head(top_k)
         sns.barplot(x=top_pi.values, y=top_pi.index, ax=ax_pi, palette='magma', hue=top_pi.index, legend=False)
         ax_pi.set_title("")
-        ax_pi.set_xlabel("Permutation Importance Score", fontsize=15, fontweight='bold')
+        ax_pi.set_xlabel("Permutation Importance Score", fontsize=cfg['xlabel_fontsize'], fontweight='bold')
         ax_pi.set_ylabel("")
 
         # --- CONTROL THE TICK LABELS (what's written on the axis) ---
-        ax_pi.tick_params(axis='x', labelsize=14)   # Size of the score numbers on x-axis
-        ax_pi.tick_params(axis='y', labelsize=12)   # Size of the feature names on y-axis
+        ax_pi.tick_params(axis='x', labelsize=cfg['tick_fontsize_x'])   # Size of the score numbers on x-axis
+        ax_pi.tick_params(axis='y', labelsize=cfg['tick_fontsize_y'])   # Size of the feature names on y-axis
 
     # For depicted model, that was used in permutation importance, in the figure title
     if pi_model == 'RF':
@@ -498,21 +557,23 @@ def plot_nested_feature_importances(mi_pi_folds: Dict[str, Tuple[pd.Series, pd.S
         model_txt = 'Gaussian Naive Bayes'
 
     # To adjust for the nested or production case
-    if len(mi_pi_folds) == 1:
+    if n_folds == 1:
         fold_txt = 'Global Training Fold'
     else:
         fold_txt = 'Folds'
 
     # Balanced rect to center the subplots grid as much as possible
-    plt.subplots_adjust(left=0.16, right=0.95, top=0.9, bottom=0.08, wspace=0.4, hspace=0.2)
+    plt.subplots_adjust(left=cfg['left'], right=cfg['right'], top=cfg['top'], bottom=cfg['bottom'],
+                         wspace=cfg['wspace'], hspace=cfg['hspace'])
     fig.suptitle(f"Mutual Information and Permutation Importances during {title_pre}\nacross {fold_txt}", 
-             fontsize=20, fontweight='bold', y=0.98, x=0.5, ha='center')
+             fontsize=cfg['suptitle_fontsize'], fontweight='bold', y=cfg['suptitle_y'], x=0.5, ha='center')
     
     os.makedirs("data/figures/feature_selection", exist_ok=True)
     save_path = f"./data/figures/feature_selection/{title_pre}_nested_feature_importances_{model_txt}.png"
     plt.savefig(save_path, dpi=200, bbox_inches='tight')  # Added bbox_inches='tight'
     plt.close()
     print(f"   ... Nested feature importance plot saved to {save_path}")
+
 
 def plot_optuna_study(study: Any, m1_name: str, title_suffix: str = "", optim_cat='tournament') -> None:
     """Generates and saves Optuna study analytics (History, Importance, Coordinates)."""
