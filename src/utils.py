@@ -1357,7 +1357,8 @@ def generate_performance_table(granular_dfs: List[pd.DataFrame], model_name: str
     Generates a professional LaTeX table for inclusion in the thesis.
     Rows: currency pair (written once) with each fold listed beneath it.
     Columns: metrics (renamed via metric_meta, headers rotated vertically).
-    Final row: Average / StDev across all pair/fold rows, stacked vertically per cell.
+    Summary rows: one Average/StDev per fold, then a Total Average/StDev,
+    separated from the data by a double rule.
     """
     metric_meta = {
         'total_return': ('Total Return (\\%)', True, 'decimal_pct'),
@@ -1405,9 +1406,17 @@ def generate_performance_table(granular_dfs: List[pd.DataFrame], model_name: str
     # Map display name -> value_type, for formatting later
     type_by_display_name = {v[0]: v[2] for v in metric_meta.values()}
 
-    # 4. Compute Average / StDev per metric column (on already-scaled numeric values)
-    mean_row = combined.mean(numeric_only=True)
-    std_row = combined.std(numeric_only=True)
+    # 4. Compute per-fold Average/StDev (across pairs, within each fold)
+    #    and the overall Total Average/StDev (across all pair/fold rows)
+    fold_mean_rows = {}
+    fold_std_rows = {}
+    for fold_key in fold_keys:
+        fold_slice = combined.xs(fold_key, level='Fold')
+        fold_mean_rows[fold_key] = fold_slice.mean(numeric_only=True)
+        fold_std_rows[fold_key] = fold_slice.std(numeric_only=True)
+
+    total_mean_row = combined.mean(numeric_only=True)
+    total_std_row = combined.std(numeric_only=True)
 
     # 5. Format numbers, adding "%" for decimal_pct and value_pct columns
     def format_val(x, value_type):
@@ -1426,22 +1435,30 @@ def generate_performance_table(granular_dfs: List[pd.DataFrame], model_name: str
         value_type = type_by_display_name.get(col, 'raw')
         formatted_table[col] = formatted_table[col].apply(lambda x, vt=value_type: format_val(x, vt))
 
-    # Build the summary row as a stacked "mean / ± std" cell (two lines, not side-by-side)
-    summary_values = {}
-    for col in combined.columns:
-        value_type = type_by_display_name.get(col, 'raw')
-        mean_str = format_val(mean_row[col], value_type)
-        std_str = format_val(std_row[col], value_type)
-        summary_values[col] = f"\\shortstack{{{mean_str} \\\\ $\\pm$ {std_str}}}"
+    def build_summary_row(mean_row, std_row, label):
+        row = {'Pair': label, 'Fold': ''}
+        for col in combined.columns:
+            value_type = type_by_display_name.get(col, 'raw')
+            mean_str = format_val(mean_row[col], value_type)
+            std_str = format_val(std_row[col], value_type)
+            row[col] = f"\\shortstack{{{mean_str} \\\\ $\\pm$ {std_str}}}"
+        return row
 
     # 6. Reset index, blank out repeated Pair labels
     final_table = formatted_table.reset_index()
     final_table['Pair'] = final_table['Pair'].mask(final_table['Pair'].duplicated(), "")
 
-    # Append the summary row
-    summary_row = {'Pair': 'Average / StDev', 'Fold': ''}
-    summary_row.update(summary_values)
-    final_table = pd.concat([final_table, pd.DataFrame([summary_row])], ignore_index=True)
+    # Build one summary row per fold, then the overall total row
+    summary_rows = []
+    for fold_key in fold_keys:
+        summary_rows.append(
+            build_summary_row(fold_mean_rows[fold_key], fold_std_rows[fold_key], f"{fold_key} Avg")
+        )
+    summary_rows.append(
+        build_summary_row(total_mean_row, total_std_row, "Total Avg")
+    )
+
+    final_table = pd.concat([final_table, pd.DataFrame(summary_rows)], ignore_index=True)
 
     # 7. Rotate metric column headers vertically to save horizontal space
     def rotate_header(name):
@@ -1462,7 +1479,7 @@ def generate_performance_table(granular_dfs: List[pd.DataFrame], model_name: str
 
     # Right-align every column
     n_cols = len(final_table.columns)
-    column_format = 'll' + 'r' * (n_cols - 2)
+    column_format = 'r' * n_cols
 
     latex_code = final_table.style.hide(axis='index').to_latex(
         caption=caption,
@@ -1474,10 +1491,10 @@ def generate_performance_table(granular_dfs: List[pd.DataFrame], model_name: str
         column_format=column_format
     )
 
-    # --- Insert a double rule between the last data row and the summary row ---
+    # --- Insert a double rule between the last data row and the summary rows ---
     latex_code = latex_code.replace(
-        "Average / StDev",
-        "\\midrule\n\\midrule\nAverage / StDev"
+        f"{fold_keys[0]} Avg",
+        f"\\midrule\n\\midrule\n{fold_keys[0]} Avg"
     )
 
     # --- "Fit to width" ---
