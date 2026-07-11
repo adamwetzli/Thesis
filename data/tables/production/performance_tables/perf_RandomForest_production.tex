@@ -1,26 +1,26 @@
-\begin{sidewaystable}
+\begin{table}[H]
 \centering
 \caption{{Granular Performance Analysis RandomForest (Production Phase)}}
 \label{tab:perf_RandomForest_production}
-\resizebox{\textwidth}{!}{\begin{tabular}{llllllllllllllll}
+\resizebox{\textwidth}{!}{\begin{tabular}{rrrrrrrrrrrrrr}
 \toprule
-Fold & Metric & AUDUSD & EURUSD & GBPUSD & NZDUSD & USDCAD & USDCHF & USDCNH & USDJPY & USDMXN & USDTRY & USDZAR & Average & StDev & Interpretation \\
+Pair & Fold & \rotatebox{90}{Total Return (\%)} & \rotatebox{90}{Sharpe Ratio} & \rotatebox{90}{Probabilistic Sharpe (\%)} & \rotatebox{90}{Max Drawdown (\%)} & \rotatebox{90}{CAGR (\%)} & \rotatebox{90}{Win Rate (\%)} & \rotatebox{90}{Profit Factor} & \rotatebox{90}{Number of Trades} & \rotatebox{90}{Avg Capital Exposure (\%)} & \rotatebox{90}{Avg Trade Size (\%)} & \rotatebox{90}{Deflated Sharpe (\%)} & \rotatebox{90}{M2 Brier} \\
 \midrule
-Fold 1 & total return & -0.0020 & -0.0013 & 0.0041 & -0.01 & -0.0030 & -0.01 & 0.04 & 0.0033 & 0.21 & 0.06 & 0.11 & 0.04 & 0.07 &  \\
- & sharpe & -4.16 & -0.97 & 0.54 & -1.08 & -0.43 & -1.55 & 5.94 & 0.99 & 8.69 & 10.09 & 5.22 & 2.12 & 4.41 &  \\
- & probabilistic sharpe & 0.0031 & 0.33 & 0.59 & 0.32 & 0.42 & 0.25 & 1.00 & 0.67 & 1.00 & 1.00 & 0.99 & 0.60 & 0.34 &  \\
- & min trl & inf & inf & 55859.00 & inf & inf & inf & 308.00 & 16634.00 & 216.00 & 182.00 & 619.00 & inf & nan &  \\
- & max dd & -0.0021 & -0.0034 & -0.02 & -0.03 & -0.02 & -0.03 & -0.0070 & -0.0079 & -0.02 & -0.0062 & -0.03 & -0.02 & 0.01 &  \\
- & cagr & -0.01 & -0.0068 & 0.02 & -0.06 & -0.02 & -0.07 & 0.21 & 0.02 & 1.68 & 0.34 & 0.72 & 0.26 & 0.50 &  \\
- & win rate & 0.0000 & 0.33 & 0.59 & 0.52 & 0.41 & 0.47 & 0.50 & 0.33 & 0.66 & 0.69 & 0.59 & 0.46 & 0.19 &  \\
- & profit factor & 0.0000 & 0.52 & 1.12 & 0.90 & 0.93 & 0.74 & 2.54 & 1.15 & 2.07 & 2.52 & 1.67 & 1.29 & 0.78 &  \\
- & n trades & 2.00 & 3.00 & 39.00 & 27.00 & 80.00 & 70.00 & 64.00 & 40.00 & 292.00 & 298.00 & 211.00 & 102.36 & 105.57 &  \\
- & avg capital exposure & 0.33 & 1.64 & 44.48 & 41.41 & 33.24 & 53.28 & 50.18 & 11.03 & 91.51 & 71.48 & 48.73 & 40.66 & 26.88 &  \\
- & avg trade size & 22.66 & 92.55 & 53.22 & 61.30 & 79.72 & 58.88 & 63.57 & 31.77 & 91.59 & 71.73 & 48.77 & 61.43 & 21.19 &  \\
- & deflated sharpe & 0.0001 & 0.12 & 0.31 & 0.11 & 0.18 & 0.08 & 0.99 & 0.38 & 1.00 & 1.00 & 0.94 & 0.46 & 0.40 &  \\
- & deflated min trl & inf & inf & inf & inf & inf & inf & 597.00 & inf & 332.00 & 262.00 & 1343.00 & inf & nan &  \\
- & pfdr & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 1.00 & 0.0000 &  \\
- & m2 brier & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.25 & 0.0000 &  \\
+AUDUSD & Fold 1 & 0.0000\% & 0.0000 & 0.0000\% & 0.0000\% & 0.0000\% & 0.0000\% & 0.0000 & 0.0000 & 0.0000\% & 0.0000\% & 0.0000\% & 0.24 \\
+EURUSD & Fold 1 & -0.51\% & -4.25 & 0.17\% & -0.64\% & -2.32\% & 33.33\% & 0.20 & 3.00 & 1.44\% & 70.03\% & 0.0000\% & 0.24 \\
+GBPUSD & Fold 1 & 0.30\% & 2.00 & 96.15\% & -0.02\% & 1.34\% & 100.00\% & inf & 1.00 & 0.06\% & 80.82\% & 62.24\% & 0.24 \\
+NZDUSD & Fold 1 & 0.0000\% & 0.0000 & 0.0000\% & 0.0000\% & 0.0000\% & 0.0000\% & 0.0000 & 0.0000 & 0.0000\% & 0.0000\% & 0.0000\% & 0.24 \\
+USDCAD & Fold 1 & 0.66\% & 2.87 & 96.86\% & -0.22\% & 3.02\% & 100.00\% & inf & 2.00 & 2.33\% & 97.73\% & 78.58\% & 0.24 \\
+USDCHF & Fold 1 & 0.0000\% & 0.0000 & 0.0000\% & 0.0000\% & 0.0000\% & 0.0000\% & 0.0000 & 0.0000 & 0.0000\% & 0.0000\% & 0.0000\% & 0.24 \\
+USDCNH & Fold 1 & 0.15\% & 4.10 & 99.99\% & -0.0000\% & 0.69\% & 100.00\% & inf & 5.00 & 0.22\% & 59.00\% & 98.71\% & 0.24 \\
+USDJPY & Fold 1 & -0.53\% & -2.72 & 11.14\% & -0.57\% & -2.36\% & 37.04\% & 0.38 & 27.00 & 8.04\% & 68.71\% & 2.52\% & 0.24 \\
+USDMXN & Fold 1 & 3.58\% & 3.87 & 96.52\% & -0.95\% & 17.29\% & 61.76\% & 1.64 & 102.00 & 32.15\% & 72.32\% & 85.14\% & 0.24 \\
+USDTRY & Fold 1 & 3.02\% & 5.58 & 99.61\% & -0.65\% & 14.36\% & 74.29\% & 2.30 & 70.00 & 62.37\% & 73.37\% & 96.96\% & 0.24 \\
+USDZAR & Fold 1 & 11.63\% & 5.19 & 99.58\% & -1.44\% & 64.23\% & 55.56\% & 2.15 & 72.00 & 24.44\% & 45.96\% & 96.42\% & 0.24 \\
+\midrule
+\midrule
+Fold 1 Avg &  & \shortstack{1.66\% \\ $\pm$ 3.57\%} & \shortstack{1.51 \\ $\pm$ 3.20} & \shortstack{54.55\% \\ $\pm$ 50.17\%} & \shortstack{-0.41\% \\ $\pm$ 0.48\%} & \shortstack{8.75\% \\ $\pm$ 19.52\%} & \shortstack{51.09\% \\ $\pm$ 40.24\%} & \shortstack{inf \\ $\pm$ nan} & \shortstack{25.64 \\ $\pm$ 37.45} & \shortstack{11.91\% \\ $\pm$ 20.08\%} & \shortstack{51.63\% \\ $\pm$ 35.48\%} & \shortstack{47.32\% \\ $\pm$ 45.95\%} & \shortstack{0.24 \\ $\pm$ 0.0000} \\
+Total Avg &  & \shortstack{1.66\% \\ $\pm$ 3.57\%} & \shortstack{1.51 \\ $\pm$ 3.20} & \shortstack{54.55\% \\ $\pm$ 50.17\%} & \shortstack{-0.41\% \\ $\pm$ 0.48\%} & \shortstack{8.75\% \\ $\pm$ 19.52\%} & \shortstack{51.09\% \\ $\pm$ 40.24\%} & \shortstack{inf \\ $\pm$ nan} & \shortstack{25.64 \\ $\pm$ 37.45} & \shortstack{11.91\% \\ $\pm$ 20.08\%} & \shortstack{51.63\% \\ $\pm$ 35.48\%} & \shortstack{47.32\% \\ $\pm$ 45.95\%} & \shortstack{0.24 \\ $\pm$ 0.0000} \\
 \bottomrule
 \end{tabular}}
-\end{sidewaystable}
+\end{table}

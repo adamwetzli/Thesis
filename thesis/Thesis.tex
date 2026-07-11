@@ -44,6 +44,7 @@
 \begin{document}
 
 \maketitle
+\thispagestyle{empty}  % Remove page number from the title page
 
 \pagebreak
 
@@ -772,14 +773,14 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{../data/figures/feature_selection/Tournament_nested_correlation_heatmap.png}
-    \caption{Correlation Filtering}
+    \caption{Correlation Filtering During Tournament}
     \label{fig:correlation filtering}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/feature_selection/Tournament_nested_feature_importances_RandomForest.png}
-    \caption{Feature Importances}
+    \caption{Feature Importances During Tournament}
     \label{fig:feature importances}
 \end{figure}
 
@@ -823,7 +824,7 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/optimization/distributions/tournament_financial_dists_RandomForest.png}
-    \caption{Financial Statistic Distributions during Optimization}
+    \caption{Financial Statistic Distributions During Tournament Optimization}
     \label{fig:distributions}
 \end{figure}
 
@@ -871,14 +872,14 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/conformal_predictions/Tournament_conformal_predictions_part1.png}
-        \caption{Model-Specific Conformal Filtering}
+        \caption{Model-Specific Conformal Filtering During Tournament}
         \label{fig:model-specific conformal filtering 1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/conformal_predictions/Tournament_conformal_predictions_part2.png}
-        \caption{Model-Specific Conformal Filtering (continued)}
+        \caption{Model-Specific Conformal Filtering During Tournament (Continued)}
         \label{fig:model-specific conformal filtering 2}
     \end{minipage}
 \end{figure}
@@ -928,14 +929,14 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/confusion_matrices/Tournament_nested_confusion_matrices_part1.png}
-        \caption{Model-Specific Confusion Matrices}
+        \caption{Model-Specific Confusion Matrices During Tournament}
         \label{fig:model-specific confusion matrices 1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/confusion_matrices/Tournament_nested_confusion_matrices_part2.png}
-        \caption{Model-Specific Confusion Matrices (continued)}
+        \caption{Model-Specific Confusion Matrices During Tournament (Continued)}
         \label{fig:model-specific confusion matrices 2}
     \end{minipage}
 \end{figure}
@@ -982,14 +983,14 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/reliability_diagrams/Tournament_reliability_diagrams_part1.png}
-        \caption{Model-Specific Reliability Diagrams}
+        \caption{Model-Specific Reliability Diagrams During Tournament}
         \label{fig:model-specific reliability diagrams1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/reliability_diagrams/Tournament_reliability_diagrams_part2.png}
-        \caption{Model-Specific Reliability Diagrams}
+        \caption{Model-Specific Reliability Diagrams During Tournament (Continued)}
         \label{fig:model-specific reliability diagrams2}
     \end{minipage}
 \end{figure}
@@ -1029,15 +1030,15 @@ Majors outperform EMs as expected, but EMs remain profitable with adapted parame
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part1.png}
-        \caption{Tournament Result}
-        \label{fig:tournament_result1}
+        \caption{Backtest Result of RandomForest During Tournament}
+        \label{fig:tournament_result_RandomForest_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part2.png}
-        \caption{Tournament Result (continued)}
-        \label{fig:tournament_result2}
+        \caption{Backtest Result of RandomForest During Tournament (Continued)}
+        \label{fig:tournament_result_RandomForest_2}
     \end{minipage}
 \end{figure}
 
@@ -1046,15 +1047,15 @@ Majors outperform EMs as expected, but EMs remain profitable with adapted parame
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part3.png}
-        \caption{Tournament Result (continued)}
-        \label{fig:tournament_result3}
+        \caption{Backtest Result of RandomForest During Tournament (Continued)}
+        \label{fig:tournament_result_RandomForest_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part4.png}
-        \caption{Tournament Result (continued)}
-        \label{fig:tournament_result4}
+        \caption{Backtest Result of RandomForest During Tournament (Continued)}
+        \label{fig:tournament_result_RandomForest_4}
     \end{minipage}
 \end{figure}
 
@@ -1207,15 +1208,15 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/production_results_RandomForest_part1.png}
-        \caption{Production Result}
-        \label{fig:production_result1}
+        \caption{Backtest Result of RandomForest During Production}
+        \label{fig:production_result_RandomForest_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/production_results_RandomForest_part2.png}
-        \caption{Production Result (continued)}
-        \label{fig:production_result2}
+        \caption{Backtest Result of RandomForest During Production (Continued)}
+        \label{fig:production_result_RandomForest_2}
     \end{minipage}
 \end{figure}
 
@@ -1224,15 +1225,15 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/production_results_RandomForest_part3.png}
-        \caption{Production Result (continued)}
-        \label{fig:production_result3}
+        \caption{Backtest Result of RandomForest During Production (Continued)}
+        \label{fig:production_result_RandomForest_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/production_results_RandomForest_part4.png}
-        \caption{Production Result (continued)}
-        \label{fig:production_result4}
+        \caption{Backtest Result of RandomForest During Production (Continued)}
+        \label{fig:production_result_RandomForest_4}
     \end{minipage}
 \end{figure}
 
@@ -1484,14 +1485,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_ExtraTrees_part1.png}
-        \caption{Tournament Result}
+        \caption{Backtest Result of ExtraTrees During Tournament}
         \label{fig:tournament_results_ExtraTrees_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_ExtraTrees_part2.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of ExtraTrees During Tournament (Continued)}
         \label{fig:tournament_results_ExtraTrees_2}
     \end{minipage}
 \end{figure}
@@ -1501,14 +1502,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_ExtraTrees_part3.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of ExtraTrees During Tournament (Continued)}
         \label{fig:tournament_results_ExtraTrees_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_ExtraTrees_part4.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of ExtraTrees During Tournament (Continued)}
         \label{fig:tournament_results_ExtraTrees_4}
     \end{minipage}
 \end{figure}
@@ -1519,14 +1520,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_GRU_part1.png}
-        \caption{Tournament Result}
+        \caption{Backtest Result of GRU During Tournament}
         \label{fig:tournament_results_GRU_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_GRU_part2.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of GRU During Tournament (Continued)}
         \label{fig:tournament_results_GRU_2}
     \end{minipage}
 \end{figure}
@@ -1536,14 +1537,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_GRU_part3.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of GRU During Tournament (Continued)}
         \label{fig:tournament_results_GRU_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_GRU_part4.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of GRU During Tournament (Continued)}
         \label{fig:tournament_results_GRU_4}
     \end{minipage}
 \end{figure}
@@ -1554,14 +1555,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_LightGBM_part1.png}
-        \caption{Tournament Result}
+        \caption{Backtest Result of LightGBM During Tournament}
         \label{fig:tournament_results_LightGBM_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_LightGBM_part2.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of LightGBM During Tournament (Continued)}
         \label{fig:tournament_results_LightGBM_2}
     \end{minipage}
 \end{figure}
@@ -1571,14 +1572,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_LightGBM_part3.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of LightGBM During Tournament (Continued)}
         \label{fig:tournament_results_LightGBM_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_LightGBM_part4.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of LightGBM During Tournament (Continued)}
         \label{fig:tournament_results_LightGBM_4}
     \end{minipage}
 \end{figure}
@@ -1589,14 +1590,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_LSTM_part1.png}
-        \caption{Tournament Result}
+        \caption{Backtest Result of LSTM During Tournament}
         \label{fig:tournament_results_LSTM_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_LSTM_part2.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of LSTM During Tournament (Continued)}
         \label{fig:tournament_results_LSTM_2}
     \end{minipage}
 \end{figure}
@@ -1606,14 +1607,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_LSTM_part3.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of LSTM During Tournament (Continued)}
         \label{fig:tournament_results_LSTM_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_LSTM_part4.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of LSTM During Tournament (Continued)}
         \label{fig:tournament_results_LSTM_4}
     \end{minipage}
 \end{figure}
@@ -1624,14 +1625,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part1.png}
-        \caption{Tournament Result}
+        \caption{Backtest Result of XGBoost During Tournament}
         \label{fig:tournament_results_XGBoost_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part2.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of XGBoost During Tournament (Continued)}
         \label{fig:tournament_results_XGBoost_2}
     \end{minipage}
 \end{figure}
@@ -1641,14 +1642,14 @@ the observed performance is considered statistically insufficient to distinguish
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part3.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of XGBoost During Tournament (Continued)}
         \label{fig:tournament_results_XGBoost_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.45\textwidth}
         \centering
         \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part4.png}
-        \caption{Tournament Result (continued)}
+        \caption{Backtest Result of XGBoost During Tournament (Continued)}
         \label{fig:tournament_results_XGBoost_4}
     \end{minipage}
 \end{figure}
@@ -1668,58 +1669,32 @@ the observed performance is considered statistically insufficient to distinguish
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_LSTM_tournament.tex}
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_XGBoost_tournament.tex}
 
+
 \section{Production Model}\label{app:second}
 \subsection{Production Model Feature Selection}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/feature_selection/Production_nested_correlation_heatmap.png}
-    \caption{Production Correlation Filtering}
+    \caption{Correlation Filtering During Production}
     \label{fig:prod corr filter}
 \end{figure}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/feature_selection/Production_nested_feature_importances_RandomForest.png}
-    \caption{Production Feature Importance Filtering}
+    \caption{Feature Importances During Production}
     \label{fig:prod featimp filter}
 \end{figure}
+
 
 \subsection{Production Model-Trading Parameter Cascade}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/optimization/distributions/production_financial_dists_RandomForest.png}
-    \caption{Production Statistic Distributions}
+    \caption{Financial Statistic Distributions During Production Optimization}
     \label{fig:prod stat distributions}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/production/RandomForest/opt_history_model_randomforest.png}
-    \caption{Optimization History RandomForest}
-    \label{fig:opt hist rf}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/production/RandomForest/opt_history_trading_(best)_randomforest.png}
-    \caption{Optimization History Trading (Best) RandomForest}
-    \label{fig:opt hist trading rf}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/production/RandomForest/parallel_coordinate_model_randomforest.png}
-    \caption{Optimization Parallel Coordinate Model RandomForest}
-    \label{fig:opt parallel coordinate model rf}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/production/RandomForest/parallel_coordinate_trading_(best)_randomforest.png}
-    \caption{Optimization Parallel Coordinate Model Trading (Best) RandomForest}
-    \label{fig:opt parallel coordinate model trading rf}
 \end{figure}
 
 \begin{figure}[H]
@@ -1735,16 +1710,17 @@ the observed performance is considered statistically insufficient to distinguish
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/conformal_predictions/Production_conformal_predictions.png}
-    \caption{Conformal Predictions Production}
+    \caption{Model-Specific Conformal Filtering During Production}
     \label{fig:prod conf preds}
 \end{figure}
+
 
 \subsection{Confusion Matrices}
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/confusion_matrices/Production_nested_confusion_matrices.png}
-    \caption{Confusion Matrices Production}
+    \caption{Model-Specific Confusion Matrices During Production}
     \label{fig:prod confusion matrices}
 \end{figure}
 
@@ -1753,7 +1729,7 @@ the observed performance is considered statistically insufficient to distinguish
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/reliability_diagrams/Production_reliability_diagrams.png}
-    \caption{Reliability Curves Production}
+    \caption{Model-Specific Reliability Diagrams During Production}
     \label{fig:prod reliability curves}
 \end{figure}
 

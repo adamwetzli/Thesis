@@ -1,24 +1,23 @@
 \begin{table}[H]
 \centering
-\caption{{Ranking Summary - Best Performer per Metric (Tournament Phase)}}
+\caption{{Ranking Summary - Tournament}}
 \label{tab:ranking_tournament}
-\resizebox{\textwidth}{!}{\begin{tabular}{llll}
+\small \begin{tabular}{lll}
 \toprule
-Metric & Higher is Better & Best Model & Best Value \\
+Metric & Best Model & Best Value \\
 \midrule
-Total Return (\%) & Yes & XGBoost & $0.0180$ \\
-Sharpe Ratio & Yes & XGBoost & $2.0741$ \\
-Probabilistic Sharpe (\%) & Yes & XGBoost & $0.4537$ \\
-Max Drawdown (\%) & Yes & GRU & $-0.0066$ \\
-CAGR (\%) & Yes & XGBoost & $0.1507$ \\
-Win Rate (\%) & Yes & XGBoost & $0.3862$ \\
-Profit Factor & Yes & LightGBM & $inf$ \\
-Number of Trades & No & GRU & $15.2727$ \\
-Avg Capital Exposure & No & GRU & $11.1891$ \\
-Avg Trade Size & No & ExtraTrees & $30.8164$ \\
-Deflated Sharpe & Yes & LightGBM & $0.3657$ \\
-PFDR & No & RandomForest & $1.0000$ \\
-M2 Brier & No & LightGBM & $0.2468$ \\
-\\ \midrule \textbf{Overall RRF Winner} & & \textbf{XGBoost} & \textbf{Score: 0.2081} \\\bottomrule
-\end{tabular}}
+Total Return (\%) & XGBoost & $0.92\%$ \\
+Sharpe Ratio & XGBoost & $1.17$ \\
+Probabilistic Sharpe (\%) & XGBoost & $42.11\%$ \\
+Max Drawdown (\%) & RandomForest & $-0.44\%$ \\
+CAGR (\%) & XGBoost & $5.83\%$ \\
+Win Rate (\%) & XGBoost & $38.06\%$ \\
+Profit Factor & XGBoost & $inf$ \\
+Number of Trades & GRU & $14.41$ \\
+Avg Capital Exposure (\%) & GRU & $8.61\%$ \\
+Avg Trade Size (\%) & RandomForest & $18.51\%$ \\
+Deflated Sharpe (\%) & XGBoost & $34.96\%$ \\
+M2 Brier & XGBoost & $0.25$ \\
+\\ \midrule \textbf{Overall RRF Winner} & \textbf{XGBoost} & \textbf{Score: 0.19} \\\bottomrule
+\end{tabular}
 \end{table}
