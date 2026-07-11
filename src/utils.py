@@ -985,17 +985,116 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
     plt.close()
 
 
-def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pref, threshold=0.5, rows_are_models=True):
+def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pref, threshold=0.5, 
+                                 rows_are_models=True, layout_overrides=None):
     """
     Creates separate figures per fold showing conformal prediction boundaries for all models.
     Each figure shows 3 panels per model/fold combination.
-    """
     
+    layout_overrides: optional dict to override any of the style/layout keys below,
+    applied on top of whichever preset (rows_are_models True/False) is active.
+    """
+
+    # ============================================================
+    # STYLE / LAYOUT CONFIG — edit these to tune the figure
+    # ============================================================
+    style_rows_true = dict(
+        # --- figure sizing ---
+        fig_width_per_col=5.5,      # width per subplot column, multiplied by n_cols
+        fig_height_per_row=5.5,     # height per subplot row, multiplied by n_rows
+
+        # --- subplots_adjust margins ---
+        left=0.01, right=0.95, top=0.93, bottom=0.05,
+        wspace=0.5, hspace=0.2,
+
+        # --- suptitle ---
+        suptitle_fontsize=30,
+        suptitle_y=0.99,
+
+        # --- column header ("FOLD n") ---
+        col_header_fontsize=26,
+        col_header_pad=35,
+
+        # --- panel titles (Panel A / B / C) ---
+        panelA_title_fontsize=26,
+        panelA_title_pad=20,
+        panelB_title_fontsize=26,      # Panel B uses ax.text, not set_title
+        panelC_title_fontsize=26,
+        panelC_title_pad=10,
+
+        # --- row labels (ylabel on ax_a / ax_b / ax_c) ---
+        row_label_fontsize=28,
+
+        # --- x-axis label ("Directional Meta-Confidence") ---
+        axis_label_fontsize=22,
+
+        # --- tick label sizes ---
+        tick_fontsize_ab_x=20,   # Panels A & B, x ticks
+        tick_fontsize_ab_y=20,   # Panels A & B, y ticks
+        tick_fontsize_c_x=18,    # Panel C, x ticks
+        tick_fontsize_c_y=22,    # Panel C, y ticks
+
+        # --- stats textbox on Panel A ---
+        stats_fontsize=18,
+
+        # --- legend ---
+        legend_fontsize=20,
+        legend_bbox_y=0.025,
+    )
+
+    style_rows_false = dict(
+        # --- figure sizing ---
+        fig_width_per_col=5.5,
+        fig_height_per_row=5.5,
+
+        # --- subplots_adjust margins ---
+        left=0.01, right=0.95, top=0.75, bottom=0.15,
+        wspace=0.5, hspace=0.2,
+
+        # --- suptitle ---
+        suptitle_fontsize=30,
+        suptitle_y=0.98,
+
+        # --- column header (model name) ---
+        col_header_fontsize=20,
+        col_header_pad=35,
+
+        # --- panel titles (Panel A / B / C) ---
+        panelA_title_fontsize=16,
+        panelA_title_pad=10,
+        panelB_title_fontsize=16,
+        panelC_title_fontsize=16,
+        panelC_title_pad=10,
+
+        # --- row labels ---
+        row_label_fontsize=15,
+
+        # --- x-axis label ---
+        axis_label_fontsize=15,
+
+        # --- tick label sizes ---
+        tick_fontsize_ab_x=20,
+        tick_fontsize_ab_y=20,
+        tick_fontsize_c_x=18,
+        tick_fontsize_c_y=22,
+
+        # --- stats textbox ---
+        stats_fontsize=18,
+
+        # --- legend ---
+        legend_fontsize=12,
+        legend_bbox_y=0.01,
+    )
+
+    cfg = style_rows_true if rows_are_models else style_rows_false
+    if layout_overrides:
+        cfg.update(layout_overrides)
+    # ============================================================
+
     model_names = list(model_conf_preds_folds.keys())
     n_models = len(model_names)
     n_folds = n_outer_splits
-    
-    # Loop over folds to create individual figures
+
     for j in range(n_folds):
         if rows_are_models:
             fig_n_rows = n_models
@@ -1003,45 +1102,45 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
         else:
             fig_n_rows = 1
             fig_n_cols = n_models * 3
-        
-        # Wider figure to accommodate 3 panels
-        fig, axes = plt.subplots(fig_n_rows, fig_n_cols, figsize=(5.5 * fig_n_cols, 5.5 * fig_n_rows), squeeze=False)
-        
+
+        fig, axes = plt.subplots(
+            fig_n_rows, fig_n_cols,
+            figsize=(cfg['fig_width_per_col'] * fig_n_cols, cfg['fig_height_per_row'] * fig_n_rows),
+            squeeze=False
+        )
+
         for i, model_name in enumerate(model_names):
             fold_tuples = model_conf_preds_folds.get(model_name, [])
             if j >= len(fold_tuples): continue
-            
+
             (side_m1, y_truth, probs_m2, conformal_threshold, significance) = fold_tuples[j]
-            
-            # Subplot Selection (A, B, C) based on layout
+
             if rows_are_models:
                 ax_a, ax_b, ax_c = axes[i, 0], axes[i, 1], axes[i, 2]
             else:
                 ax_a, ax_b, ax_c = axes[0, i * 3], axes[0, i * 3 + 1], axes[0, i * 3 + 2]
-            
-            # Data Cleaning & Masking
+
             if hasattr(side_m1, 'values'): side_m1 = side_m1.values
             if hasattr(y_truth, 'values'): y_truth = y_truth.values
             if hasattr(probs_m2, 'values'): probs_m2 = probs_m2.values
-            
+
             valid_mask = ~(np.isnan(probs_m2) | np.isnan(side_m1) | np.isnan(y_truth))
             active_mask = (side_m1 != 0)
             plot_mask = valid_mask & active_mask
-            
+
             if plot_mask.sum() == 0:
                 for ax in [ax_a, ax_b, ax_c]:
                     ax.text(0.5, 0.5, 'No Signal Data', ha='center', va='center', fontsize=10)
                 continue
-            
+
             side_m1_c = side_m1[plot_mask]
             y_truth_c = y_truth[plot_mask]
             probs_m2_c = probs_m2[plot_mask]
-            
-            # Directional Probability P(Long)
+
             probs_dir = np.where(side_m1_c == 1, probs_m2_c, 1 - probs_m2_c)
             y_sig_binary = (side_m1_c == 1).astype(int)
             y_truth_binary = (y_truth_c == 1).astype(int)
-            
+
             # --- Sigmoid Fit & Midpoint Calculation ---
             m2_range = np.linspace(0, 1, 300)
             x_mid = None
@@ -1049,110 +1148,98 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
                 try:
                     log_reg = LogisticRegression(C=1e5, solver='lbfgs', max_iter=100)
                     log_reg.fit(probs_dir.reshape(-1, 1), y_truth_binary)
-                    
-                    # Midpoint: x where logit(p) = 0 => beta0 + beta1*x = 0 => x = -beta0/beta1
+
                     coef = log_reg.coef_[0][0]
                     intercept = log_reg.intercept_[0]
                     if abs(coef) > 1e-4:
                         x_mid = -intercept / coef
-                    
+
                     y_probs = log_reg.predict_proba(m2_range.reshape(-1, 1))[:, 1]
                     for ax in [ax_a, ax_b]:
                         ax.plot(m2_range, y_probs, color='black', linewidth=1.5, zorder=5, alpha=0.8)
                         if x_mid is not None and 0 <= x_mid <= 1:
                             ax.axvline(x_mid, color='purple', linestyle='--', alpha=1, linewidth=2)
                 except: pass
-            
+
             # --- Common Plotting Elements ---
             for ax in [ax_a, ax_b]:
                 ax.axvline(conformal_threshold, color='darkorange', linestyle=':', alpha=1, linewidth=2)
                 ax.axvline(1 - conformal_threshold, color='darkorange', linestyle=':', alpha=1, linewidth=2)
-                ax.axhline(0.5, color='forestgreen', linestyle='--', alpha=1, linewidth=2) # 50% line
+                ax.axhline(0.5, color='forestgreen', linestyle='--', alpha=1, linewidth=2)
                 ax.set_xlim(0, 1)
                 ax.set_ylim(-0.1, 1.1)
-            
-            # --- PANEL A: SIGNAL vs CONFIDENCE (Correctness Colored) ---
+
+            # --- PANEL A: SIGNAL vs CONFIDENCE ---
             is_correct = (side_m1_c == y_truth_c)
             is_accepted = (probs_m2_c >= conformal_threshold)
-            
-            # Colors: Hit=Green, Miss=Dark Red, Rej=Grey
-            colors_a = np.where(~is_accepted, '#95a5a6', # Rejected (Grey)
-                       np.where(is_correct, '#2ecc71',   # Hit (Green)
-                                            '#8b0000')) # Miss (Dark Red)
-            
+
+            colors_a = np.where(~is_accepted, '#95a5a6',
+                       np.where(is_correct, '#2ecc71',
+                                            '#8b0000'))
+
             ax_a.scatter(probs_dir, y_sig_binary, c=colors_a, alpha=0.5, s=30, zorder=3, edgecolors='none')
-            ax_a.tick_params(axis='x', labelsize=20)
-            ax_a.tick_params(axis='y', labelsize=20)
-            
-            # Row labels
+            ax_a.tick_params(axis='x', labelsize=cfg['tick_fontsize_ab_x'])
+            ax_a.tick_params(axis='y', labelsize=cfg['tick_fontsize_ab_y'])
+
             if rows_are_models:
-                ax_a.set_ylabel(f'{model_name}\nSignal Direction', fontsize=28, fontweight='bold')
+                ax_a.set_ylabel(f'{model_name}\nSignal Direction', fontsize=cfg['row_label_fontsize'], fontweight='bold')
             else:
-                ax_a.set_ylabel(f'Global Test Fold {j+1}\nSignal Direction', fontsize=13, fontweight='bold')
-            
+                ax_a.set_ylabel(f'Global Test Fold {j+1}\nSignal Direction', fontsize=cfg['row_label_fontsize'], fontweight='bold')
+
             # --- PANEL B: GROUND TRUTH vs CONFIDENCE ---
             mask_l = (y_truth_binary == 1)
             mask_s = (y_truth_binary == 0)
             ax_b.scatter(probs_dir[mask_l], np.ones(mask_l.sum()), color='royalblue', alpha=0.4, s=30, zorder=3)
             ax_b.scatter(probs_dir[mask_s], np.zeros(mask_s.sum()), color='crimson', alpha=0.4, s=30, zorder=3)
-            ax_b.tick_params(axis='x', labelsize=20)
-            ax_b.tick_params(axis='y', labelsize=20)
+            ax_b.tick_params(axis='x', labelsize=cfg['tick_fontsize_ab_x'])
+            ax_b.tick_params(axis='y', labelsize=cfg['tick_fontsize_ab_y'])
 
-            if rows_are_models:
-                ax_b.set_ylabel('Ground Truth', fontsize=28, fontweight='bold')
-            else:
-                ax_b.set_ylabel('Ground Truth', fontsize=13, fontweight='bold')
-            
-            # --- PANEL C: ERROR MAP (Signal - Truth) ---
+            ax_b.set_ylabel('Ground Truth', fontsize=cfg['row_label_fontsize'], fontweight='bold')
+
+            # --- PANEL C: ERROR MAP ---
             error = side_m1_c - y_truth_c
             ax_c.scatter(probs_dir, error, c=colors_a, alpha=0.5, s=35, zorder=3)
             ax_c.axhline(0, color='black', linewidth=1, alpha=0.4)
             ax_c.set_ylim(-2.5, 2.5)
-            if rows_are_models:
-                ax_c.set_ylabel('Signal - Truth Error', fontsize=28, fontweight='bold')
-            else:
-                ax_c.set_ylabel('Signal - Truth Error', fontsize=13, fontweight='bold')
+            ax_c.set_ylabel('Signal - Truth Error', fontsize=cfg['row_label_fontsize'], fontweight='bold')
             ax_c.set_yticks([-2, 0, 2])
             ax_c.set_yticklabels(['F-Short', 'Correct', 'F-Long'])
-            ax_c.tick_params(axis='x', labelsize=18)
-            ax_c.tick_params(axis='y', labelsize=22)
+            ax_c.tick_params(axis='x', labelsize=cfg['tick_fontsize_c_x'])
+            ax_c.tick_params(axis='y', labelsize=cfg['tick_fontsize_c_y'])
             ax_c.grid(True, alpha=0.1, axis='y')
-            
+
             # --- TITLES & FORMATTING ---
-            # Group titles (Column headers)
             if rows_are_models:
                 if i == 0:
-                    ax_b.set_title(f'FOLD {j+1}', fontsize=26, fontweight='bold', pad=35)
-                    ax_a.set_title("Panel A: Signal Accuracy", fontsize=26, color='black', pad=20)
-                    ax_b.text(0.5, 1.05, "Panel B: Ground Truth", transform=ax_b.transAxes, ha='center', fontsize=26, color='black')
-                    ax_c.set_title("Panel C: Error Map", fontsize=26, color='black', pad=10)
+                    ax_b.set_title(f'FOLD {j+1}', fontsize=cfg['col_header_fontsize'], fontweight='bold', pad=cfg['col_header_pad'])
+                    ax_a.set_title("Panel A: Signal Accuracy", fontsize=cfg['panelA_title_fontsize'], color='black', pad=cfg['panelA_title_pad'])
+                    ax_b.text(0.5, 1.05, "Panel B: Ground Truth", transform=ax_b.transAxes, ha='center', fontsize=cfg['panelB_title_fontsize'], color='black')
+                    ax_c.set_title("Panel C: Error Map", fontsize=cfg['panelC_title_fontsize'], color='black', pad=cfg['panelC_title_pad'])
             else:
-                # Titles for every model in the row
-                ax_b.set_title(f'{model_name}', fontsize=16, fontweight='bold', pad=35)
-                ax_a.set_title("Panel A: Signal Accuracy", fontsize=11, color='black', pad=10)
-                ax_b.text(0.5, 1.05, "Panel B: Ground Truth", transform=ax_b.transAxes, ha='center', fontsize=11, color='black')
-                ax_c.set_title("Panel C: Error Map", fontsize=11, color='black', pad=10)
-            
+                ax_b.set_title(f'{model_name}', fontsize=cfg['col_header_fontsize'], fontweight='bold', pad=cfg['col_header_pad'])
+                ax_a.set_title("Panel A: Signal Accuracy", fontsize=cfg['panelA_title_fontsize'], color='black', pad=cfg['panelA_title_pad'])
+                ax_b.text(0.5, 1.05, "Panel B: Ground Truth", transform=ax_b.transAxes, ha='center', fontsize=cfg['panelB_title_fontsize'], color='black')
+                ax_c.set_title("Panel C: Error Map", fontsize=cfg['panelC_title_fontsize'], color='black', pad=cfg['panelC_title_pad'])
+
             # Bottom labels
             if rows_are_models:
                 if i == n_models - 1:
-                    for ax in [ax_a, ax_b, ax_c]: ax.set_xlabel('Directional Meta-Confidence (M2)', fontsize=22)
+                    for ax in [ax_a, ax_b, ax_c]: ax.set_xlabel('Directional Meta-Confidence (M2)', fontsize=cfg['axis_label_fontsize'])
             else:
-                # Every model in the row gets x-labels
-                for ax in [ax_a, ax_b, ax_c]: ax.set_xlabel('Directional Meta-Confidence (M2)', fontsize=15)
-            
+                for ax in [ax_a, ax_b, ax_c]: ax.set_xlabel('Directional Meta-Confidence (M2)', fontsize=cfg['axis_label_fontsize'])
+
             # Stats for Panel A
             hits = (is_accepted & is_correct).sum()
             miss = (is_accepted & ~is_correct).sum()
             rej = (~is_accepted).sum()
             mid_txt = f'Mid:{x_mid:.2f}' if x_mid is not None else 'Mid:N/A'
             stats_txt = f'Hits:{hits}\nMiss:{miss}\nRej:{rej}\nα:{significance:.3f}\n{mid_txt}'
-            
-            ax_a.text(0.98, 0.05, stats_txt, 
-                     transform=ax_a.transAxes, fontsize=18, ha='right', va='bottom',
+
+            ax_a.text(0.98, 0.05, stats_txt,
+                     transform=ax_a.transAxes, fontsize=cfg['stats_fontsize'], ha='right', va='bottom',
                      bbox=dict(boxstyle='round', facecolor='white', alpha=0.7, edgecolor='lightgrey'))
 
-        # Global Legend for each figure
+        # Global Legend
         legend_elements = [
             Line2D([0], [0], marker='o', color='w', markerfacecolor='#2ecc71', label='Correct Signal (Accepted)', markersize=9),
             Line2D([0], [0], marker='o', color='w', markerfacecolor='#8b0000', label='Incorrect Signal (Accepted)', markersize=9),
@@ -1164,23 +1251,20 @@ def plot_nested_conformal_preds(model_conf_preds_folds, n_outer_splits, title_pr
             Line2D([0], [0], color='purple', linestyle='--', label='Midpoint (Intersection)'),
             Line2D([0], [0], color='darkorange', linestyle=':', label='Conformal Rejection Zone Boundary')
         ]
-        if rows_are_models:
-            legend_font = 20
-        else:
-            legend_font = 12
-        fig.legend(handles=legend_elements, loc='upper center', ncol=3, frameon=True, 
-                   framealpha=1.0, edgecolor='black', bbox_to_anchor=(0.5, 0.025), fontsize=legend_font)
+        fig.legend(handles=legend_elements, loc='upper center', ncol=3, frameon=True,
+                   framealpha=1.0, edgecolor='black', bbox_to_anchor=(0.5, cfg['legend_bbox_y']), fontsize=cfg['legend_fontsize'])
 
-        plt.suptitle(f'Conformal Signal Analysis: {title_pref} - Fold {j+1}', 
-                     fontsize=30, fontweight='bold', y=0.98)
-        plt.subplots_adjust(left=0.01, right=0.95, top=0.93, bottom=0.05, wspace=0.5, hspace=0.2)
+        plt.suptitle(f'Conformal Signal Analysis: {title_pref} - Fold {j+1}',
+                     fontsize=cfg['suptitle_fontsize'], fontweight='bold', y=cfg['suptitle_y'])
+        plt.subplots_adjust(left=cfg['left'], right=cfg['right'], top=cfg['top'], bottom=cfg['bottom'],
+                             wspace=cfg['wspace'], hspace=cfg['hspace'])
 
         os.makedirs("data/figures/conformal_predictions", exist_ok=True)
         if n_folds > 1:
             save_path = f"./data/figures/conformal_predictions/{title_pref}_conformal_predictions_part{j+1}.png"
         else:
             save_path = f"./data/figures/conformal_predictions/{title_pref}_conformal_predictions.png"
-        
+
         plt.savefig(save_path, dpi=250, bbox_inches='tight')
         plt.close()
         print(f"   ... Enhanced Conformal analysis plot (Fold {j+1}) saved to {save_path}")
