@@ -834,6 +834,26 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
 
     # Plot each distribution
     for idx, (stat_name, values_list) in enumerate(stat_dict.items()):
+        # Customize subplot
+        RENAME_MAP = {
+            # Financial metrics
+            'total_return': 'Total Return',
+            'sharpe': 'Sharpe Ratio',
+            'probabilistic_sharpe': 'Probabilistic Sharpe Ratio',
+            'deflated_sharpe': 'Deflated Sharpe Ratio',
+            'min_trl': 'Minimum TRL',
+            'max_dd': 'Maximum Drawdown',
+            'cagr': 'CAGR',
+            'calmar_ratio': 'Calmar Ratio',
+            'win_rate': 'Win Rate',
+            'profit_factor': 'Profit Factor',
+            'n_trades': 'Number of Trades',
+            'avg_capital_exposure': 'Avg Capital Exposure',
+            'avg_trade_size': 'Avg Trade Size'
+            }
+        if stat_name in RENAME_MAP:
+            display_name = RENAME_MAP[stat_name]
+
         ax = axes[idx]
         
         # Process values
@@ -843,8 +863,10 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
         if len(values) == 0:
             ax.text(0.5, 0.5, f"No valid {stat_name} values", 
                    ha='center', va='center', transform=ax.transAxes)
-            ax.set_title(stat_name)
+            ax.set_title(display_name)
             continue
+        else:
+            ax.set_title(display_name, fontweight='bold', fontsize=18)
         
         # Determine bins
         if bins_dict and stat_name in bins_dict:
@@ -907,26 +929,6 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
                 
                 legend_created = True
         
-        # Customize subplot
-        RENAME_MAP = {
-            # Financial metrics
-            'total_return': 'Total Return',
-            'sharpe': 'Sharpe Ratio',
-            'probabilistic_sharpe': 'Probabilistic Sharpe Ratio',
-            'deflated_sharpe': 'Deflated Sharpe Ratio',
-            'min_trl': 'Minimum TRL',
-            'max_dd': 'Maximum Drawdown',
-            'cagr': 'CAGR',
-            'calmar_ratio': 'Calmar Ratio',
-            'win_rate': 'Win Rate',
-            'profit_factor': 'Profit Factor',
-            'n_trades': 'Number of Trades',
-            'avg_capital_exposure': 'Avg Capital Exposure',
-            'avg_trade_size': 'Avg Trade Size'
-            }
-        if stat_name in RENAME_MAP:
-            stat_name = RENAME_MAP[stat_name]
-        
         # Identify which statistics should be displayed as percentages
         percent_stats = ['Total Return', 
                          'Maximum Drawdown', 
@@ -936,16 +938,15 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
         already_percent_stats = ['Avg Capital Exposure', 'Avg Trade Size']
 
         ax.set_xlim(min(values), max(values))
-        ax.set_xlabel(stat_name, fontsize=16)
-        ax.set_ylabel('Frequency', fontsize=16)
-        ax.tick_params(axis='x', labelsize=14)  # X-axis tick labels
-        ax.tick_params(axis='y', labelsize=14)  # Y-axis tick labels
+        ax.set_ylabel('Frequency', fontsize=20)
+        ax.tick_params(axis='x', labelsize=18)  # X-axis tick labels
+        ax.tick_params(axis='y', labelsize=18)  # Y-axis tick labels
 
         # Format x-ticks based on stat type
-        if stat_name in percent_stats:
+        if display_name in percent_stats:
             # Decimal to percentage (0.15 → 15%)
             ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=1.0, decimals=0, symbol='%'))
-        elif stat_name in already_percent_stats:
+        elif display_name in already_percent_stats:
             # Already a percentage (45.0 → 45%), just add % symbol
             ax.xaxis.set_major_formatter(mtick.PercentFormatter(xmax=100.0, decimals=0, symbol='%'))
 
@@ -968,10 +969,10 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
                   fontsize=20)
     
     # Add title - slightly increased spacing from subplots
-    fig.suptitle(f'Distribution of Financial Statistics during {title} across Optimization Trials', 
-                 fontsize=20, fontweight='bold', y=0.96)  
+    fig.suptitle(f'Distribution of Financial Statistics during {title}\nacross Optimization Trials', 
+                 fontsize=30, fontweight='bold', y=0.96)  
     
-    plt.subplots_adjust(bottom=0.12, top=0.92, left=0.03, right=0.97, wspace=0.3, hspace=0.3)  
+    plt.subplots_adjust(bottom=0.12, top=0.87, left=0.05, right=0.97, wspace=0.25, hspace=0.25)  
     os.makedirs("data/figures/optimization/distributions", exist_ok=True)
     save_path = f"./data/figures/optimization/distributions/{title}_financial_dist_{model_name}.png"
     plt.savefig(save_path)
