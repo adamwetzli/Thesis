@@ -628,8 +628,8 @@ def plot_nested_wfv_dashboard(
         base_width_per_fold=6.0, base_height_per_row=3.5,
         min_fig_width=12.0, min_fig_height=8.0,
         max_total_width=20.0, max_total_height=30.0,
-        subplot_left=0.08, subplot_right=0.98, subplot_bottom=0.05,
-        subplot_hspace=0.15, subplot_wspace=0.22,
+        subplot_left=0.175, subplot_right=0.98, subplot_bottom=0.06,
+        subplot_hspace=0.16, subplot_wspace=0.22,
         max_marker_size=25, min_marker_size=10,
         max_bubble_scale=15, min_bubble_scale=5,
         max_date_ticks=8, thin_line_width=0.8, thick_line_width=1.5,
@@ -773,6 +773,12 @@ def plot_nested_wfv_dashboard(
                 plt.setp(ax_cum.get_xticklabels(), rotation=90, ha='center', fontsize=s['tick_font'])
                 for a in (ax_exec, ax_pnl, ax_cum): a.tick_params(axis='both', which='major', labelsize=s['tick_font']); a.grid(True, alpha=0.2)
 
+        for f_idx in range(n_folds):
+            last_real_row = (len(raw_pairs) - 1) * rows_per_pair + 2  # ax_cum of last real pair
+            ax_cum_last = axes[last_real_row, f_idx]
+            ax_cum_last.tick_params(labelbottom=True)
+            plt.setp(ax_cum_last.get_xticklabels(), rotation=90, ha='center', fontsize=s['tick_font'])
+
         fig.subplots_adjust(left=s['subplot_left'], right=s['subplot_right'], top=s['subplot_top'], bottom=s['subplot_bottom'], hspace=s['subplot_hspace'], wspace=s['subplot_wspace'])
 
         # Draw labels only for real pairs
@@ -794,7 +800,7 @@ def plot_nested_wfv_dashboard(
         os.makedirs(output_dir, exist_ok=True)
         suffix = f"_part{part_idx + 1}" if num_parts > 1 else ""
         save_path = f"{output_dir}/{title_pref}_results_{model_name}{suffix}.png"
-        plt.savefig(save_path, dpi=200, bbox_inches='tight')
+        plt.savefig(save_path, dpi=200)
         plt.close(fig)
         print(f"   ... Tournament dashboard saved to {save_path}")
 
@@ -1767,6 +1773,9 @@ def generate_rrf_leaderboard(consolidated_results: Dict[str, List[pd.DataFrame]]
         hrules=True
     )
     
+    # Add font size control
+    summary_tex = summary_tex.replace(r"\begin{table}[H]", r"\begin{table}[H] \centering \small")
+    
     with open(summary_path, "w") as f:
         f.write(summary_tex)
 
@@ -1796,7 +1805,7 @@ def generate_rrf_leaderboard(consolidated_results: Dict[str, List[pd.DataFrame]]
         column_format="l l " + "c" * len(model_cols)
     )
 
-    # Resize
+    # Keep existing resize for matrix table (or change it similarly)
     matrix_tex = matrix_tex.replace(r"\begin{table}", r"\begin{table}[H] \centering")
     matrix_tex = matrix_tex.replace(r"\begin{tabular}", r"\small \begin{tabular}")
 
