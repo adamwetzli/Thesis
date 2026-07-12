@@ -110,7 +110,7 @@ def _execute_walk_forward_accumulation(m1_name: str,
         y_t_val = y_truth.loc[i_val_idx]
         
         # Train M1 Model via its model-agnostic bridge
-        m1_tmp = m1_def['bridge'](m1_def['class'], m1_hps, X_tr, y_s_tr)
+        m1_tmp = m1_def['bridge'](m1_def['class'], m1_hps, X_tr, y_s_tr, n_purged=n_purged, n_embargo=n_embargo)
         # Predict Signal + respective Probability on Fold's Val data
         sigs_m1 = m1_def['predictor'](m1_tmp, X_val)
         probs_m1 = m1_def['prob_predictor'](m1_tmp, X_val)
@@ -739,7 +739,7 @@ def optimize_pipeline(m1_name: str,
         X_final = X_final[selected_features]
 
     # Train final M1 Model
-    m1_final = m1_def['bridge'](m1_def['class'], best_m1_hps, X_final, tuning_data['y_side'])
+    m1_final = m1_def['bridge'](m1_def['class'], best_m1_hps, X_final, tuning_data['y_side'], n_purged=n_purged, n_embargo=n_embargo)
     
     return m1_final, m2_final, best_m1_hps, best_t_hps, final_mistakes, hpo_metadata
 
