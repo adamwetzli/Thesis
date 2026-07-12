@@ -16,8 +16,8 @@ meta_memory_window=3    # The window of past OUTER folds in the nested wfv to co
 
 n_purged=10             # Number of rows to be removed from the end of each training set
 n_embargo=10            # Number of rows to be removed from the beginning of a training set if it is preceeded by a test set
-n_model_trials=5        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
-n_trading_trials=20     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
+n_model_trials=50        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
+n_trading_trials=100     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
 opt_metric='sharpe'     # Options: 'return', 'sharpe', 'mdd', 'calmar'
 
 mutual_info_threshold = 0.005            # threshold below which features are dropped
@@ -120,7 +120,7 @@ def main():
                    "gru" : 'GRU'}
     tournament_models = list(models_dict.values())
 
-    if response in ["t", "tp", "pt"]:
+    if response.lower() in ["t", "tp", "pt"]:
         run_nested_wfv(data=global_train_data,
                        model_names=tournament_models,
                        n_outer_splits=n_outer_splits,
@@ -168,7 +168,7 @@ def main():
     print(f"\n[PHASE 2] Tournament Winner: {winner}")
     print(f"Starting Global Production Refinement for {winner}...")
 
-    if response in ["p", "tp", "pt"]:
+    if response.lower() in ["p", "tp", "pt"]:
         run_wfv(data=global_train_data,
                 global_test_data=global_test_data,
                 winner_name=winner,
