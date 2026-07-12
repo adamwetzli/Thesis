@@ -904,22 +904,25 @@ def plot_multiple_financial_distributions(stat_dict, model_name, bins_dict=None,
         # Customize subplot
         RENAME_MAP = {
             # Financial metrics
-            'total_return': 'Total Return',
-            'sharpe': 'Sharpe Ratio',
-            'probabilistic_sharpe': 'Probabilistic Sharpe Ratio',
-            'deflated_sharpe': 'Deflated Sharpe Ratio',
-            'min_trl': 'Minimum TRL',
-            'max_dd': 'Maximum Drawdown',
-            'cagr': 'CAGR',
-            'calmar_ratio': 'Calmar Ratio',
-            'win_rate': 'Win Rate',
-            'profit_factor': 'Profit Factor',
+            'total_returns': 'Total Return',
+            'sharpes': 'Sharpe Ratio',
+            'probabilistic_sharpes': 'Probabilistic Sharpe Ratio',
+            'deflated_sharpes': 'Deflated Sharpe Ratio',
+            'min_trls': 'Minimum TRL',
+            'max_dds': 'Maximum Drawdown',
+            'cagrs': 'CAGR',
+            'calmar_ratios': 'Calmar Ratio',
+            'win_rates': 'Win Rate',
+            'profit_factors': 'Profit Factor',
             'n_trades': 'Number of Trades',
-            'avg_capital_exposure': 'Avg Capital Exposure',
-            'avg_trade_size': 'Avg Trade Size'
+            'avg_capital_exposures': 'Avg Capital Exposure',
+            'avg_trade_sizes': 'Avg Trade Size'
             }
         if stat_name in RENAME_MAP:
             display_name = RENAME_MAP[stat_name]
+        else:
+            print(f"{stat_name} not in RENAME_MAP")
+            display_name = stat_name
 
         ax = axes[idx]
         

@@ -1,22 +1,22 @@
-\begin{table}[H]
+\begin{table}[H] \centering \small
 \caption{RRF Performance Summary: Best and Worst Performing Pairs (Tournament Phase)}
 \label{tab:rrf_summary_tournament}
 \begin{tabular}{l l p{5cm} p{5cm}}
 \toprule
 Model & Fold & Best Performers (RRF) & Worst Performers (RRF) \\
 \midrule
-RandomForest & Fold 1 & USDTRY, USDCNH & NZDUSD, AUDUSD \\
- & Fold 2 & USDTRY, EURUSD & USDMXN, USDZAR \\
-ExtraTrees & Fold 1 & USDTRY, USDJPY & NZDUSD, GBPUSD \\
- & Fold 2 & USDTRY, USDZAR & USDCNH, USDMXN \\
-XGBoost & Fold 1 & USDTRY, USDZAR & EURUSD, AUDUSD \\
- & Fold 2 & USDTRY, USDZAR & USDMXN, USDJPY \\
-LightGBM & Fold 1 & USDTRY, USDCAD & NZDUSD, GBPUSD \\
- & Fold 2 & USDTRY, USDMXN & USDCNH, USDZAR \\
-LSTM & Fold 1 & USDCHF, USDTRY & AUDUSD, NZDUSD \\
- & Fold 2 & USDTRY, USDCNH & USDMXN, USDJPY \\
-GRU & Fold 1 & USDMXN, USDTRY & EURUSD, GBPUSD \\
- & Fold 2 & USDTRY, USDCNH & USDZAR, USDJPY \\
+RandomForest & Fold 1 & USDTRY, USDZAR & USDJPY, USDCHF \\
+ & Fold 2 & USDTRY, USDZAR & USDJPY, NZDUSD \\
+ExtraTrees & Fold 1 & USDTRY, USDZAR & GBPUSD, USDCAD \\
+ & Fold 2 & USDMXN, USDTRY & EURUSD, USDJPY \\
+XGBoost & Fold 1 & USDTRY, USDCHF & EURUSD, GBPUSD \\
+ & Fold 2 & USDZAR, USDCNH & USDMXN, USDJPY \\
+LightGBM & Fold 1 & USDTRY, USDCNH & GBPUSD, USDCHF \\
+ & Fold 2 & USDZAR, USDCNH & USDJPY, USDCHF \\
+LSTM & Fold 1 & USDCHF, USDZAR & AUDUSD, GBPUSD \\
+ & Fold 2 & USDCNH, USDCHF & EURUSD, USDMXN \\
+GRU & Fold 1 & USDTRY, USDZAR & EURUSD, NZDUSD \\
+ & Fold 2 & USDTRY, USDZAR & USDJPY, USDCNH \\
 \bottomrule
 \end{tabular}
 \end{table}
