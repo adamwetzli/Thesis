@@ -5,8 +5,18 @@
 \toprule
 Model & Fold & Best Performers (RRF) & Worst Performers (RRF) \\
 \midrule
-XGBoost & Fold 1 & USDTRY, USDZAR & GBPUSD, EURUSD \\
- & Fold 2 & USDZAR, USDCNH & NZDUSD, USDTRY \\
+RandomForest & Fold 1 & USDTRY, USDJPY & EURUSD, GBPUSD \\
+ & Fold 2 & USDZAR, USDTRY & USDCNH, NZDUSD \\
+ExtraTrees & Fold 1 & USDTRY, USDCNH & GBPUSD, EURUSD \\
+ & Fold 2 & USDTRY, USDCNH & USDCAD, EURUSD \\
+XGBoost & Fold 1 & USDTRY, USDZAR & AUDUSD, USDMXN \\
+ & Fold 2 & USDTRY, USDZAR & EURUSD, USDJPY \\
+LightGBM & Fold 1 & USDTRY, USDCHF & EURUSD, NZDUSD \\
+ & Fold 2 & USDZAR, USDMXN & USDCHF, AUDUSD \\
+LSTM & Fold 1 & USDCHF, USDZAR & GBPUSD, EURUSD \\
+ & Fold 2 & USDTRY, USDZAR & NZDUSD, USDJPY \\
+GRU & Fold 1 & USDCHF, USDZAR & NZDUSD, GBPUSD \\
+ & Fold 2 & USDTRY, USDCNH & GBPUSD, USDCAD \\
 \bottomrule
 \end{tabular}
 \end{table}
