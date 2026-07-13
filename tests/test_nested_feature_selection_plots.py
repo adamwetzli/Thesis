@@ -44,6 +44,7 @@ def test_nested_feat_imp(n_outer_splits, title):
         # Technically do it for every inner fold but that is too expensive computationally
         X_selected_df, mi_pi_series, Xs_series = run_feature_selection_pipeline(X=X_preprocessed,
                                                                                 y=y_train,
+                                                                                pi_thresh = 0.001,
                                                                                 model="RF")
         mi_pi_folds[f"Fold {i+1}"] = mi_pi_series # Store Scores in correct fold key
         Xs_folds[f"Fold {i+1}"] = Xs_series # Stores the before/after features in correct fold key
@@ -53,4 +54,4 @@ def test_nested_feat_imp(n_outer_splits, title):
 
 if __name__ == "__main__":
     # test_nested_feat_imp(2, "test_tournament")
-    test_nested_feat_imp(1, "test_production")
+    test_nested_feat_imp(2, "test_production")

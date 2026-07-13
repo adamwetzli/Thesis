@@ -290,8 +290,8 @@ for non-normality (skewness \(\gamma_3\) and kurtosis \(\gamma_4\)) and the trac
 \label{eq:psr}
 \end{equation}
 
-where \(\Phi\) is the CDF of the standard normal distribution and \(SR^*\) is the benchmark. 
-To correct for the data mining trap, \textcite{bailey_deflated_2014} introduced the deflated Sharpe ratio (DSR), 
+where \(\Phi\) is the CDF of the standard normal distribution and \(SR^*\) is the benchmark. A PSR below $50\%$ suggests that the estimated Sharpe ratio would 
+not be considered statistically distinguishable from zero. To correct for the data mining trap, \textcite{bailey_deflated_2014} introduced the deflated Sharpe ratio (DSR), 
 which is essentially the PSR calculated by setting the benchmark \(SR^*\) to the expected maximum Sharpe ratio found by chance 
 across \(N\) trials:
 
@@ -753,29 +753,19 @@ but a robust architecture capable of generating stable, conformalized alpha.
 
 \subsubsection{Static Feature Space Definition Across All Tournament Models (Common Feature Set Per Fold) and Multicollinearity Filtering}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+To ensure a fair comparison across the tournament's competing model architectures, feature selection was performed once per outer fold rather than once per model,
+yielding a single, common feature set that every M1 candidate in that fold was subsequently trained and evaluated on (see \ref{sec:preprocessing_scaling}). 
+As a reminder, the selection proceeds in three sequential stages where first an unsupervised correlation filter removes redundant features irrespective of their 
+relationship to the target ($|\rho| > 0.90$), followed by a supervised Mutual Information filter that discards features falling below a minimum 
+univariate association with the M1-label ($\text{MI}_{\text{thresh}} < 0.005$), and finally a permutation importance filter, which prunes any remaining feature 
+contributing negligible or negative predictive value to a reference model ($\text{PI}_{\text{thresh}} \leq 0.001$).
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.9\linewidth]{../data/figures/feature_selection/Tournament_nested_correlation_heatmap.png}
-    \caption{Correlation Filtering During Tournament}
-    \label{fig:correlation filtering}
-\end{figure}
+\medskip
+
+Figure \ref{fig:correlation filtering} (see \ref{app:tourney_feat_select}) shows the correlation matrices of the feature space for both outer folds before and after 
+filtering for correlation. In total, the pipeline filtered out 12 features out of 94 in the first outer fold and 11 features in the second outer fold.
+The similarity between the Fold 1 and Fold 2 "AFTER" panels also suggests that the correlation structure of the feature space itself is
+reasonably stable across the two evaluation windows, even before any target-aware filtering is applied.
 
 \begin{figure}[H]
     \centering
@@ -784,68 +774,106 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
     \label{fig:feature importances}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Figure \ref{fig:feature importances} then illustrates the two supervised stages applied on top of this pre-filtered set. Two observations stand out: 
+
+\medskip
+
+First, the MI and permutation importance rankings agree only partially: in fold 1, num\_VWMA dominates by a wide margin under both metrics and is still relevant in the second fold. 
+Furthermore, num\_A/D, num\_spread\_volatility\_10, num\_volatility\_50, num\_ny\_volatility, and num\_spread\_pips rank consistently on roughly the same positions across both 
+folds in the MI score and all of them also remain relevant in the subsequent PI scores across both folds suggesting their structural relevance across time.
+However, the remainder of the ranking reshuffles considerably. In both folds of the top features by MI score some features that are included in one fold but not the other are
+bin\_is\_asia\_session, bin\_is\_ny\_session, num\_spread\_abs, num\_normalized\_spread to name a few. In PI ranking, features in this category are num\_normalized\_spread, 
+bin\_is\_ny\_session, bin\_is\_asia\_session, num\_distance\_to\_recent\_low to name a few again.
+Also, it is worth noting that features that rank highly in the MI section might not rank on the same position in the PI score, which is consistent with MI capturing marginal, 
+univariate association with the label, while permutation importance reflects a feature's marginal
+contribution to the fitted model's predictive performance, including any interaction effects with other retained features. Thus, a feature can be MI-weak yet
+model-critical or vice versa precisely because of such interactions. 
+
+\medskip
+
+Second, and more importantly for the "static feature set" motivation of this section, the two folds
+themselves disagree substantially on which features matter most. For example, num\_trade\_position\_in\_spread is the single most important feature by permutation importance in
+Fold 2, yet it does not even register among the top PI features in Fold 1's ranking. Additionally, the fold-to-fold instability of the features in the PI metric is precisely the 
+kind of overfitting risk that motivates selecting a single, common feature set per fold across all tournament models rather than allowing each model architecture to select its own, 
+possibly unstable, feature subset, which would confuse genuine architectural differences with differences in feature selection noise.
 
 
 \subsubsection{Pair- and Model-Specific Parameter Discovery and Financial Robustness}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Having established a common static feature set per fold to mitigate overfitting and ensure comparability across architectures, we now turn to the model-specific hyperparameter 
+optimization and its financial implications. While the tournament includes multiple model classes, we focus the present discussion exclusively on the XGBoost results, 
+as presenting exhaustive tables and figures for every candidate model would be both space-prohibitive and unnecessarily repetitive. The XGBoost architecture serves as a 
+representative gradient-boosted tree model, and its performance during the tournament phase is illustrative of the broader patterns observed across the ensemble of competing methods.
+Please find tables and figures regarding the other models in the tournament appendix \ref{app:tournament}.
+
+\input{../data/tables/tournament/trading_hps_table/hps_XGBoost_tournament.tex}
+
+Before turning to these patterns, it is useful to briefly define the seven trading-level hyperparameters reported in table \ref{tab:hps_XGBoost_tournament}, all of which are tuned 
+jointly, per pair and per fold, by the same Optuna study. \textbf{Risk Pct.} sets the fraction of current equity that is risked if the stop-loss is hit, and together 
+with \textbf{SL Mult.} (the stop-loss distance, expressed as a multiple of ATR) determines the base position size via risk-parity sizing (see eq. \ref{eq:pct_risk_model}). 
+\textbf{TP Mult.} sets the take-profit distance analogously, but plays no role in sizing. 
+\textbf{Kelly F.} is a fractional multiplier in $[0,1]$ applied on top of this risk-parity base size, throttling it back from full growth-optimal (Kelly-criterion) sizing toward a 
+more conservative fraction thereof. \textbf{Meta Sig.} is the significance level of the conformal veto, which sets the confidence threshold the M2 meta-model's calibrated probability 
+must clear for a candidate M1 signal to be acted upon at all, with lower values corresponding to a stricter (more selective) filter. \textbf{MH} caps the number of bars a trade is 
+permitted to remain open before being forcefully closed irrespective of whether its stop-loss or take-profit has been reached, and is therefore a time-based backstop on trade duration 
+rather than a sizing parameter. Finally, \textbf{Max Exp.} is the maximum permissible notional exposure, expressed as a percentage of mark-to-market equity. Unlike the parameters 
+above, it does not participate in determining position size at all, but instead acts as a hard ceiling that clips the risk-parity-derived size downward if, and only if, that size 
+would otherwise exceed it.
+
+\medskip
+
+\ref{tab:hps_XGBoost_tournament} reports the hyperparameters selected by the trading-level Optuna study for each currency pair and fold. Several patterns are worth highlighting, such as 
+the Kelly fraction, which shows substantial cross-sectional heterogeneity within a single fold (e.g. Fold 1 ranges from $0.11$ for USDCNH to $0.94$ for USDMXN), 
+indicating that the optimizer does not converge on a single universal position-sizing aggressiveness but instead tries to tailor it to each pair's realized edge and volatility profile. 
+Second, the maximum holding period (MH) ceiling is systematically lower in Fold 2 than in Fold 1 for the majority of pairs (e.g. GBPUSD drops from 43 to 11 bars, USDTRY from 33 to 10). 
+Since MH only caps how long a trade is permitted to remain open before being forcefully closed and the barrier-based exit logic (stop-loss/take-profit) typically resolves 
+trades well before this ceiling is reached, this shift is better read as the optimizer tightening the outer time budget available to trades in Fold 2 rather than as direct evidence 
+that realized trade durations themselves become shorter.
+Third, the discovered notional exposure ceiling (Max Exp.) clusters toward the upper half of its permissible search range ($50\%$-$100\%$) for most pairs in both folds, 
+frequently exceeding $80\%$, however, as we will see below, this ceiling is rarely binding in practice, since realized average exposure sits considerably lower. 
+Finally, the stop-loss and take-profit multipliers show no consistent asymmetry across pairs as some pairs favor a wider take-profit relative to stop-loss 
+(e.g. USDMXN, Fold 1: SL $3.40\times$ ATR vs. TP $4.79\times$ ATR), while others favor the reverse (e.g. USDZAR, Fold 1: SL $3.56\times$ ATR vs. TP $1.37\times$ ATR), 
+suggesting that the profitable risk-reward geometry is itself pair- and regime-specific rather than a fixed, universally superior ratio.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/distributions/Tournament_financial_dist_RandomForest.png}
+    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/distributions/Tournament_financial_dist_XGBoost.png}
     \caption{Financial Statistic Distributions During Tournament Optimization}
     \label{fig:distributions}
 \end{figure}
 
-\input{../data/tables/tournament/trading_hps_table/hps_RandomForest_tournament.tex}
+Before discussing individual panels, it is worth clarifying how each point in \ref{fig:financial_dist_xgboost} is constructed. Rather than reporting one distribution per currency 
+pair (which, across eleven pairs and two folds, would be prohibitively repetitive), each plotted trial value is the arithmetic mean of that trial's statistic across all pairs and 
+all inner cross-validation folds evaluated during the trading-level Optuna search. This aggregation is what makes a single set of panels representative of the whole tournament, 
+but it also has a direct bearing on the Profit Factor panel discussed below.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\medskip
+
+Figure \ref{fig:financial_dist_xgboost} moves beyond the single best-performing configuration reported in table \ref{tab:hps_XGBoost_tournament} and examines the distribution of financial 
+outcomes across the entire population of trading-hyperparameter trials sampled during the Optuna search. 
+Encouragingly, Total Return, Sharpe Ratio, and CAGR all have the bulk of their mass sitting on the positive side of zero, indicating that a large fraction of the sampled 
+hyperparameter space produces a modestly positive edge, at least during backtesting. 
+The probabilistic Sharpe ratio panel tempers this reading, however, as its distribution is centered close to, and partially below, the $50\%$ mark, 
+meaning that for a substantial share of trials the estimated Sharpe ratio would not be considered statistically distinguishable from zero once estimation uncertainty, skewness, 
+and kurtosis are accounted for (see eq. \ref{eq:psr} in section \ref{sec:backtest_overfitting}). This is an important caveat to the otherwise favorable Sharpe and CAGR distributions as 
+it suggests that while positive point estimates are common across the search space, robustly significant outperformance is concentrated in a comparatively narrower right-hand tail of trials.
+
+\medskip
+
+The Profit Factor panel exhibits an extreme long right tail, with the overwhelming majority of trials clustering near a small finite value and a sparse scattering of trials 
+reporting values in the tens of thousands. This is not indicative of genuinely exceptional trading performance but rather a well-known degenerate artifact of the profit factor 
+metric under low trade counts, propagated through an unweighted cross-pair average. Thus, a single pair that happens, under a given trial's sampled hyperparameters, to record only 
+one or two winning trades and no losing trades in the evaluation window returns a profit factor that is undefined in the limit and numerically enormous in practice — a pathology 
+already visible for several low-trade-count pairs in the individual tournament results (see appendix \ref{app:model_specific_backtests}). Because the plotted value is a 
+simple mean across all pairs rather than a trade-count weighted one, a single such pair is sufficient to drag an otherwise unremarkable trial's reported profit factor into the tens 
+of thousands, which is why the panel's tail is so extreme relative to its bulk. The Number of Trades and Win Rate panels support this interpretation as both report cross-pair and fold 
+average values, clustering around $60$-$70$ trades with a left-skewed tail and a right-skewed win rate in the $10$-$20\%$ range, consistent with a trend-following, 
+asymmetric-payoff style of strategy in which most individual trades lose small amounts and profitability is carried by a minority of large winners, which is precisely the regime 
+in which individual pairs, and by extension the cross-pair mean, are most sensitive to small-sample noise in the profit factor. 
+Finally, the Average Capital Exposure panel, which, unlike Max Exp. in \ref{tab:hps_XGBoost_tournament}, reflects the mean realized, mark-to-market exposure rather than the 
+permitted ceiling, clusters around $25$-$30\%$, well below the $80$-$98\%$ ceilings frequently discovered by the optimizer. This gap indicates that the position sizing scaled by 
+the Kelly fraction, rather than the notional exposure cap itself, is the binding constraint for most trials, with the exposure ceiling instead functioning as a rarely-triggered 
+backstop against adverse mark-to-market drift rather than a target the strategy actively pushes toward.
 
 
 \subsubsection{From Raw Signals to Conformal Predictions: Model- \& Pair-Specific Conformal-Q Filtering}
@@ -1029,16 +1057,16 @@ Majors outperform EMs as expected, but EMs remain profitable with adapted parame
     \centering
     \begin{minipage}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part1.png}
-        \caption{Backtest Result of RandomForest During Tournament}
-        \label{fig:tournament_result_RandomForest_1}
+        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part1.png}
+        \caption{Backtest Result of XGBoost During Tournament}
+        \label{fig:tournament_results_XGBoost_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part2.png}
-        \caption{Backtest Result of RandomForest During Tournament (Continued)}
-        \label{fig:tournament_result_RandomForest_2}
+        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part2.png}
+        \caption{Backtest Result of XGBoost During Tournament (Continued)}
+        \label{fig:tournament_results_XGBoost_2}
     \end{minipage}
 \end{figure}
 
@@ -1046,16 +1074,16 @@ Majors outperform EMs as expected, but EMs remain profitable with adapted parame
     \centering
     \begin{minipage}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part3.png}
-        \caption{Backtest Result of RandomForest During Tournament (Continued)}
-        \label{fig:tournament_result_RandomForest_3}
+        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part3.png}
+        \caption{Backtest Result of XGBoost During Tournament (Continued)}
+        \label{fig:tournament_results_XGBoost_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part4.png}
-        \caption{Backtest Result of RandomForest During Tournament (Continued)}
-        \label{fig:tournament_result_RandomForest_4}
+        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part4.png}
+        \caption{Backtest Result of XGBoost During Tournament (Continued)}
+        \label{fig:tournament_results_XGBoost_4}
     \end{minipage}
 \end{figure}
 
@@ -1125,12 +1153,12 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\input{../data/tables/tournament/performance_tables/perf_RandomForest_tournament.tex}
+\input{../data/tables/tournament/performance_tables/perf_XGBoost_tournament.tex}
 
 
 \paragraph{Comparison Across Different Trading Strategies}
 
-\input{../data/tables/tournament/strategy_comparison/strategy_comp_RandomForest_tournament.tex}
+\input{../data/tables/tournament/strategy_comparison/strategy_comp_XGBoost_tournament.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1332,8 +1360,20 @@ The Efficacy of Meta-Labeling in Forex
 
 \subsection{Future Extensions}
 
-\subsubsection{Refactoring of the Code Base}
-Strengthen to make deployment and debugging better
+\subsubsection{Refactoring of the Codebase}
+
+The current implementation, while functionally adequate for the scope of this thesis, is organized as a set of tightly connected, procedural scripts rather than a 
+modular software architecture. Data acquisition, model training, conformal calibration, and order execution are frequently interleaved within the same function 
+bodies and share mutable state across long-running loops, which makes unit testing individual components in isolation difficult. 
+A more maintainable direction, sketched in \ref{app:code refactored}, would separate the system into a domain layer of data classes 
+(MarketData and Signal), and three interfaces for data acquisition, strategy generation, and execution, which will be coordinated through a thin 
+TradingSystemFacade. Under this design, concrete implementations (e.g. an IBKR\_MarketDataFeed or a BacktestSimEngine) become interchangeable behind their 
+respective interfaces (IDataProvider and IExecutionEngine), allowing the same strategy logic to run unmodified against a live broker or a historical simulation. 
+Furthermore, the conformal veto could similarly be expressed as a decorator (ConformalVetoDecorator) wrapping an inner IStrategy, rather than being hard-coded into 
+the signal generation path. It should be stressed that this diagram is illustrative rather than a finished architecture and is intended merely to gesture toward the 
+SOLID design principles, adherence to which was not a concern of this thesis. Adopting such a structure would not, by itself, resolve the statistical subtleties 
+uncovered in this study but rather it would reduce the engineering risk of introducing or hiding such issues in the first place, while meaningfully easing the 
+future extensions proposed below.
 
 
 \subsubsection{Data Quality}
@@ -1472,14 +1512,24 @@ the observed performance is considered statistically insufficient to distinguish
 
 
 \section{Tournament}\label{app:tournament}
+\subsection{Tournament Feature Selection}\label{app:tourney_feat_select}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{../data/figures/feature_selection/Tournament_nested_correlation_heatmap.png}
+    \caption{Correlation Filtering During Tournament}
+    \label{fig:correlation filtering}
+\end{figure}
+
+
 \subsection{Pair- and Model-Specific Parameter Discovery}
 \input{../data/tables/tournament/trading_hps_table/hps_ExtraTrees_tournament.tex}
 \input{../data/tables/tournament/trading_hps_table/hps_GRU_tournament.tex}
 \input{../data/tables/tournament/trading_hps_table/hps_LightGBM_tournament.tex}
 \input{../data/tables/tournament/trading_hps_table/hps_LSTM_tournament.tex}
-\input{../data/tables/tournament/trading_hps_table/hps_XGBoost_tournament.tex}
+\input{../data/tables/tournament/trading_hps_table/hps_RandomForest_tournament.tex}
 
-\subsection{Model-Specific Backtest Results}
+\subsection{Model-Specific Backtest Results}\label{app:model_specific_backtests}
 \begin{figure}[H]
     \centering
     \begin{minipage}[t]{0.49\textwidth}
@@ -1624,16 +1674,16 @@ the observed performance is considered statistically insufficient to distinguish
     \centering
     \begin{minipage}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part1.png}
-        \caption{Backtest Result of XGBoost During Tournament}
-        \label{fig:tournament_results_XGBoost_1}
+        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part1.png}
+        \caption{Backtest Result of RandomForest During Tournament}
+        \label{fig:tournament_result_RandomForest_1}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part2.png}
-        \caption{Backtest Result of XGBoost During Tournament (Continued)}
-        \label{fig:tournament_results_XGBoost_2}
+        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part2.png}
+        \caption{Backtest Result of RandomForest During Tournament (Continued)}
+        \label{fig:tournament_result_RandomForest_2}
     \end{minipage}
 \end{figure}
 
@@ -1641,16 +1691,16 @@ the observed performance is considered statistically insufficient to distinguish
     \centering
     \begin{minipage}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part3.png}
-        \caption{Backtest Result of XGBoost During Tournament (Continued)}
-        \label{fig:tournament_results_XGBoost_3}
+        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part3.png}
+        \caption{Backtest Result of RandomForest During Tournament (Continued)}
+        \label{fig:tournament_result_RandomForest_3}
     \end{minipage}
     \hfill
     \begin{minipage}[t]{0.49\textwidth}
         \centering
-        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_XGBoost_part4.png}
-        \caption{Backtest Result of XGBoost During Tournament (Continued)}
-        \label{fig:tournament_results_XGBoost_4}
+        \includegraphics[width=\textwidth]{../data/figures/backtests/tournament_results_RandomForest_part4.png}
+        \caption{Backtest Result of RandomForest During Tournament (Continued)}
+        \label{fig:tournament_result_RandomForest_4}
     \end{minipage}
 \end{figure}
 
@@ -1660,17 +1710,17 @@ the observed performance is considered statistically insufficient to distinguish
 \input{../data/tables/tournament/performance_tables/perf_GRU_tournament.tex}
 \input{../data/tables/tournament/performance_tables/perf_LightGBM_tournament.tex}
 \input{../data/tables/tournament/performance_tables/perf_LSTM_tournament.tex}
-\input{../data/tables/tournament/performance_tables/perf_XGBoost_tournament.tex}
+\input{../data/tables/tournament/performance_tables/perf_RandomForest_tournament.tex}
 
 \subsection{Strategy Comparison of Other Models}
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_ExtraTrees_tournament.tex}
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_GRU_tournament.tex}
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_LightGBM_tournament.tex}
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_LSTM_tournament.tex}
-\input{../data/tables/tournament/strategy_comparison/strategy_comp_XGBoost_tournament.tex}
+\input{../data/tables/tournament/strategy_comparison/strategy_comp_RandomForest_tournament.tex}
 
 
-\section{Production Model}\label{app:second}
+\section{Production Model}\label{app:prod model}
 \subsection{Production Model Feature Selection}
 
 \begin{figure}[H]
@@ -1732,5 +1782,16 @@ the observed performance is considered statistically insufficient to distinguish
     \caption{Model-Specific Reliability Diagrams During Production}
     \label{fig:prod reliability curves}
 \end{figure}
+
+
+\section{Miscellaneous}\label{app:miscellaneous}
+\subsection{Refactored Codebase}\label{app:code refactored}
+
+\begin{sidewaysfigure}[htbp]
+    \centering
+    \includegraphics[width=\textheight]{../data/figures/refactored_code/code_refactored.png}
+    \caption{Proposed Refactoring of the Codebase}
+    \label{fig:refactor}
+\end{sidewaysfigure}
 
 \end{document}
