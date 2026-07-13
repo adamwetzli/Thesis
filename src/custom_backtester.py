@@ -558,22 +558,43 @@ class CustomBacktester:
                 self._open_trade(i, timestamp, current_price, current_signal, dist_sl, dist_tp, final_qty)
             
             # --- 3. PORTFOLIO ACCOUNTING (MTM LOGIC) ---
-            total_invested = 0
-            floating_pnl = 0
-            for trade in self.open_trades:
-                # Track total notional capital currently deployed in the market
-                total_invested += abs(trade['size']) * trade['entry_price_slippage']
-                
-                # Calculate the floating (unrealized) PnL of active trades relative to current price.
-                # This must account for the slippage paid at entry.
-                if trade['direction'] == 'long':
-                    floating_pnl += (current_price - trade['entry_price_slippage']) * abs(trade['size'])
-                else:
-                    floating_pnl += (trade['entry_price_slippage'] - current_price) * abs(trade['size'])
-            
-            # MTM Equity = Realized Cash Balance (Available) + Floating Unrealized PnL (Open)
-            mtm_equity = self.equity + floating_pnl
-            
+            total_invested, floating_pnl, mtm_equity = self._compute_mtm(current_price)
+
+            # --- 3b. HARD EXPOSURE CEILING (MARK-TO-MARKET DE-LEVERAGING) ---
+            # The entry-time sizing guardrail only prevents opening a position that is
+            # too large *at the moment of entry*. It does NOT protect against exposure
+            # drifting above the cap afterwards, e.g. because floating losses shrink
+            # mtm_equity while notional exposure (fixed at entry) stays the same.
+            # Here we treat max_notional_exposure_pct as an absolute ceiling: if MTM
+            # notional exposure ever exceeds it, we forcibly trim the open position(s)
+            # down to the boundary, realizing the corresponding PnL/costs immediately.
+            if self.open_trades and mtm_equity > 0 and current_price > 0:
+                max_allowed_notional_value = mtm_equity * (self.max_notional_exposure_pct / 100.0)
+
+                if total_invested > max_allowed_notional_value:
+                    excess_notional = total_invested - max_allowed_notional_value
+
+                    # Only one position is ever open at a time under this strategy's
+                    # single-position entry logic, but we loop generically (and
+                    # allocate the trim pro-rata by notional) in case that changes.
+                    for trade in self.open_trades[:]:
+                        if excess_notional <= 1e-9:
+                            break
+                        trade_notional = abs(trade['size']) * trade['entry_price_slippage']
+                        if trade_notional <= 0:
+                            continue
+                        share = trade_notional / total_invested if total_invested > 0 else 1.0
+                        reduce_notional = min(trade_notional, excess_notional * share)
+                        reduce_qty = min(abs(trade['size']), reduce_notional / current_price)
+
+                        if reduce_qty > 0:
+                            self._reduce_trade(trade, timestamp, current_price, reduce_qty, 'Exposure Cap (De-lever)')
+                            excess_notional -= reduce_notional
+
+                    # Re-derive MTM state now that the position(s) have been trimmed so
+                    # exposure_history/equity_history reflect the post-de-leverage reality.
+                    total_invested, floating_pnl, mtm_equity = self._compute_mtm(current_price)
+
             # Exposure analysis: tracking what % of the account was 'at risk' at this bar
             exposure_pct = (total_invested / mtm_equity) * 100 if mtm_equity > 0 else 0
             self.exposure_history.append(exposure_pct)
@@ -586,6 +607,106 @@ class CustomBacktester:
             })
         
         return self.get_stats()
+
+    def _compute_mtm(self, current_price):
+        """
+        Computes total notional exposure, floating PnL, and MTM equity for the
+        current set of open trades at the given mark price. Factored out so the
+        exposure-ceiling guardrail can cheaply re-derive these values after
+        trimming a position, without duplicating the accumulation logic.
+        """
+        total_invested = 0
+        floating_pnl = 0
+        for trade in self.open_trades:
+            # Track total notional capital currently deployed in the market
+            total_invested += abs(trade['size']) * trade['entry_price_slippage']
+
+            # Calculate the floating (unrealized) PnL of active trades relative to current price.
+            # This must account for the slippage paid at entry.
+            if trade['direction'] == 'long':
+                floating_pnl += (current_price - trade['entry_price_slippage']) * abs(trade['size'])
+            else:
+                floating_pnl += (trade['entry_price_slippage'] - current_price) * abs(trade['size'])
+
+        # MTM Equity = Realized Cash Balance (Available) + Floating Unrealized PnL (Open)
+        mtm_equity = self.equity + floating_pnl
+        return total_invested, floating_pnl, mtm_equity
+
+    def _reduce_trade(self, trade, timestamp, exit_price, reduce_qty, exit_reason):
+        """
+        Partially closes an open trade by `reduce_qty` units at the current market
+        price, realizing PnL/costs on just that slice while leaving the remainder
+        of the position open. Used by the exposure-ceiling guardrail to forcibly
+        de-lever a position whose MTM notional has drifted above the configured
+        max_notional_exposure_pct, without disturbing the rest of the trade's
+        lifecycle (SL/TP/timeout logic continues to apply to the remaining size).
+
+        If reduce_qty consumes the entire remaining position, the trade is closed
+        out fully via the normal _close_trade path instead (so it is removed from
+        open_trades and logged consistently with other full exits).
+        """
+        direction = trade['direction']
+        reduce_qty = min(reduce_qty, abs(trade['size']))
+        if reduce_qty <= 0:
+            return
+
+        # If this reduction would close out the whole remaining position, just
+        # route it through the standard full-close path.
+        if reduce_qty >= abs(trade['size']) - 1e-9:
+            self._close_trade(trade, timestamp, exit_price, exit_reason)
+            return
+
+        # Cost of exiting just the `reduce_qty` slice
+        exit_tc = self.tc_per_unit * reduce_qty
+        exit_slippage = self.slippage_per_unit * reduce_qty
+        total_exit_cost = exit_tc + exit_slippage
+
+        # Effective exit price for this slice (degraded by slippage, same convention
+        # as a full close: longs sell into the bid, shorts buy back at the ask).
+        if direction == 'long':
+            effective_exit = exit_price - self.slippage_per_unit
+        else:
+            effective_exit = exit_price + self.slippage_per_unit
+
+        # Price PnL on just the reduced quantity
+        if direction == 'long':
+            price_pnl = (effective_exit - trade['entry_price_slippage']) * reduce_qty
+        else:
+            price_pnl = (trade['entry_price_slippage'] - effective_exit) * reduce_qty
+
+        # Realized cash impact: price PnL on the closed slice minus its exit commission.
+        realized_pnl = price_pnl - exit_tc
+        self.equity += realized_pnl
+
+        # Proportional entry commission attributable to this slice (tc_per_unit is a
+        # constant rate, so this is exact, not an approximation).
+        entry_tc_for_slice = self.tc_per_unit * reduce_qty
+        round_trip_net_pnl = price_pnl - entry_tc_for_slice - exit_tc
+
+        # Bookkeeping (entry-side costs for this slice were already deducted from
+        # self.equity/counted in total_costs at trade open; only add the exit side here).
+        self.total_costs += total_exit_cost
+        self.total_tc += exit_tc
+        self.total_pnl += round_trip_net_pnl
+
+        # Log the partial exit as its own record so trade-level stats (win rate,
+        # profit factor, trade log) reflect the realized de-leveraging event.
+        self.trade_history.append({
+            'entry_time': trade['entry_time'],
+            'exit_time': timestamp,
+            'direction': direction,
+            'size': reduce_qty if direction == 'long' else -reduce_qty,
+            'entry_price_raw': trade['entry_price_raw'],
+            'entry_price_slippage': trade['entry_price_slippage'],
+            'exit_price_raw': exit_price,
+            'exit_price_slippage': effective_exit,
+            'net_pnl': round_trip_net_pnl,
+            'exit_reason': exit_reason
+        })
+
+        # Shrink the remaining open position by the reduced quantity, preserving sign.
+        remaining_qty = abs(trade['size']) - reduce_qty
+        trade['size'] = remaining_qty if direction == 'long' else -remaining_qty
 
     def _open_trade(self, entry_idx, timestamp, entry_price, signal, dist_sl, dist_tp, size):
         """

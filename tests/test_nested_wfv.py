@@ -3,11 +3,12 @@ from utils import load_and_split
 from forex_walk_forward_validation import run_nested_wfv
 
 # MINI COCKPIT #
-tournament_models = ['RandomForest', 'ExtraTrees', 'XGBoost', 'LightGBM', 'LSTM', 'GRU'] # Subset for testing
+# tournament_models = ['RandomForest', 'ExtraTrees', 'XGBoost', 'LightGBM', 'LSTM', 'GRU'] # Subset for testing
+tournament_models = ['XGBoost'] # Subset for testing
 n_outer_splits = 2      # Number of unbiased "Future" blocks
 n_inner_splits = 2      # Number of tuning folds within each train block
-n_model_trials = 1      # Very low for rapid testing
-n_trading_trials = 20   # Very low for rapid testing
+n_model_trials = 3      # Very low for rapid testing
+n_trading_trials = 40   # Very low for rapid testing
 
 opt_metric = 'sharpe'
 n_purged = 10

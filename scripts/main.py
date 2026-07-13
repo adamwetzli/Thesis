@@ -16,8 +16,8 @@ meta_memory_window=3    # The window of past OUTER folds in the nested wfv to co
 
 n_purged=10             # Number of rows to be removed from the end of each training set
 n_embargo=10            # Number of rows to be removed from the beginning of a training set if it is preceeded by a test set
-n_model_trials=50        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
-n_trading_trials=100     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
+n_model_trials=25        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
+n_trading_trials=50     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
 opt_metric='sharpe'     # Options: 'return', 'sharpe', 'mdd', 'calmar'
 
 mutual_info_threshold = 0.005            # threshold below which features are dropped
