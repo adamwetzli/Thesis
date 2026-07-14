@@ -322,8 +322,9 @@ p = \frac{\left\|\{i = 1, \ldots, k : \alpha_i \geq \alpha_{\text{new}}\}\right\
 \end{equation}
 
 where \( k \) is the size of the calibration set, \( \alpha_i \) represents the non-conformity measure for the 
-\( i \)-th calibration point, and \( \alpha_{\text{new}} \) is the non-conformity score for the new observation.
-In this research, the non-conformity score for the M2 meta-model is defined as:
+\( i \)-th calibration point, and \( \alpha_{\text{new}} \) is the non-conformity score for the new observation. 
+The calibration set \( \{\alpha_i\}_{i=1}^{k} \) is restricted to instances where M1's directional call was 
+subsequently found to be incorrect. In this research, the non-conformity score for the M2 meta-model is defined as:
 
 \begin{equation}
 \alpha = \hat{P}_{\text{M2}}(\text{Signal is Correct})
@@ -332,9 +333,13 @@ In this research, the non-conformity score for the M2 meta-model is defined as:
 
 where \( \hat{P}_{\text{M2}}(\cdot) \) denotes the predicted probability from the M2 model, 
 which describes whether the primary (M1) model's directional bet matches the actual market outcome.
-This link transforms raw, uncalibrated success probabilities into statistically valid \( p \)-values, 
-allowing for a conformal veto of M2 where a trade is only executed if its \( p \)-value exceeds a significance threshold \( \varepsilon \), effectively identifying
-and filtering out "non-conforming" outliers, signals that are statistically likely to result in a mistake.
+This link transforms raw, uncalibrated success probabilities into statistically valid $p$-values against the empirical distribution of M2's confidence on M1's historical 
+mistakes. Because the calibration set $\{\alpha_i\}$ represents this failure class specifically rather than a generic exchangeable population, conformity to it is the 
+undesirable outcome. As such a large $p$-value indicates that $\alpha_{\text{new}}$ blends in with the confidence scores M2 has historically assigned to mistakes, while a small 
+$p$-value indicates $\alpha_{\text{new}}$ is atypically high relative to that failure distribution. A trade is therefore only executed if its $p$-value does not exceed 
+the significance threshold $\varepsilon$, i.e. $p \leq \varepsilon$, which rejects the null hypothesis that the signal is a mistake at level $\varepsilon$. Signals whose 
+$p$-value exceeds $\varepsilon$ conform too closely to the historical mistake distribution and are filtered out as the conformal veto's "non-conforming" outliers are, 
+by construction, the ones retained rather than discarded.
 
 
 %%%%%%%%%%%%%%%
@@ -876,24 +881,96 @@ the Kelly fraction, rather than the notional exposure cap itself, is the binding
 backstop against adverse mark-to-market drift rather than a target the strategy actively pushes toward.
 
 
-\subsubsection{From Raw Signals to Conformal Predictions: Model- \& Pair-Specific Conformal-Q Filtering}
+\subsubsection{From Raw Signals to Conformal Predictions: Model- \& Pair-Specific Conformal-Q Filtering}\label{sec:conformal_preds}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Having quantified how the trading-level parameters are chosen, we now examine what the M2 meta-filter is actually doing to the raw M1 directional signals before 
+they ever reach the backtester. The Meta Sig. parameter introduced above is not applied to M2's raw probability output directly, instead it governs a conformal 
+hypothesis test performed on top of it, which we refer to as Conformal-Q filtering. Concretely, for every outer test fold we maintain a growing calibration set 
+of M2 confidence scores that were assigned, in-sample, to instances where M1's directional call was subsequently found to be wrong against the triple-barrier ground truth. 
+
+This set is built from a sliding memory window of previous outer folds plus the current fold's own mistakes and is always 
+re-scored through the fold's live M2 instance rather than reusing frozen probabilities from previously discarded model, since conformal calibration is only valid when calibration 
+and live scores originate from the same scoring function. Given a new M1 signal with meta-confidence $\alpha$ (see eq. \ref{eq:nonconformity}), we compute the empirical 
+conformal $p$-value according to equation \ref{eq:conformal_p}. Under the null hypothesis $H_0$: "this signal is a mistake." The signal is acted upon only if $p \leq \alpha$, 
+i.e. only if its confidence is high enough to be an unusually rare occurrence within the empirical distribution of past failures. 
+Otherwise it is vetoed and the position is left flat. Equivalently, since $p$ is a monotonically decreasing transform of $\alpha$, this is the same as requiring $p$ to exceed 
+the $(1-\varepsilon)$-quantile of the calibration set \( \{\alpha_i\}_{i=1}^{k} \), which is exactly what Meta Sig. controls per pair and fold in table \ref{tab:hps_XGBoost_tournament}. 
+Thus again, a lower meta significance pushes this quantile further into the tail of the mistake distribution, producing a stricter, more selective veto.
+
+\medskip
+
+Figures \ref{fig:model-specific conformal filtering 1} and \ref{fig:model-specific conformal filtering 2} visualize this mechanism for all six tournament architectures, pooled across all eleven 
+currency pairs within each outer fold (a per-pair breakdown, at $6 \times 11$ panels per fold, is not practically presentable and is therefore omitted). 
+Each row corresponds to one architecture and consists of three panels sharing a common x-axis, the directional meta-confidence $\alpha$ output by that architecture's M2. 
+Panel A plots M1's raw signal direction against $\alpha$. Panel B plots the ground-truth direction against $\alpha$, together with a logistic ("truth calibration") fit of $\alpha$ 
+against the realized direction. Lastly, panel C re-bins every point by outcome (F-Long: an accepted long that was wrong, Correct, F-Short: an accepted short that was wrong) to show 
+where errors concentrate in confidence space. Points are colored by their conformal fate: green for accepted and correct, dark red for accepted and incorrect, and grey for vetoed. 
+The orange dotted lines mark the fold- and model-averaged conformal rejection zone, i.e. the band around $\alpha \approx 0.5$ inside which equation \ref{eq:conformal_p} 
+systematically fails to clear the meta significance $\varepsilon$. The purple dashed line marks the midpoint at which the logistic fit crosses the 50\% threshold, 
+and the inset box reports pooled Hits, Misses, Rejections, the fold-averaged significance $\varepsilon$, and this midpoint.
+
+\medskip
+
+Table \ref{tab:conformal_tournament_summary} condenses these inset statistics into a single cross-model view, adding the derived acceptance rate 
+$\frac{\text{Hits}+\text{Miss}}{\text{Total Signals}}$ and the hit-rate accuracy among accepted signals $\frac{\text{Hits}}{\text{Hits}+\text{Miss}}$:
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{l|rrr|r|r||rrr|r|r}
+\toprule
+ & \multicolumn{5}{c||}{\textbf{Fold 1}} & \multicolumn{5}{c}{\textbf{Fold 2}} \\
+Model & Hits & Miss & Rej & Accept.\% & Acc.\% & Hits & Miss & Rej & Accept.\% & Acc.\% \\
+\midrule
+RandomForest & 2306 & 1723 & 9214  & 30.4 & 57.2 & 1198 & 547 & 11506 & 13.2 & 68.7 \\
+ExtraTrees   & 2302 & 1776 & 9165  & 30.8 & 56.5 & 685  & 256 & 12310 & 7.1  & 72.8 \\
+XGBoost      & 953  & 681  & 11609 & 12.3 & 58.3 & 719  & 252 & 12280 & 7.3  & \textbf{74.0} \\
+LightGBM     & 1142 & 843  & 11258 & 15.0 & 57.5 & 1068 & 451 & 11732 & 11.5 & 70.3 \\
+LSTM         & 2245 & 1704 & 9294  & 29.8 & 56.8 & 1528 & 874 & 10849 & 18.1 & 63.6 \\
+GRU          & 1206 & 852  & 11185 & 15.5 & 58.6 & 988  & 451 & 11812 & 10.9 & 68.7 \\
+\bottomrule
+\end{tabular}
+\caption{Cross-model summary of Conformal-Q filtering outcomes, pooled across all pairs, per outer fold.}
+\label{tab:conformal_tournament_summary}
+\end{table}
+
+Three patterns emerge, and we discuss the good ones alongside the bad ones, since both are informative about the filter's behavior.
+
+First, the veto is doing something real, not just discarding signals at random as the vertical placement of dark-red (accepted but wrong) points in panel C is not uniform but 
+concentrates near the outer edge of the orange rejection band for both F-Long and F-Short. This could suggest that the mistakes that do slip through the filter 
+pile up right at the edge of acceptance (the ones that only just cleared the $\varepsilon$-quantile bar), rather than out in the confident tail.
+The grey (rejected) points dominate the region immediately adjacent to and inside the band as is the 
+expected behavior for a conformal veto and suggests the meta significance $\varepsilon$ is functioning as a genuine precision/recall dial rather than an arbitrary cutoff, where 
+tightening it further would principally cut the highest-risk, lowest-conviction trades first.
+
+\medskip
+
+Second, and more encouraging, is the fold-over-fold change in the logistic ("truth calibration") fit itself. In fold 1 this curve rises gently across nearly the entire 
+$[0,1]$ domain for every architecture, indicating that $\alpha$ only weakly separates long from short outcomes. In fold 2 the same fit is visibly steeper for every architecture, 
+saturating near 0 and 1 well before the domain edges. This improved separability tracks directly with the accuracy gains in table \ref{tab:conformal_tournament_summary}, where every 
+single architecture's accepted-signal accuracy improves from fold 1 to fold 2 (e.g. XGBoost from 58.3\% to 74.0\%, ExtraTrees from 56.5\% to 72.8\%), even as acceptance rates 
+fall substantially. Since \( \{\alpha_i\}_{i=1}^{k} \) accumulates via the sliding memory window across outer folds, 
+fold 2's empirical mistake distribution is built on a larger and more representative sample of M1's failure modes than fold 1's, which by construction produces sharper, 
+less noisy conformal $p$-values. A regime-shift explanation (fold 2 covering a more directionally "clean" period) cannot be ruled out either, and disentangling the two would 
+require testing the calibration set growth effect in isolation, e.g. by holding the memory window fixed across folds. We flag this as a natural extension.
+
+\medskip
+
+Third, and less encouraging, is that the four tree ensembles (RandomForest, ExtraTrees, XGBoost, LightGBM) and the two recurrent architectures (LSTM, GRU) do not behave 
+identically. RandomForest, ExtraTrees, and LSTM all accept a considerably larger share of candidate signals (13-30\%) than XGBoost, LightGBM, and GRU (7-16\%) in both folds, 
+yet this larger acceptance volume is not compensated by comparable accuracy. LSTM in particular has the lowest fold 2 accuracy of any architecture (63.6\%) despite operating 
+with a mid-range $\varepsilon$ (0.132), well below the 68.7-74.0\% achieved by the four remaining models. This is consistent with the conformal filter being only as good as the 
+confidence scores it is asked to gate as a Meta model built on top of a weaker or more diffuse M1 (here, the recurrent architectures) yields a less sharply separated 
+\( \{\alpha_i\}_{i=1}^{k} \). Additionally, a less informative rejection band follows almost mechanically, regardless of how $\varepsilon$ itself is tuned. RandomForest and 
+ExtraTrees track each other almost point-for-point in every column of fold 1 of table \ref{tab:conformal_tournament_summary}, which is unsurprising given their shared bagging structure 
+and near-identical M1/M2 pipelines, and offers an incidental sanity check that the tournament harness is behaving consistently across structurally similar architectures.
+
+\medskip
+
+Finally, we note as a genuine limitation that even the best accepted signal accuracy achieved here, XGBoost's 74.0\% in fold 2, is earned on only 7.3\% of candidate signals, 
+and fold 1's ceiling across all architectures sits in the 56-59\% range, only modestly above the unconditional 50\% baseline for a binary directional call. Whether this 
+translates into an economically meaningful edge net of transaction costs, slippage, and the sizing guardrails discussed above is therefore not evident from the classification 
+statistics alone and is addressed directly in later sections.
 
 \begin{figure}[H]
     \centering
@@ -912,45 +989,98 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
     \end{minipage}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 \subsubsection{Validation of Conformal-Q Filtering: Model- and Fold-Specific Confusion Matrices \& Calibration}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The previous subsection established precision (via the accepted signal hit rate) and a qualitative reading of the error map. Figures 
+\ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} make the full classification picture explicit by decomposing the pipeline into three nested 
+confusion matrices per architecture, again pooled across all eleven pairs per fold. Panel A cross-tabulates M1's raw predicted direction against the realized ground-truth 
+direction, i.e. the baseline directional classifier with no filtering applied whatsoever. Panel B cross-tabulates the final accept/reject decision, the outcome of 
+applying \ref{eq:conformal_p} at each pair's tuned $\varepsilon$, against whether M1 was actually correct. Despite the axis label "M2 Prediction", this is not M2's raw 
+probability thresholded at 0.5, but the fully gated conformal verdict, "Correct" meaning the conformal filter accepted the signal and "Wrong" meaning it vetoed it. This can be 
+confirmed directly from the cell counts as the column total of "Predicted Correct" in panel B equals the total number of accepted signals in panel C for every model and fold 
+(e.g. XGBoost, fold 2: $252+719=971=564+41+211+155$), and is exactly the sum of Hits and Miss reported in table \ref{tab:conformal_tournament_summary}. As a further internal 
+consistency check, panel A's diagonal, M1's own raw correct count, is identical to panel B's "Actual Correct" row total for every model and fold (RandomForest, fold 2: 
+$4574+2753=7327=6129+1198$), confirming that panels A and B describe the same underlying "was M1 correct" quantity via two independent cross-tabulations, one by direction 
+and one by conformal decision, which gives some assurance that no bookkeeping inconsistency was introduced across the plotting pipeline.
+
+\medskip
+
+Framing panel B as a standard binary classifier, with the positive class defined as "M1's signal is correct", lets us extract two diagnostics beyond precision that were not 
+visible in the previous subsection. Recall (or sensitivity), $\frac{\text{TP}}{\text{TP}+\text{FN}}$, measures what fraction of all signals that would have been correct were 
+actually accepted, i.e. the opportunity cost of the veto. Specificity, $\frac{\text{TN}}{\text{TN}+\text{FP}}$, measures how reliably the filter identifies true mistakes. 
+Its complement, the empirical false-accept rate $\frac{\text{FP}}{\text{FP}+\text{TN}}$, the fraction of true mistakes that nonetheless slipped through the veto, is the 
+quantity directly relevant to calibration as this empirical rate should track the pair- and fold-averaged significance level $\varepsilon$ if the calibration and test time 
+score distributions are exchangeable. Table \ref{tab:nested_confusion_summary} reports these three quantities, 
+together with the ratio of the empirical false-accept rate to $\varepsilon$, our proxy for whether the calibration guarantee held in practice (a ratio near 1 indicating tight 
+calibration, below 1 indicating conservative over-coverage, and above 1 indicating a violated guarantee).
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{l|rrrrr||rrrrr}
+\toprule
+ & \multicolumn{5}{c||}{\textbf{Fold 1}} & \multicolumn{5}{c}{\textbf{Fold 2}} \\
+Model & Rec.\% & Spec.\% & Emp.FPR\% & $\varepsilon$\% & Ratio & Rec.\% & Spec.\% & Emp.FPR\% & $\varepsilon$\% & Ratio \\
+\midrule
+RandomForest & 32.7 & 72.2 & 27.9 & 12.5 & 2.23 & 16.4 & 90.8 & 9.2  & 10.6 & 0.87 \\
+ExtraTrees   & 32.9 & 71.6 & 28.4 & 12.6 & 2.26 & 9.6  & 95.8 & 4.2  & 8.9  & 0.47 \\
+XGBoost      & 13.9 & 89.3 & 10.7 & 10.3 & \textbf{1.03} & 10.0 & 95.8 & 4.2  & 9.9  & 0.42 \\
+LightGBM     & 16.4 & 86.6 & 13.4 & 11.0 & 1.22 & 15.1 & 92.7 & 7.3  & 13.8 & 0.53 \\
+LSTM         & 31.5 & 72.2 & 27.8 & 12.1 & 2.30 & 21.1 & 85.5 & 14.5 & 13.2 & \textbf{1.10} \\
+GRU          & 17.3 & 86.4 & 13.6 & 8.3  & 1.64 & 13.8 & 92.6 & 7.4  & 10.6 & 0.70 \\
+\bottomrule
+\end{tabular}
+\caption{Recall, Specificity, and empirical false-accept rate of the conformal decision (panel B), against the fold-averaged nominal significance $\varepsilon$. Ratio 
+$=$ Emp.FPR$/\varepsilon$; values near 1 indicate the empirical mistake-acceptance rate tracked its theoretical target.}
+\label{tab:nested_confusion_summary}
+\end{table}
+
+Two findings stand out, one confirming the previous subsection's narrative and one qualifying it.
+
+\medskip
+
+First, Recall is uniformly low, between 9.6\% and 32.9\% across every model-fold combination, meaning the filter discards the large majority of signals that would in fact have 
+been correct, not only the mistakes. This is the direct cost side of the precision gains reported earlier, since a low-$\varepsilon$ veto is, by construction, a conservative gate that 
+trades recall for precision, and these figures quantify exactly how steep that trade is. Recall is also systematically higher in fold 1 (14-33\%) than in fold 2 (10-21\%) for 
+every model, consistent with fold 1's higher acceptance rates and weaker directional separability discussed above. Thus, a less discriminating filter lets more of everything 
+through, correct and incorrect signals alike, whereas fold 2's sharper separability lets it be far more selective, at the cost of missing a larger share of the true opportunities.
+
+\medskip
+
+Second, the empirical false-accept rate does not track $\varepsilon$ uniformly well across architectures. In fold 1, only XGBoost 
+comes close to its theoretical target (ratio $1.03$). LightGBM is mildly over its target (ratio $1.22$), while RandomForest, ExtraTrees, LSTM, and GRU all substantially exceed 
+it, with RandomForest, ExtraTrees, and LSTM more than doubling their nominal false-accept rate (ratios of $2.23$-$2.30$). In other words, for four of the six architectures, the 
+conformal guarantee did not hold empirically in the first fold, because the filter let through roughly twice as many true mistakes as its tuned $\varepsilon$ promised. By fold 2 the 
+picture improves markedly, most models move into conservative over-coverage (ratios $0.42$-$0.87$), meaning the filter ends up stricter than its nominal guarantee 
+required, with the single exception of LSTM, whose ratio of $1.10$ is the only one across all twelve model-fold cells in fold 2 that still exceeds 1. LSTM is therefore the only 
+architecture that fails to achieve its stated guarantee in either fold, reinforcing the diagnosis from the previous subsection that its M2 confidence scores are a 
+comparatively weak basis for the conformal test, rather than this being a fold-specific artifact.
+
+\medskip
+
+We interpret the fold 1 breakdown as most plausibly driven by a combination of factors rather than a single cause. As already mentioned several times, the calibration set in fold 1 
+is built from a much smaller memory window (little to no prior fold history to draw on yet) and the underlying M1/M2 separability is itself weaker in fold 1 
+(the shallow logistic fits discussed previously in section \ref{sec:conformal_preds}). Furthermore, the walk-forward calibration only delivers the conformal exchangeability 
+guarantee with a lot more data, so a small, less representative early calibration set is exactly where a violation would be expected to surface first. 
+That XGBoost alone tracks its guarantee tightly even under these conditions is a point in its favor as the architecture whose M2 confidence 
+scores are best behaved, independent of and prior to the accuracy comparison. We note as a limitation that each ratio in table \ref{tab:nested_confusion_summary} is a single 
+point estimate from one walk-forward realization rather than an average over repeated resamples, so these should be read as descriptive diagnostics of this particular tournament run 
+rather than as a formal statistical test of coverage. Bootstrapping the calibration set across pairs, or repeating the outer split with a different block boundary, 
+would be a natural way to attach an uncertainty band to these ratios in future work.
+
+\medskip
+
+Finally, panel A also exposes a structural asymmetry in the raw M1 signal that is worth flagging briefly, independent of the conformal layer. In fold 2, RandomForest, LSTM, and 
+GRU all issue substantially more Short than Long predictions relative to the actual base rate, wehre RandomForest issued 8127 Short vs. 5124 Long predictions against an 
+actual split of 6945 Short vs. 6306 Long. GRU was even more extremely with 8899 Short vs. 4352 Long predictions against an actual split of 6945 Short vs. 6306 Long. 
+XGBoost and LightGBM, on the other hand, remain close to balanced with 6927 Short predictions vs. 6945 actual Shorts and 7042 Short predictions vs. 6945 actual Shorts respectively. 
 
 
-\paragraph{Confusion Matrices}
+Whether this reflects a genuine 
+short-bias regularity in the underlying feature set that the tree-boosted models are simply better equipped to correct for or an artifact of hyperparameter search converging 
+to different regions of the space for different architectures, cannot be concluded from the confusion matrices alone. We flag it and the overall Short-bias here as a secondary 
+observation rather than draw a causal conclusion from it.
 
 \begin{figure}[H]
     \centering
@@ -968,23 +1098,6 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         \label{fig:model-specific confusion matrices 2}
     \end{minipage}
 \end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \paragraph{Reliability Diagrams}
