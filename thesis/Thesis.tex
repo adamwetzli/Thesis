@@ -914,6 +914,8 @@ and the inset box reports pooled Hits, Misses, Rejections, the fold-averaged sig
 Table \ref{tab:conformal_tournament_summary} condenses these inset statistics into a single cross-model view, adding the derived acceptance rate 
 $\frac{\text{Hits}+\text{Miss}}{\text{Total Signals}}$ and the hit-rate accuracy among accepted signals $\frac{\text{Hits}}{\text{Hits}+\text{Miss}}$:
 
+\paragraph{GET THESE VALUES VALIDATED AND UNDERSTAND WHAT THEY MEAN}
+
 \begin{table}[h]
 \centering
 \small
@@ -992,6 +994,8 @@ statistics alone and is addressed directly in later sections.
 
 \subsubsection{Validation of Conformal-Q Filtering: Model- and Fold-Specific Confusion Matrices \& Calibration}
 
+\paragraph{Confusion Matrices}
+
 The previous subsection established precision (via the accepted signal hit rate) and a qualitative reading of the error map. Figures 
 \ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} make the full classification picture explicit by decomposing the pipeline into three nested 
 confusion matrices per architecture, again pooled across all eleven pairs per fold. Panel A cross-tabulates M1's raw predicted direction against the realized ground-truth 
@@ -1014,6 +1018,8 @@ quantity directly relevant to calibration as this empirical rate should track th
 score distributions are exchangeable. Table \ref{tab:nested_confusion_summary} reports these three quantities, 
 together with the ratio of the empirical false-accept rate to $\varepsilon$, our proxy for whether the calibration guarantee held in practice (a ratio near 1 indicating tight 
 calibration, below 1 indicating conservative over-coverage, and above 1 indicating a violated guarantee).
+
+\paragraph{GET THESE VALUES VALIDATED AND UNDERSTAND WHAT THEY MEAN}
 
 \begin{table}[h]
 \centering
@@ -1102,22 +1108,86 @@ observation rather than draw a causal conclusion from it.
 
 \paragraph{Reliability Diagrams}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Diagnostics based on confusion matrices establish whether the conformal decision achieves valid coverage, but say nothing about whether the underlying M2 probability estimate 
+that decision is built on is itself a trustworthy probability. Figures \ref{fig:model-specific reliability diagrams1} and \ref{fig:model-specific reliability diagrams2} address 
+this directly via reliability diagrams for all six architectures across both folds. Each panel bins M2's raw predicted confidence and plots the mean predicted confidence in each bin 
+against the observed fraction of positives (M1 being correct) in that bin, together with the 45-degree line of theoretical perfect calibration, a shaded region reflecting bin-level 
+sampling uncertainty, a grey histogram showing how densely predictions populate each bin, and the Brier score for the full, unbinned prediction set.
+
+% ACTUALLY HOW DO WE POOL? DO WE REALLY AVERAGE OVER THE PAIRS OR JUST PLOT ALL PREDICTIONS FOR ALL PAIRS IN THE SAME PLOT?
+
+We note, however, that this pooling carries a genuine risk of aggregation bias, since currency pairs are known to differ substantially in their tuned trading hyperparameters 
+(e.g. the Kelly fraction range of $0.11$-$0.94$ documented in table \ref{tab:hps_XGBoost_tournament}). Thus, a pooled bin that appears well-calibrated could in principle mask two or 
+more pairs whose individual miscalibrations are of opposite sign and happen to cancel under aggregation, which is a Simpson's paradox style artifact that the pooled curve alone cannot 
+rule out. A full per-pair reliability analysis was not pursued here for the same space and legibility constraints noted for the confusion matrices above, but confirming the 
+pooled picture, e.g. via the cross-pair spread of per-pair Brier scores for the architectures would be a natural and inexpensive robustness check for future work.
+
+\medskip
+
+The first observation is a genuine limitation. Every reported Brier score ($\frac{1}{N} \sum_{i=1}^{N} (p_i - o_i)^2$, where $p_i$ is M2 predicted probability and $o_i$ is the actual 
+binary outcome $\{0, 1\}$) sits within a narrow band of $0.2441$-$0.2505$, where Brier of 0 means perfect predictions, 0.25 is a random guess, and 1 is always wrong.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% GET THESE VALUES VALIDATED %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{GET THESE VALUES VALIDATED}
+
+% PROMPT FOR CLAUDE: So you wrote in this passage: (paste it) about the improvements or performance of all models compared to the trivial baseline $\bar p(1-\bar p)$ 
+% but you never gave the computation of these values, only the final result. Thus, i would like you to actually prove the computations fully, either in text or in a table so it is
+% also fully understandable in the thesis. Also, are you sure you got the values for the computations from \ref{tab:nested_confusion_summary} and not the panel A of the confusion matrices?
+
+Comparing each score against the Brier score of the trivial baseline that always predicts the population's own base rate, $\bar p(1-\bar p)$, using each model's own M1 base 
+correctness rate from table \ref{tab:nested_confusion_summary}, shows that in fold 1 the raw M2 probability provides essentially no net predictive value over this naive baseline 
+for five of six architectures as RandomForest, ExtraTrees, LSTM, and GRU all score marginally worse than the naive baseline ($+0.20$ to $+0.77\%$ relative), LightGBM ties it almost 
+exactly, and only XGBoost manages a small improvement ($-0.20\%$). In the strict sense of a proper scoring rule averaged over the entire probability range, M2's fold 1 output is 
+therefore not meaningfully more informative than simply guessing the unconditional base rate for the great majority of architectures tested.
+
+Fold 2 tells a materially different story: every single model now beats its own naive baseline, by margins of roughly $0.85$-$1.42\%$ relative, with LightGBM showing the 
+largest improvement and LSTM the smallest. This is modest in absolute terms, but it is a second, fully independent confirmation, via a proper scoring rule rather than via 
+acceptance counts or coverage ratios, of the fold-over-fold improvement in M2's discriminative quality documented throughout this chapter.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%% END %%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\medskip
+
+The reason the aggregate Brier scores look so weak despite the conformal filter's demonstrated precision gains becomes clear from the density histograms where the overwhelming 
+majority of M2's raw probability mass sits within a narrow band around $0.4$-$0.6$. This region is by construction close to uninformative and this bulk of M2 probabilities 
+dominates the averaged Brier score. The genuine signal is concentrated in the sparsely populated tails, exactly the region the conformal filter is 
+designed to isolate. In fold 1, RandomForest's highest-confidence bin predicts $0.82$ but delivers only $0.61$ actual correctness, ExtraTrees predicts $0.82$ but 
+delivers $0.67$, and LSTM predicts $0.83$ but delivers $0.71$, a systematic overconfidence at exactly the high end of the range that any conformal quantile threshold is built 
+from. These are precisely the three architectures whose empirical false-accept rate most severely exceeded its nominal target in fold 1 (ratios of $2.23$, $2.26$, and $2.30$ 
+respectively see table \ref{tab:nested_confusion_summary}). An overconfident raw score offers a direct, mechanistic explanation for that violation, because the scores regularly 
+overstate their own reliability, results in the calibration set quantile being inflated and the conformal test to admit more true mistakes than its target rate allows. 
+XGBoost's fold 1 tail, by contrast, sits essentially on the diagonal ($0.71 \to 0.79$, if anything slightly underconfident), consistent with its near-perfect coverage ratio of 
+$1.03$, and LightGBM's tail behaves similarly ($0.71 \to 0.75$), consistent with its comparatively mild violation of $1.22$.
+
+\medskip
+
+By fold 2, every architecture's tail pulls in close to or above the diagonal, consistent with the broad recovery already documented, but this cross-diagnostic comparison also 
+surfaces a genuine tension worth being explicit about rather than glossing over. LSTM's fold 2 tail is strongly underconfident ($0.72 \to 0.85$), arguably the best-behaved raw 
+probability calibration of any architecture in either fold, and yet LSTM remains the single architecture whose conformal decision still exceeded its nominal false-accept rate 
+target in fold 2 (ratio $1.10$, table \ref{tab:nested_confusion_summary}). This is not a contradiction so much as a reminder that the two diagnostics test different things as a 
+reliability diagram asks whether the raw probability is an honest estimate of $P(\text{correct})$, while the conformal coverage ratio asks whether calibration set and live 
+non-conformity scores remain exchangeable. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%% GET THIS CITATION VALIDATED %%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{GET THIS CITATION VALIDATED}
+\textcite{shafer_tutorial_2008}'s central appeal is precisely that conformal validity does not require the underlying score to be a 
+calibrated probability at all, only that its distribution be exchangeable between calibration and test time. LSTM's fold 2 result is a case where the raw score looks excellent 
+in isolation while exchangeability itself still appears to be mildly violated, plausibly by residual regime drift between the memory window and the live fold, a distinction the 
+Brier score alone cannot reveal.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\medskip
+
+Finally, the erratic behavior of the leftmost bin for LSTM, GRU, and ExtraTrees in fold 1, dropping to an observed frequency of $0.0$ for LSTM and GRU or spiking to $1.0$ for 
+ExtraTrees, should not be over-interpreted as a genuine calibration failure at low confidence. The corresponding density histogram bars in that bin are close to empty, and the 
+correspondingly wide shaded uncertainty band confirms this is a small-sample artifact rather than a systematic pattern. We note it for transparency but do not read a substantive 
+conclusion into it.
 
 \begin{figure}[H]
     \centering
@@ -1135,23 +1205,6 @@ Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deseru
         \label{fig:model-specific reliability diagrams2}
     \end{minipage}
 \end{figure}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 \subsubsection{Tournament Evaluation}
