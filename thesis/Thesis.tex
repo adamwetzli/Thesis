@@ -1113,9 +1113,6 @@ that decision is built on is itself a trustworthy probability. Figures \ref{fig:
 this directly via reliability diagrams for all six architectures across both folds. Each panel bins M2's raw predicted confidence and plots the mean predicted confidence in each bin 
 against the observed fraction of positives (M1 being correct) in that bin, together with the 45-degree line of theoretical perfect calibration, a shaded region reflecting bin-level 
 sampling uncertainty, a grey histogram showing how densely predictions populate each bin, and the Brier score for the full, unbinned prediction set.
-
-% ACTUALLY HOW DO WE POOL? DO WE REALLY AVERAGE OVER THE PAIRS OR JUST PLOT ALL PREDICTIONS FOR ALL PAIRS IN THE SAME PLOT?
-
 We note, however, that this pooling carries a genuine risk of aggregation bias, since currency pairs are known to differ substantially in their tuned trading hyperparameters 
 (e.g. the Kelly fraction range of $0.11$-$0.94$ documented in table \ref{tab:hps_XGBoost_tournament}). Thus, a pooled bin that appears well-calibrated could in principle mask two or 
 more pairs whose individual miscalibrations are of opposite sign and happen to cancel under aggregation, which is a Simpson's paradox style artifact that the pooled curve alone cannot 
@@ -1124,31 +1121,56 @@ pooled picture, e.g. via the cross-pair spread of per-pair Brier scores for the 
 
 \medskip
 
-The first observation is a genuine limitation. Every reported Brier score ($\frac{1}{N} \sum_{i=1}^{N} (p_i - o_i)^2$, where $p_i$ is M2 predicted probability and $o_i$ is the actual 
-binary outcome $\{0, 1\}$) sits within a narrow band of $0.2441$-$0.2505$, where Brier of 0 means perfect predictions, 0.25 is a random guess, and 1 is always wrong.
+The first observation is a genuine limitation. Before defining the relevant baseline, it is worth being precise about which binary variable M2 is actually predicting, since 
+panel A of figures \ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} contains two distinct binary variables that are easy to confuse. 
+M1's predicted direction $d \in \{\text{Short}, \text{Long}\}$ (columns) and the realized ground truth direction $t \in \{\text{Short}, \text{Long}\}$ (rows). M2 does not predict 
+either of these directly, instead it predicts $c = \mathbb{1}[d = t]$, whether M1's call agreed with the outcome. The base rate relevant to $c$ is therefore not a row or column 
+marginal of panel A, either of which would only describe the marginal frequency of $t$ or $d$ in isolation and is blind to whether the two agreed, but specifically the diagonal of 
+the table, $\bar p = P(c=1) = \frac{\text{count}(d{=}\text{Short}, t{=}\text{Short}) + \text{count}(d{=}\text{Long}, t{=}\text{Long})}{N}$, since agreement between prediction 
+and truth is exactly what the diagonal cells encode and the off-diagonal cells do not. For RandomForest in fold 1 these two quantities are numerically close but conceptually and 
+numerically distinct: the row marginal $P(t{=}\text{Short}) = 6900/13243 = 52.10\%$ describes only how often the market actually moved short, while the diagonal $\bar p = P(c{=}1) 
+= 7057/13243 = 53.29\%$ describes how often M1's call was right, and it is the latter, not the former, that a naive classifier for M2's actual task would need to reproduce.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%% GET THESE VALUES VALIDATED %%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{GET THESE VALUES VALIDATED}
+\medskip
 
-% PROMPT FOR CLAUDE: So you wrote in this passage: (paste it) about the improvements or performance of all models compared to the trivial baseline $\bar p(1-\bar p)$ 
-% but you never gave the computation of these values, only the final result. Thus, i would like you to actually prove the computations fully, either in text or in a table so it is
-% also fully understandable in the thesis. Also, are you sure you got the values for the computations from \ref{tab:nested_confusion_summary} and not the panel A of the confusion matrices?
+For a binary outcome with base rate $\bar p$, the Brier score of the trivial classifier that always predicts $\bar p$ regardless of input is:
 
-Comparing each score against the Brier score of the trivial baseline that always predicts the population's own base rate, $\bar p(1-\bar p)$, using each model's own M1 base 
-correctness rate from table \ref{tab:nested_confusion_summary}, shows that in fold 1 the raw M2 probability provides essentially no net predictive value over this naive baseline 
-for five of six architectures as RandomForest, ExtraTrees, LSTM, and GRU all score marginally worse than the naive baseline ($+0.20$ to $+0.77\%$ relative), LightGBM ties it almost 
-exactly, and only XGBoost manages a small improvement ($-0.20\%$). In the strict sense of a proper scoring rule averaged over the entire probability range, M2's fold 1 output is 
-therefore not meaningfully more informative than simply guessing the unconditional base rate for the great majority of architectures tested.
+\begin{equation}
+\text{BS}_{\text{naive}} = \frac{1}{N}\sum_{i=1}^{N} (\bar p - y_i)^2 = \bar p(1-\bar p),
+\label{eq:naive_brier}
+\end{equation}
 
-Fold 2 tells a materially different story: every single model now beats its own naive baseline, by margins of roughly $0.85$-$1.42\%$ relative, with LightGBM showing the 
-largest improvement and LSTM the smallest. This is modest in absolute terms, but it is a second, fully independent confirmation, via a proper scoring rule rather than via 
-acceptance counts or coverage ratios, of the fold-over-fold improvement in M2's discriminative quality documented throughout this chapter.
+since $\sum y_i = N\bar p$ by definition, with $y_i = c_i$ here. We compute $\bar p$ from the diagonal of panel A for each architecture and fold as derived above, and compare 
+$\text{BS}_{\text{naive}}$ against each architecture's actual, reported Brier score, where Brier of 0 means perfect predictions, 0.25 is a random guess, and 1 is always wrong. 
+Table \ref{tab:brier_baseline} shows the full computation where in fold 1 four of six architectures, RandomForest, ExtraTrees, LSTM, and GRU, score marginally worse than this 
+naive baseline ($+0.20\%$ to $+0.77\%$ relative), LightGBM ties it to four decimal places, and only XGBoost manages a small improvement ($-0.20\%$). 
+In the strict sense of a proper scoring rule averaged over the entire probability range, M2's fold 1 output is therefore not meaningfully more informative than simply guessing 
+the unconditional base rate for the great majority of architectures tested.
+In contrast, fold 2 tells a materially different story as every single model now beats its own naive baseline, by margins of $0.85\%$ to $1.42\%$ relative, with LightGBM showing 
+the largest improvement and LSTM the smallest. This is modest in absolute terms, but it is a second, fully independent confirmation, via a proper scoring rule rather than 
+via acceptance counts or coverage ratios, of the fold over fold improvement in M2's discriminative quality documented throughout this chapter.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%% END %%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{l|rrr|r||rrr|r}
+\toprule
+ & \multicolumn{4}{c||}{\textbf{Fold 1}} & \multicolumn{4}{c}{\textbf{Fold 2}} \\
+Model & $\bar p$ & BS$_{\text{naive}}$ & BS$_{\text{actual}}$ & Rel.\% & $\bar p$ & BS$_{\text{naive}}$ & BS$_{\text{actual}}$ & Rel.\% \\
+\midrule
+RandomForest & 0.5329 & 0.2489 & 0.2495 & $+0.23$ & 0.5529 & 0.2472 & 0.2441 & $-1.25$ \\
+ExtraTrees   & 0.5282 & 0.2492 & 0.2497 & $+0.20$ & 0.5381 & 0.2485 & 0.2458 & $-1.10$ \\
+XGBoost      & 0.5173 & 0.2497 & 0.2492 & $\mathbf{-0.20}$ & 0.5451 & 0.2480 & 0.2456 & $-0.95$ \\
+LightGBM     & 0.5248 & 0.2494 & 0.2494 & $+0.01$ & 0.5341 & 0.2488 & 0.2453 & $\mathbf{-1.42}$ \\
+LSTM         & 0.5376 & 0.2486 & 0.2505 & $+0.77$ & 0.5458 & 0.2479 & 0.2458 & $-0.85$ \\
+GRU          & 0.5280 & 0.2492 & 0.2501 & $+0.35$ & 0.5416 & 0.2483 & 0.2461 & $-0.87$ \\
+\bottomrule
+\end{tabular}
+\caption{Actual Brier score vs. the naive base-rate baseline $\bar p(1-\bar p)$, where $\bar p = P(c=1)$ is the diagonal of panel A in figures \ref{fig:model-specific confusion matrices 1} 
+and \ref{fig:model-specific confusion matrices 2}, i.e. M1's own raw correctness rate. Rel.\% is the relative change of the actual score over the naive one; negative values indicate M2 
+outperforms the naive baseline.}
+\label{tab:brier_baseline}
+\end{table}
 
 \medskip
 
@@ -1171,16 +1193,10 @@ probability calibration of any architecture in either fold, and yet LSTM remains
 target in fold 2 (ratio $1.10$, table \ref{tab:nested_confusion_summary}). This is not a contradiction so much as a reminder that the two diagnostics test different things as a 
 reliability diagram asks whether the raw probability is an honest estimate of $P(\text{correct})$, while the conformal coverage ratio asks whether calibration set and live 
 non-conformity scores remain exchangeable. 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%% GET THIS CITATION VALIDATED %%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\paragraph{GET THIS CITATION VALIDATED}
-\textcite{shafer_tutorial_2008}'s central appeal is precisely that conformal validity does not require the underlying score to be a 
+\textcite[377 ff.]{shafer_tutorial_2008}'s central appeal is precisely that conformal validity does not require the underlying score to be a 
 calibrated probability at all, only that its distribution be exchangeable between calibration and test time. LSTM's fold 2 result is a case where the raw score looks excellent 
 in isolation while exchangeability itself still appears to be mildly violated, plausibly by residual regime drift between the memory window and the live fold, a distinction the 
 Brier score alone cannot reveal.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \medskip
 
@@ -1213,11 +1229,108 @@ This chapter presents the final results of the Architecture Tournament.
 We evaluate model performance across backtests, analyze best- and worst-performing currency pairs, discuss model-specific limitations, and select the final architecture.
 
 \paragraph{Model-Specific Backtest Performance and Aggregated Performance Ranking}
-He expects you to argue:
-"We propose a single model architecture for FX trading. For each currency pair, we tune a small set of interpretable parameters
-(e.g., ATR multiplier, conformal threshold) that reflect that pair's unique volatility and liquidity characteristics.
-This approach is robust: performance across 10 pairs shows average Sharpe 1.2 with standard deviation 0.2.
-Majors outperform EMs as expected, but EMs remain profitable with adapted parameters."
+
+We fused the reported financial metrics via the reciprocal rank fusion (RRF) scoring rule in table \ref{tab:ranking_tournament} and identified XGBoost as the tournament's overall 
+winner. We opted for RRF because it normalizes and aggregates rankings without needing to compare raw, incompatible relevance scores which is the case with the metrics reported in 
+table \ref{tab:ranking_tournament}. Additionally, table \ref{tab:all_models_tournament} reports the aggregate statistics of the competing architectures, pooled across all eleven 
+pairs and both outer folds. The core design claim carried through this thesis, a single model architecture, tuned per pair via a small set of interpretable, pair-specific parameters 
+(see table \ref{tab:hps_XGBoost_tournament}), is architecturally accurate as XGBoost is indeed selected once and reused across all eleven pairs, with only its trading-level 
+hyperparameters varying by pair and fold. What that design claim does not imply and what the pair-level results in figures 
+\ref{tournament_results_XGBoost_1}-\ref{tournament_results_XGBoost_4} do not support is, that this adaptation produces uniformly robust, comparably-sized 
+profitability across pairs. It does not, and the remainder of this section examines why in some detail, since the aggregate statistics alone understate how concentrated and 
+fragile the tournament's apparent edge actually is.
+
+\medskip
+
+\input{../data/tables/tournament/summary_tables/ranking_tournament.tex}
+\input{../data/tables/tournament/summary_tables/all_models_tournament.tex}
+
+The first indication that something other than uniform, moderate profitability is driving these numbers is visible in table \ref{tab:all_models_tournament} itself, before any 
+pair-level disaggregation. XGBoost's pooled Sharpe ratio is $1.97 \pm 4.50$, and its CAGR is $30.15\% \pm 84.40\%$. A standard deviation more than twice the size of the mean is 
+not consistent with a strategy performing comparably across its trading universe. It is the signature of a small number of extreme outliers dominating an otherwise flat or 
+negative distribution. Disaggregating by pair confirms this directly.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{ll|rrr|rrr}
+\toprule
+ & & \multicolumn{3}{c|}{\textbf{Fold 1}} & \multicolumn{3}{c}{\textbf{Fold 2}} \\
+Pair & Group & Return\% & Sharpe & Trades & Return\% & Sharpe & Trades \\
+\midrule
+USDTRY & EM     & 24.13 & 9.29  & 488 & 4.46  & 15.35 & 444 \\
+USDZAR & EM     & 10.10 & 5.88  & 341 & 35.21 & 9.70  & 382 \\
+USDMXN & EM     & -2.41 & -1.59 & 199 & 6.82  & 3.10  & 411 \\
+USDCNH & EM     & 1.52  & 2.79  & 292 & 0.01  & 0.13  & 4   \\
+\midrule
+AUDUSD & Major  & -2.64 & -2.23 & 65  & 0.00  & 0.00  & 0   \\
+EURUSD & Major  & -2.00 & -4.06 & 23  & -0.01 & -1.68 & 1   \\
+GBPUSD & Major  & -0.01 & -0.06 & 9   & 0.00  & 0.00  & 0   \\
+NZDUSD & Major  & 0.00  & 0.00  & 0   & 0.00  & 0.00  & 0   \\
+USDCAD & Major  & 1.37  & 2.29  & 105 & 0.00  & 0.00  & 0   \\
+USDCHF & Major  & 0.82  & 2.60  & 34  & 0.00  & 0.00  & 0   \\
+USDJPY & Major  & 0.75  & 1.84  & 37  & 0.00  & 0.00  & 0   \\
+\bottomrule
+\end{tabular}
+\caption{Pair-level XGBoost tournament performance, both outer folds, drawn from figures \ref{fig:tournament_results_XGBoost_4}-\ref{fig:tournament_results_XGBoost_4}}
+\label{tab:pair_level_xgb}
+\end{table}
+
+Two patterns in table \ref{tab:pair_level_xgb} directly contradict the expectation that majors would outperform, with EM pairs remaining profitable but comparatively weaker. 
+Pooling by group, majors average a Sharpe ratio of $\approx -0.09$ and a return of $\approx -0.12\%$ across both folds, while the four EM/exotic pairs average a Sharpe ratio of 
+$\approx 5.58$ and a return of $\approx 9.98\%$. Every dollar of aggregate profit in this tournament run originates from USDTRY, USDZAR, USDMXN, and, marginally, USDCNH. 
+The seven G7 majors collectively contribute nothing, and six of the eleven pairs (AUDUSD, GBPUSD, NZDUSD, USDCAD, USDCHF, USDJPY) execute zero trades in fold 2, with NZDUSD 
+executing zero trades in either fold. We interpret this not as majors underperforming in the sense of trading at reduced profitability since for the majority of majors in fold 2 
+there is no trading activity to evaluate at all. This happened primarilly due to the conformal veto, which, at the significance levels the pair-level Optuna study converged on, 
+rejects every candidate signal. Reporting this as robust performance across pairs would misrepresent what actually happened as performance exists for a minority of pairs but is 
+absent for the rest.
+
+\medskip
+
+The concentration of profit in a handful of EM/exotic pairs is, on its own, a reasonable and expected outcome of the pair-specific tuning philosophy. If a pair genuinely offers 
+no exploitable, cost-adjusted edge under this feature set, a well-functioning conformal filter abstaining from it entirely is arguably the correct behavior, not a failure. Our 
+concern is not that the strategy trades selectively, but that the EM-pair results it does produce look considerably less trustworthy on closer inspection than their headline 
+Sharpe ratios suggest.
+
+\begin{itemize}
+\item \textbf{USDTRY's return is dominated by a single large repricing event.} The execution log in figure \ref{fig:tournament_results_XGBoost_4} shows the price 
+series jumping from roughly $36.5$ to $39.0$ within a narrow window around the mid of March 2025, coinciding with a cluster of unusually large profit bubbles in the trade return 
+profile immediately below it. A meaningful share of USDTRY's $24.13\%$ fold 1 return and its implausible Sharpe ratio of $9.29$, is attributable to correctly 
+straddling this one large, discrete market event rather than to a stable, repeatable statistical edge. This is a pattern that is unlikely to recur identically out of 
+sample and would not survive being tested against a different two-fold split of the same underlying history.
+
+\item \textbf{USDMXN's sign flips entirely between folds.} The same pair moves from Sharpe $-1.59$ (fold 1) to $+3.10$ (fold 2) and from a $-2.41\%$ to a $+6.82\%$ return. This 
+is not evidence of an adapted, pair-specific edge, rather that whatever edge exists for USDMXN under this configuration is unstable even across two adjacent test 
+windows of the same currency pair, which should substantially lower confidence that either fold's result generalizes forward. This is further underlined by the poor deflated Sharpe 
+ratio of $\leq 50\%$ in both folds.
+
+\item \textbf{USDCNH's fold 2 statistics are a small-sample artifact, not a signal.} With only four trades executed, USDCNH's fold 2 profit factor of $730.33$ (see figure 
+\ref{fig:tournament_results_XGBoost_3}) is a direct consequence of one profitable trade against a handful of near-zero losses, not evidence of skill. A metric computed on $n=4$ 
+carries essentially no statistical weight and should not be read as informative. The tournament-wide table \ref{tab:all_models_tournament} shows the same symptom elsewhere, LSTM's 
+pooled Profit Factor is reported as $\text{inf} \pm \text{nan}$, indicating pair-fold cells across the tournament with zero losing trades in the denominator (see GBPUSD in figure 
+\ref{fig:tournament_results_LSTM_3}). This is a systemic symptom of thin trading activity producing numerically unstable ratio metrics, not a tournament-wide sign of exceptional 
+model skill.
+
+\item \textbf{The reported CAGR figures are implausible at face value.} USDTRY fold 1 reports an annualized CAGR of $195.44\%$ and USDZAR fold 2 reports $353.40\%$. Compounding 
+returns of this magnitude, sustained, is inconsistent with the realistic capacity, slippage, and market-impact constraints of trading in these currencies at any meaningful size, 
+and is a standard red flag for backtest overfitting or unmodeled execution frictions rather than a genuinely achievable production return.
+
+\item \textbf{USDZAR and USDTRY's trade return profiles both show a fat, negative tail.} Beneath the visually reassuring cluster of small, frequent gains, both pairs' trade 
+return scatterplots (see figure \ref{fig:tournament_results_XGBoost_4}) show occasional isolated losses of $-1\%$ to $-2.5\%$, an order of magnitude larger than the typical trade. 
+This "many small wins, rare large loss" shape is the classic risk profile of carry-adjacent EM currency strategies and is precisely the profile most vulnerable to a single 
+unmodeled tail event, a capital control change, a surprise central bank intervention, a sovereign-risk repricing, wiping out several folds' worth of accumulated gains in one 
+trade. None of the two-fold walk-forward windows tested here contain such an event for USDTRY or USDZAR beyond the single repricing already noted, so this risk is present in 
+the return profile without yet having been stress-tested by the backtest itself.
+\end{itemize}
+
+\medskip
+
+Taken together, we do not think the tournament results support a claim of robust, comparably-sized profitability across the eleven pairs, nor that majors reliably 
+outperform EM/exotic pairs. What they support is a narrower and, we think, more defensible claim as a single architecture with per-pair tuned parameters correctly identifies that 
+most G7 majors offer no exploitable edge under this feature set and largely abstains from trading them. At the same time this architecture concentrates activity in a small number 
+of higher-volatility EM pairs whose favorable statistics are heavily influenced by a small number of large, possibly non-repeatable events within the specific historical windows tested. 
+We regard the EM-pair results reported here as suggestive rather than conclusive evidence of a durable edge, and would not expect the magnitude of these Sharpe ratios to survive 
+either a longer out-of-sample evaluation window or live execution frictions not captured by the backtester.
 
 \begin{figure}[H]
     \centering
@@ -1253,44 +1366,6 @@ Majors outperform EMs as expected, but EMs remain profitable with adapted parame
     \end{minipage}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\input{../data/tables/tournament/summary_tables/all_models_tournament.tex}
-
-\input{../data/tables/tournament/summary_tables/ranking_tournament.tex}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 \paragraph{Granular Performance Analysis and Best- and Worst-Performing Pairs per Model}
 
@@ -1298,7 +1373,7 @@ is it because model failed? Is it because pair is untradeable? Answer questions
 Is it a data issue? Ie gaps overnight? More missing data than other pairs?
 Is the model fundamentally weong dor that regime?
 
-\input{../data/tables/tournament/rrf_leaderboard/rrf_matrix_tournament.tex}
+\input{../data/tables/tournament/rrf_leaderboard/rrf_matrix_tournament.tex} % Put in appendix?
 
 \input{../data/tables/tournament/rrf_leaderboard/rrf_summary_tournament.tex}
 
