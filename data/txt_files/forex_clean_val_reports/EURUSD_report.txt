@@ -1,6 +1,6 @@
 ================================================================================
 FOREX DATA QUALITY & SANITY REPORT
-Generated: 2026-07-13 09:41:22
+Generated: 2026-07-15 22:24:02
 ================================================================================
 
 ANALYSIS OF VIOLATIONS WITHOUT SLIPPAGE BUFFER
@@ -43,7 +43,7 @@ pip_range      viol_count    percentage
 
 IMPOSSIBLE BARS REMOVED
 ----------------------------------------
-Shape: 189 rows
+Shape: 240 rows
 
 date                   tx_open    tx_high    tx_low    tx_close    tx_volume    tx_vwap    tx_transactions    bid_open    bid_high    bid_low    bid_close    bid_volume_mil    ask_open    ask_high    ask_low    ask_close    ask_volume_mil
 -------------------  ---------  ---------  --------  ----------  -----------  ---------  -----------------  ----------  ----------  ---------  -----------  ----------------  ----------  ----------  ---------  -----------  ----------------
@@ -215,7 +215,7 @@ date                   tx_open    tx_high    tx_low    tx_close    tx_volume    
 2026-07-09 21:00:00     1.1430     1.1434    1.1427      1.1429    1522.0000     1.1430          1522.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-09 22:00:00     1.1428     1.1434    1.1427      1.1433    2201.0000     1.1432          2201.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-09 23:00:00     1.1433     1.1434    1.1430      1.1433    2570.0000     1.1433          2570.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
-2026-07-10 00:00:00     1.1432     1.1443    1.1429      1.1440    8482.0000     1.1434          8482.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-10 00:00:00     1.1433     1.1443    1.1429      1.1440    8482.0000     1.1434          8482.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 01:00:00     1.1440     1.1450    1.1437      1.1447   10729.0000     1.1444         10729.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 02:00:00     1.1447     1.1461    1.1445      1.1458   10879.0000     1.1456         10879.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 03:00:00     1.1458     1.1459    1.1446      1.1449    7610.0000     1.1454          7610.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
@@ -230,12 +230,63 @@ date                   tx_open    tx_high    tx_low    tx_close    tx_volume    
 2026-07-10 12:00:00     1.1431     1.1442    1.1422      1.1429   11678.0000     1.1429         11678.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 13:00:00     1.1429     1.1429    1.1418      1.1421   12261.0000     1.1422         12261.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 14:00:00     1.1421     1.1428    1.1412      1.1422   13049.0000     1.1421         13049.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
-2026-07-10 15:00:00     1.1422     1.1439    1.1420      1.1437   13016.0000     1.1431         13016.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-10 15:00:00     1.1423     1.1439    1.1420      1.1437   13016.0000     1.1431         13016.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 16:00:00     1.1438     1.1442    1.1428      1.1429   11288.0000     1.1437         11288.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 17:00:00     1.1429     1.1431    1.1415      1.1417    9285.0000     1.1424          9285.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 18:00:00     1.1418     1.1418    1.1410      1.1416    8666.0000     1.1415          8666.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 19:00:00     1.1416     1.1417    1.1412      1.1416    7307.0000     1.1415          7307.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 2026-07-10 20:00:00     1.1416     1.1418    1.1410      1.1411    3217.0000     1.1414          3217.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-12 21:00:00     1.1400     1.1406    1.1400      1.1403     426.0000     1.1403           426.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-12 22:00:00     1.1403     1.1403    1.1389      1.1394    2951.0000     1.1394          2951.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-12 23:00:00     1.1394     1.1404    1.1393      1.1404    3036.0000     1.1398          3036.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 00:00:00     1.1404     1.1405    1.1393      1.1395    9911.0000     1.1399          9911.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 01:00:00     1.1395     1.1398    1.1384      1.1397   11840.0000     1.1392         11840.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 02:00:00     1.1398     1.1400    1.1392      1.1394    9154.0000     1.1396          9154.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 03:00:00     1.1394     1.1399    1.1389      1.1399    7903.0000     1.1395          7903.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 04:00:00     1.1399     1.1405    1.1395      1.1403    6890.0000     1.1400          6890.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 05:00:00     1.1404     1.1409    1.1396      1.1398   10595.0000     1.1403         10595.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 06:00:00     1.1398     1.1407    1.1394      1.1401   12255.0000     1.1401         12255.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 07:00:00     1.1401     1.1426    1.1400      1.1424   13233.0000     1.1412         13233.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 08:00:00     1.1425     1.1446    1.1423      1.1436   13795.0000     1.1437         13795.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 09:00:00     1.1435     1.1437    1.1426      1.1431   11081.0000     1.1431         11081.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 10:00:00     1.1431     1.1436    1.1425      1.1435   10569.0000     1.1431         10569.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 11:00:00     1.1436     1.1437    1.1424      1.1427   11418.0000     1.1429         11418.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 12:00:00     1.1427     1.1431    1.1419      1.1431   12313.0000     1.1425         12313.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 13:00:00     1.1431     1.1433    1.1413      1.1415   13073.0000     1.1424         13073.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 14:00:00     1.1414     1.1416    1.1398      1.1405   14505.0000     1.1406         14505.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 15:00:00     1.1406     1.1406    1.1395      1.1401   12323.0000     1.1400         12323.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 16:00:00     1.1401     1.1402    1.1382      1.1389   13321.0000     1.1392         13321.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 17:00:00     1.1388     1.1391    1.1384      1.1386   10572.0000     1.1388         10572.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 18:00:00     1.1386     1.1389    1.1383      1.1387    9843.0000     1.1387          9843.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 19:00:00     1.1387     1.1388    1.1380      1.1383    8988.0000     1.1384          8988.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 20:00:00     1.1383     1.1384    1.1376      1.1380    4800.0000     1.1380          4800.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 21:00:00     1.1380     1.1388    1.1374      1.1376    1122.0000     1.1383          1122.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 22:00:00     1.1382     1.1386    1.1379      1.1381    3211.0000     1.1383          3211.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-13 23:00:00     1.1381     1.1384    1.1378      1.1383    5225.0000     1.1382          5225.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 00:00:00     1.1383     1.1389    1.1377      1.1384   12784.0000     1.1384         12784.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 01:00:00     1.1384     1.1391    1.1383      1.1389   11637.0000     1.1387         11637.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 02:00:00     1.1389     1.1394    1.1387      1.1391    9391.0000     1.1392          9391.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 03:00:00     1.1390     1.1397    1.1387      1.1393    9093.0000     1.1392          9093.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 04:00:00     1.1393     1.1395    1.1386      1.1390    8561.0000     1.1392          8561.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 05:00:00     1.1391     1.1398    1.1389      1.1392    8905.0000     1.1393          8905.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 06:00:00     1.1392     1.1394    1.1384      1.1386   11331.0000     1.1389         11331.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 07:00:00     1.1386     1.1398    1.1383      1.1396   12994.0000     1.1391         12994.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 08:00:00     1.1396     1.1406    1.1393      1.1399   12379.0000     1.1399         12379.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 09:00:00     1.1400     1.1404    1.1393      1.1401   11016.0000     1.1399         11016.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 10:00:00     1.1401     1.1402    1.1389      1.1392   10845.0000     1.1396         10845.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 11:00:00     1.1391     1.1409    1.1388      1.1407   11802.0000     1.1398         11802.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 12:00:00     1.1406     1.1463    1.1402      1.1446   16033.0000     1.1432         16033.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 13:00:00     1.1446     1.1455    1.1441      1.1451   16387.0000     1.1450         16387.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 14:00:00     1.1451     1.1459    1.1439      1.1445   15468.0000     1.1449         15468.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 15:00:00     1.1445     1.1453    1.1424      1.1427   14394.0000     1.1440         14394.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 16:00:00     1.1426     1.1435    1.1422      1.1431   10931.0000     1.1429         10931.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 17:00:00     1.1432     1.1433    1.1418      1.1423   10394.0000     1.1425         10394.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 18:00:00     1.1423     1.1427    1.1415      1.1422    9864.0000     1.1422          9864.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 19:00:00     1.1423     1.1426    1.1419      1.1420    9485.0000     1.1423          9485.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 20:00:00     1.1420     1.1423    1.1417      1.1420    4688.0000     1.1420          4688.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 21:00:00     1.1420     1.1426    1.1417      1.1418    1481.0000     1.1420          1481.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 22:00:00     1.1421     1.1424    1.1416      1.1420    3542.0000     1.1419          3542.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
+2026-07-14 23:00:00     1.1420     1.1425    1.1418      1.1424    3818.0000     1.1422          3818.0000         nan         nan        nan          nan               nan         nan         nan        nan          nan               nan
 
 ================================================================================
 
