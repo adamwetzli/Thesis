@@ -1,0 +1,25 @@
+\begin{table}[H]
+\centering
+\caption{{Cross-Strategy Performance Comparison: XGBoost (Production Phase) - Annualized Sharpe Ratio}}
+\label{tab:strategy_comparison_XGBoost_production}
+\resizebox{\textwidth}{!}{\begin{tabular}{llllllll}
+\toprule
+Fold & Pair & Buy and Hold & SMA Crossover & M1 Only & M1 + M2 (Fixed) & M1 + M2 (Global) & M1 + M2 (Conformal) \\
+\midrule
+Fold 1 & AUDUSD & -1.08 & -0.98 & -7.21 & -3.20 & -2.11 & 0.00 \\
+ & EURUSD & -2.02 & -1.52 & -12.79 & 0.05 & -0.26 & 0.77 \\
+ & GBPUSD & -0.82 & -3.50 & -3.94 & -3.92 & -1.00 & 0.00 \\
+ & NZDUSD & -1.32 & -1.12 & -2.27 & 1.60 & 1.69 & 0.78 \\
+ & USDCAD & 2.47 & 2.03 & -5.47 & -0.73 & -1.39 & -4.02 \\
+ & USDCHF & 1.47 & -2.60 & -9.96 & -5.17 & -3.43 & -2.43 \\
+ & USDCNH & -1.05 & -1.02 & 2.64 & 2.64 & 3.61 & 2.20 \\
+ & USDJPY & 1.27 & -0.01 & -0.25 & 1.72 & 0.96 & -0.13 \\
+ & USDMXN & 0.36 & -3.48 & 13.36 & 13.58 & 9.81 & 9.29 \\
+ & USDTRY & 7.83 & 7.31 & 18.32 & 17.49 & 11.28 & 15.81 \\
+ & USDZAR & 0.08 & -0.61 & 15.41 & 17.38 & 16.13 & 16.89 \\
+\midrule
+ & \textbf{AVERAGE} & \textbf{0.65 ($\pm$ 2.75)} & \textbf{-0.50 ($\pm$ 3.03)} & \textbf{0.71 ($\pm$ 10.58)} & \textbf{3.77 ($\pm$ 8.38)} & \textbf{3.21 ($\pm$ 6.38)} & \textbf{3.56 ($\pm$ 7.14)} \\
+\midrule
+\bottomrule
+\end{tabular}}
+\end{table}
