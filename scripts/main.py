@@ -52,16 +52,31 @@ def main():
     print(f"STARTED AT: {start_time}")
     print("="*80 + "\n")
 
+    # What to run - tournament/production
     txt = "Which part(s) of the pipeline would you like to run:\n"
     txt += "- Tournament (type t)\n"
     txt += "- Production (type p)\n"
     txt += "- Both (type tp)\n"
     txt += "Input: "
-
     while True:
-        response = input(txt)
+        response = input(txt).lower()
         
         if response.lower() in ["t", "p", "tp", "pt"]:
+            break
+        else:
+            print("Oops, that was an invalid response.")
+
+    # What to run - data acquisition (y/n)
+    txt = "Would you like to run the pipeline with the data acquisition part and fetch the newest data?\n"
+    txt += f"{40 * "-"}\n"
+    txt += "HINT: Not recommended for first run!\n"
+    txt += f"{40 * "-"}\n"
+    txt += "- Yes (type y)\n"
+    txt += "- No (type n)\n"
+    while True:
+        run_data = input(txt).lower()
+        
+        if run_data.lower() in ["y", "Y", "yes", "YES", "n", "N", "no", "NO"]:
             break
         else:
             print("Oops, that was an invalid response.")
@@ -72,28 +87,30 @@ def main():
     currencies = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD",
                   "USDTRY", "USDRUB", "USDINR", "USDKRW", "USDBRL", "USDZAR", "USDMXN", "USDCNH"]
     start_date = "2024-04-28" # Maximum is 2 years of data with my free-tier polygon API key
-    get_raw_forex_data(currencies, start_date)
-
-    # -----------------------------
-    # Step 2: Cleaning & Validation
-    # -----------------------------
-    clean_raw_forex_data(incl_viol_out=True)
-
-    # -----------------------------------
-    # Step 3: Feature & Label Engineering
-    # -----------------------------------
-    engineer_forex_features()
-    generate_forex_labels(t_final=t_final, 
-                          atr_lookback=atr_lookback, 
-                          tp_atr_multiplier=tp_atr_multiplier, 
-                          sl_atr_multiplier=sl_atr_multiplier)
-    count_label_dist()
     
-    # -------------------
-    # Step 4: Aggregation
-    # -------------------
-    # Combines all pairwise csv files into one big master csv file
-    aggregate_forex_data()
+    if run_data.lower() in ["y", "Y", "yes", "YES"]:
+        get_raw_forex_data(currencies, start_date)
+
+        # -----------------------------
+        # Step 2: Cleaning & Validation
+        # -----------------------------
+        clean_raw_forex_data(incl_viol_out=True)
+
+        # -----------------------------------
+        # Step 3: Feature & Label Engineering
+        # -----------------------------------
+        engineer_forex_features()
+        generate_forex_labels(t_final=t_final, 
+                            atr_lookback=atr_lookback, 
+                            tp_atr_multiplier=tp_atr_multiplier, 
+                            sl_atr_multiplier=sl_atr_multiplier)
+        count_label_dist()
+        
+        # -------------------
+        # Step 4: Aggregation
+        # -------------------
+        # Combines all pairwise csv files into one big master csv file
+        aggregate_forex_data()
     
     # -------------------------------
     # Step 5: Data-Split (Train/Test)
@@ -104,14 +121,14 @@ def main():
     global_train_data = split[0]
     global_test_data = split[1]
 
-    # Visualize Pipeline Structure
-    plot_pipeline_structure(global_data, n_outer_splits, n_inner_splits)
+    if run_data.lower() in ["y", "Y", "yes", "YES"]:
+        # Visualize Pipeline Structure
+        plot_pipeline_structure(global_data, n_outer_splits, n_inner_splits)
     
     # -------------------------------------------------------------------
     # Step 6: Phase 1 - THE TOURNAMENT (Unbiased Architecture Comparison)
     # -------------------------------------------------------------------
     # Answers: "Which model is the most robust across time?"
-    print("\n[PHASE 1] Starting Architecture Tournament...")
     models_dict = {"rf" : 'RandomForest', 
                    "et" : 'ExtraTrees', 
                    "xgb" : 'XGBoost', 
@@ -121,6 +138,8 @@ def main():
     tournament_models = list(models_dict.values())
 
     if response.lower() in ["t", "tp", "pt"]:
+        print("\n[PHASE 1] Starting Architecture Tournament...")
+
         run_nested_wfv(data=global_train_data,
                        model_names=tournament_models,
                        n_outer_splits=n_outer_splits,
@@ -140,6 +159,8 @@ def main():
                        slippage_per_unit=slippage_per_unit,
                        min_qty=min_qty,
                        max_qty=max_qty)
+        
+        print("\n[PHASE 1] Finished Architecture Tournament...")
         
     txt = "Pick a Winner:\n"
     txt += "- RandomForest (type rf)\n"
@@ -164,7 +185,6 @@ def main():
     # Step 7: Phase 2 - PRODUCTION REFINEMENT (Global HP Selection)
     # -------------------------------------------------------------
     # Answers: "What are the absolute best parameters for the winner?"
-    winner = 'RandomForest'
     print(f"\n[PHASE 2] Tournament Winner: {winner}")
     print(f"Starting Global Production Refinement for {winner}...")
 
