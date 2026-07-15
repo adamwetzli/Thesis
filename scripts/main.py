@@ -16,8 +16,8 @@ meta_memory_window=3    # The window of past OUTER folds in the nested wfv to co
 
 n_purged=10             # Number of rows to be removed from the end of each training set
 n_embargo=10            # Number of rows to be removed from the beginning of a training set if it is preceeded by a test set
-n_model_trials=25        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
-n_trading_trials=50     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
+n_model_trials=50        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
+n_trading_trials=100     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
 opt_metric='sharpe'     # Options: 'return', 'sharpe', 'mdd', 'calmar'
 
 mutual_info_threshold = 0.005            # threshold below which features are dropped
@@ -185,13 +185,13 @@ def main():
     # Step 7: Phase 2 - PRODUCTION REFINEMENT (Global HP Selection)
     # -------------------------------------------------------------
     # Answers: "What are the absolute best parameters for the winner?"
-    print(f"\n[PHASE 2] Tournament Winner: {winner}")
-    print(f"Starting Global Production Refinement for {winner}...")
+    print(f"\n[PHASE 2] Tournament Winner: {models_dict[winner.lower()]}")
+    print(f"Starting Global Production Refinement for {models_dict[winner.lower()]}...")
 
     if response.lower() in ["p", "tp", "pt"]:
         run_wfv(data=global_train_data,
                 global_test_data=global_test_data,
-                winner_name=winner,
+                winner_name=models_dict[winner.lower()],
                 n_inner_splits=n_inner_splits,
                 n_purged=n_purged,
                 n_embargo=n_embargo,

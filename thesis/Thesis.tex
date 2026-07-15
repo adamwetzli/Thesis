@@ -1393,52 +1393,119 @@ reinforces rather than isolates the earlier concern that even the EM/exotic-pair
 
 \paragraph{Comparison Across Different Trading Strategies}
 
+The previous sections established that XGBoost's tournament-wide profitability is concentrated in a handful of EM pairs and driven by a small number of large events. A separate 
+question, addressed by this section, is whether the pipeline's individual components, the meta-labeling filter (M2), its conformal calibration, and the per-pair tuning of trading 
+parameters are actually contributing to that profitability or whether comparable results could be obtained more simply. Table \ref{tab:strategy_comparison_XGBoost_tournament} 
+answers this by evaluating six variants against the same OOS test data and price history. The evaluated strategies are a passive Buy-and-Hold benchmark, a rule-based SMA(50/200) 
+crossover, the raw M1 directional signal with no filter, M1 filtered by M2 at a fixed $0.5$ probability threshold, M1 filtered by M2 at the per-pair conformal threshold but using 
+the fold's median trading hyperparameters across all pairs (Global), and the full pipeline with both conformal filtering and per-pair tuned trading hyperparameters (Conformal).
+
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_XGBoost_tournament.tex}
 
+Four observations follow from table \ref{tab:strategy_comparison_XGBoost_tournament}, and taken together they complicate a simple "the full pipeline wins" narrative.
 
+\begin{itemize}
+\item \textbf{The unfiltered M1 signal is actively harmful, not merely mediocre.} M1 Only is the worst-performing variant in both folds, averaging Sharpe $-5.50 \pm 8.26$ in fold 1 
+and $-3.08 \pm 10.16$ in fold 2, and it is the single most negative entry for every major pair in the table (AUDUSD as low as $-14.09$, NZDUSD as low as $-14.16$). This is the 
+clearest result in the ablation as the raw directional model carries no standalone tradable edge on this feature set and the meta-labeling architecture exists to suppress it 
+rather than just refine it.
+
+\item \textbf{The fixed-threshold M2 filter recovers substantial performance but remains net negative on average.} M1 + M2 (Fixed) improves fold 1's average from $-5.50$ to 
+$-3.94$ and fold 2's from $-3.08$ to $-0.88$, confirming that M2's probability estimates carry real information about when M1 is wrong. However, neither fold's average crosses 
+into positive territory. A meta-filter evaluated at an arbitrary, uncalibrated threshold is not sufficient on its own, which is the motivation for the conformal layer rather 
+than a post-hoc justification of it.
+
+\item \textbf{Conformal filtering's benefit on majors is visible as an absence of trades, not as improved per-trade Sharpe.} In fold 2, AUDUSD, GBPUSD, NZDUSD, USDCHF, and 
+USDJPY all report exactly $0.00$ under both M1 + M2 (Global) and M1 + M2 (Conformal), while the same pairs show deeply negative Sharpes under M1 Only and M1 + M2 (Fixed). This 
+is the same conformal veto documented in the previous sections as the calibrated filter is not making these pairs profitable, it is correctly refusing to trade them at all.
+
+\item \textbf{The per-pair tuning philosophy is not unambiguously supported by this comparison.} The design claim carried through this thesis is that pair-specific trading 
+hyperparameters outperform a single global setting. That holds in fold 1, where Conformal ($1.52 \pm 3.78$) outperforms Global ($-0.36 \pm 3.41$), but it inverts in fold 2, where 
+Global ($3.05 \pm 4.03$) outperforms Conformal ($2.42 \pm 5.27$). With only two outer folds and standard deviations of comparable magnitude to the means in both cases, this 
+single reversal is not enough evidence to reject the local adaptation hypothesis, but it is also not enough evidence to confirm it and we do not think the results here support 
+a stronger claim than that pair-specific tuning is, at best, inconsistently better than a simpler global setting under this evaluation protocol.
+\end{itemize}
+
+\medskip
+
+Against the two non-ML baselines the full pipeline does show a directional edge as Conformal beats Buy-and-Hold in both folds ($1.52$ vs.\ $0.34$ and $2.42$ vs.\ $0.46$) and beats 
+SMA Crossover in both folds as well ($1.52$ vs.\ $-0.49$ and $2.42$ vs.\ $-0.90$). We read this cautiously rather than as confirmation of a robust edge, since the standard deviations 
+attached to every column in this table are two to four times the corresponding mean and no significance test is applied across strategies in this comparison. What we regard 
+as reasonably well supported is the ordering of necessity. Thus, an unfiltered directional model is worse than doing nothing, a meta-label filter is necessary but not sufficient to 
+reach profitability and conformal calibration on top of that filter is what most clearly separates the profitable pairs from the pairs the pipeline abstains from entirely. What 
+we regard as not well supported by this table alone is the incremental value of per-pair trading-parameter tuning over a single global configuration, which the fold 2 reversal 
+leaves genuinely unresolved rather than confirmed by the tournament's aggregate numbers.
 
 
 \paragraph{Model-Specific Limitations}
 
-Limitation/affected pairs/ mitigation or future work
-Ie atr barriers assume continuius trading/ all em pairs with gaps/incorporate gap risk indicstor
+The preceding sections examined limitations that are visible in XGBoost's backtest \textit{output}, concentration risk, event dependency, fold instability. This section 
+considers limitations that are properties of XGBoost as a model \textit{class}, and would apply regardless of which pairs or folds happened to be profitable. These are worth 
+stating explicitly because the tournament's design, a single architecture selected once and reused across all eleven pairs, means any structural weakness in that architecture 
+is inherited by the entire production pipeline rather than isolated to a subset of results.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{itemize}
+\item \textbf{No native representation of sequence or temporal order.} XGBoost, like any tree ensemble, treats each row of the training matrix as an independent, unordered 
+observation. Any temporal structure in the price series, momentum, autocorrelation, regime persistence, is only available to the model insofar as it has been explicitly encoded 
+into the engineered feature set (lagged returns, rolling statistics, and similar constructions) ahead of time. This stands in contrast to architectures such as the LSTM 
+candidate also evaluated in this tournament, which maintain an internal recurrent state across the sequence by construction. Where XGBoost's performance depends on a temporal 
+pattern the feature engineering step did not anticipate or adequately capture, the model has no mechanism to discover it on its own.
+
+\item \textbf{Purging and embargoing address label leakage, not the effective-sample-size problem.} The blocking, purged, embargoed cross-validation scheme used throughout this 
+thesis prevents information from a validation window leaking into training. It does not address the separate issue that adjacent bars in a financial time series are highly 
+autocorrelated and therefore not independent draws. A tree ensemble's split-finding and leaf-weighting procedures are not aware of this and implicitly treat every row as 
+carrying an equal, independent unit of statistical evidence. In practice this means the model's effective sample size, and by extension its true overfitting risk, is smaller 
+than the raw row count of any training fold would suggest.
+
+\item \textbf{Axis-aligned, piecewise-constant decision boundaries.} Gradient-boosted trees partition the feature space with a sequence of univariate, axis-aligned splits. This 
+is a reasonable inductive bias for tabular data with threshold-like effects, but it approximates smooth or genuinely multivariate relationships between features (e.g. an 
+interaction between volatility and momentum that does not decompose cleanly along single-feature cutpoints) with a staircase of discrete boxes rather than fitting the underlying 
+relationship directly. Extrapolation beyond the value ranges seen in training is similarly constrained, since a leaf's prediction is a constant fit to the training rows that 
+landed in it and cannot extend a trend past that range.
+
+\item \textbf{The model-selection HPO budget is thin relative to XGBoost's hyperparameter space.} \texttt{optimize\_pipeline} allocates \texttt{n\_model\_trials\,=\,20} outer 
+Optuna trials to jointly search the M1 architecture's hyperparameters together with M2's \texttt{max\_depth}. For XGBoost specifically, the interacting parameters that govern 
+generalization, \texttt{n\_estimators}, \texttt{max\_depth}, \texttt{learning\_rate}, \texttt{subsample}, \texttt{colsample\_bytree}, and the \texttt{reg\_alpha}/\texttt{reg\_lambda} 
+regularization pair, form a considerably larger and more interaction-heavy search space than twenty trials can explore with confidence. The configuration selected as \enquote{best} 
+in table \ref{tab:hps_XGBoost_tournament} is best only relative to the twenty configurations actually tried, and we cannot rule out that a wider search would have surfaced a 
+materially different, and possibly more stable, operating point.
+
+\item \textbf{The meta-filter is architecture-agnostic, not tailored to XGBoost's specific error structure.} M2 is fixed as a \texttt{RandomForestClassifier} for every M1 
+candidate in the tournament, with only its \texttt{max\_depth} exposed to tuning. This is a deliberate simplification that keeps the tournament comparison fair across 
+architectures, but it also means the meta-filter was never allowed to specialize to whatever particular failure modes are characteristic of gradient-boosted trees as opposed to, 
+say, a recurrent or linear M1. A meta-model co-designed with XGBoost's specific misclassification patterns in mind is a plausible source of further improvement that this setup 
+does not explore.
+
+\item \textbf{Gradient-boosted trees are not natively well-calibrated probability estimators.} The leaf-averaged scores XGBoost outputs are known in the wider literature to be 
+systematically miscalibrated, typically overconfident, without a dedicated calibration step. This thesis's architecture already compensates for this via the M2 filter and the 
+conformal layer described in earlier sections, but it is worth being explicit that this compensation is necessary precisely because M1's raw probabilities cannot be trusted at 
+face value; the conformal machinery is not an optional robustness layer added on top of an already-reliable signal, it is doing work that M1's own architecture leaves undone.
+\end{itemize}
+
+\medskip
+
+None of these limitations are unique to this thesis's implementation, they are properties of tree ensembles generally, and the same tradeoffs would apply to any tournament 
+entrant built on XGBoost, LightGBM, or a Random Forest primary model. We selected XGBoost as the tournament winner via the RRF ranking in table \ref{tab:ranking_tournament}, and 
+the pair-level results in the preceding sections support that it was, on the evidence gathered here, the strongest available candidate. That conclusion is conditional on the 
+architecture-level constraints above rather than independent of them, and a natural extension of this work would be to test whether a wider HPO budget, a specialized meta-filter, 
+or a sequence-aware primary model changes the ranking.
 
 
 \paragraph{Picking the Tournament Winner}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Table \ref{tab:ranking_tournament}'s RRF aggregation identifies XGBoost as the tournament's top-ranked architecture and we carry it forward as the winner for the production 
+refinement phase. We do not repeat the caveats already established in detail above, the concentration of profit in a handful of EM pairs, the event-dependence of USDTRY and 
+USDZAR's headline numbers, the fold-to-fold instability of USDMXN, and the strategy comparison ablation's finding that per-pair tuning's advantage over a global configuration 
+is not consistently reproduced across folds, but they apply in full to this selection and should be read as attached to it rather than resolved by it.
+
+\medskip
+
+The choice is nonetheless defensible on comparative grounds. XGBoost is not selected because its profitability is uniform or robust in an absolute sense, none of the six 
+candidates cleared that bar, but because, relative to the other five architectures under the same evaluation protocol, it produced the strongest RRF-aggregated ranking across 
+the metrics in table \ref{tab:ranking_tournament} while remaining architecturally simple enough that its failure modes (the sign flips, the small-sample profit-factor 
+artifacts, the outlier dependence) are traceable to specific pairs and folds rather than unclear. We treat this as the correct basis for a tournament decision, the best-performing 
+candidate under a fixed, shared protocol, while treating the production-phase results that follow as the point at which XGBoost's viability is actually tested on unseen data, 
+rather than assumed from the tournament outcome alone.
 
 
 \subsection{Global Production Refinement of the Winning Model}
@@ -1620,6 +1687,14 @@ macroeconomic APIs such as the Federal Reserve Economic Data (FRED) or Refinitiv
 could develop a more nuanced understanding of when a technical signal is aligned with or fighting against fundamental capital flows, thereby further refining the efficacy of the 
 conformal veto logic.
 
+\subsubsection{More Exhaustive Hyperparameter Search}
+
+For tournament
+n_model_trials=25        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
+n_trading_trials=50     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
+
+For productionn_model_trials=50        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
+n_trading_trials=100     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
 
 %%%%%%%%%%%%%%%%
 % BIBLIOGRAPHY %
