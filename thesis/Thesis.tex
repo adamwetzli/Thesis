@@ -1369,54 +1369,33 @@ either a longer out-of-sample evaluation window or live execution frictions not 
 
 \paragraph{Granular Performance Analysis and Best- and Worst-Performing Pairs per Model}
 
-is it because model failed? Is it because pair is untradeable? Answer questions
-Is it a data issue? Ie gaps overnight? More missing data than other pairs?
-Is the model fundamentally weong dor that regime?
-
-\input{../data/tables/tournament/rrf_leaderboard/rrf_matrix_tournament.tex} % Put in appendix?
+The pair-level concentration documented above for XGBoost is not an artifact of that architecture specifically. Table \ref{tab:rrf_summary_tournament} reports the top two and 
+bottom two RRF-ranked pairs for every one of the six tournament architectures, in both folds, distilled from the full $6 \times 11 \times 2$ granular ranking matrix in appendix 
+table \ref{tab:rrf_matrix_tournament}. The exhaustive per-pair, per-metric breakdown underlying it, analogous to table \ref{tab:pair_level_xgb} but with the full metric set (PSR, 
+DSR, CAGR, Win Rate, Profit Factor, Avg.\ Exposure, Avg.\ Trade Size, M2 Brier) and reported for all six architectures rather than XGBoost alone, is likewise deferred to appendix 
+table \ref{tab:perf_XGBoost_tournament} and its counterparts, to avoid repeating the numbers already discussed in detail above.
 
 \input{../data/tables/tournament/rrf_leaderboard/rrf_summary_tournament.tex}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Two checks against table \ref{tab:rrf_summary_tournament} confirm that the EM-concentration pattern generalizes across the entire tournament rather than being specific to 
+XGBoost's own conformal calibration. First, USDTRY and/or USDZAR appear among the top two RRF performers in all twelve model-fold combinations, without a single exception 
+across six architectures and two folds. Second, at least one G7 major appears among the bottom two performers in all twelve combinations as well and in ten of the twelve both 
+bottom two pairs are majors. Given that RRF rankings are computed independently per model and fold from otherwise incompatible raw metrics, this consistency is not an artifact of 
+how the ranking is constructed. It indicates that the same two EM currencies drive the bulk of realized edge, and the same cluster of majors contribute the least, regardless of 
+which of the six candidate architectures is doing the trading.
 
-\input{../data/tables/tournament/performance_tables/perf_XGBoost_tournament.tex}
+\medskip
+
+One further instance of the fold-to-fold instability already raised for USDMXN is visible here too as USDCHF appears among the top two performers for LightGBM, LSTM, and GRU in 
+fold 1, but among the bottom two for LightGBM in fold 2. A pair ranking as one of a model's best performers in one fold and one of its worst in the next, for the same architecture, 
+reinforces rather than isolates the earlier concern that even the EM/exotic-pair results driving this tournament's apparent edge are not stable across adjacent evaluation windows.
 
 
 \paragraph{Comparison Across Different Trading Strategies}
 
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_XGBoost_tournament.tex}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 
 \paragraph{Model-Specific Limitations}
@@ -1947,11 +1926,13 @@ the observed performance is considered statistically insufficient to distinguish
 
 
 \subsection{Granular Performance of Other Models}
+\input{../data/tables/tournament/rrf_leaderboard/rrf_matrix_tournament.tex}
 \input{../data/tables/tournament/performance_tables/perf_ExtraTrees_tournament.tex}
 \input{../data/tables/tournament/performance_tables/perf_GRU_tournament.tex}
 \input{../data/tables/tournament/performance_tables/perf_LightGBM_tournament.tex}
 \input{../data/tables/tournament/performance_tables/perf_LSTM_tournament.tex}
 \input{../data/tables/tournament/performance_tables/perf_RandomForest_tournament.tex}
+\input{../data/tables/tournament/performance_tables/perf_XGBoost_tournament.tex}
 
 \subsection{Strategy Comparison of Other Models}
 \input{../data/tables/tournament/strategy_comparison/strategy_comp_ExtraTrees_tournament.tex}
