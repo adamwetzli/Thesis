@@ -92,8 +92,6 @@
     
 \end{titlepage}
 
-\thispagestyle{empty}  % Remove page number from the title page
-
 \pagebreak
 
 % Use roman numerals for front matter
@@ -219,7 +217,7 @@ and the underlying reasons for feature performance. This is decomposed into the 
   \item \textbf{Architecture Efficacy \& The Tournament Framework}
   \begin{enumerate}
     \item \textit{Question:} How do different ML models rank and is there a clear architecture that outperforms the rest 
-    when validated through a nested, purged, and embargoed walk-forward framework?
+    when validated through a purged and nested walk-forward framework?
     \item \textit{Objective:} To determine which ML architectures provide the most robust framework for intraday FX data.
   \end{enumerate}
   
@@ -770,8 +768,8 @@ An effective filter demonstrates a high concentration of correct predictions at 
 zone defined by $\varepsilon$. Furthermore, we overlay a logistic sigmoid fit to this diagnostic plot to verify that the M2 probability estimates are well-calibrated 
 against the true empirical hit rate of the M1 signals.
 A logistical limitation of this visualization is its level of aggregation. To be fully exhaustive, an informative diagnostic would require rendering three panels 
-(Accuracy, Ground Truth, and Error Map) for every individual model-pair combination across all folds. In a tournament of six architectures and ten currency pairs, this would
-generate an unmanageable 60 plot-triplets per fold, totaling hundreds of figures. Consequently, we employ a lighter aggregated version in this study whereby the scatter plots displayed in 
+(Accuracy, Ground Truth, and Error Map) for every individual model-pair combination across all folds. In a tournament of six architectures and eleven currency pairs, this would
+generate an unmanageable 66 plot-triplets per fold, totaling hundreds of figures. Consequently, we employ a lighter aggregated version in this study whereby the scatter plots displayed in 
 the results aggregate all currency pairs for a given architecture within a specific fold. This provides a global view of the architecture's robustness and its ability to
 generalize a conformal veto logic across the entire multi-pair universe without the visual overhead of per-pair reporting.
 
@@ -781,13 +779,6 @@ Beyond financial outcomes, the integrity of the meta-labeling engine (M2) is eva
 between Type I errors (False Discoveries) and Type II errors (Missed Opportunities). To assess the probabilistic quality of the meta-model, we employ reliability diagrams (calibration curves), 
 which compare the predicted probabilities of M2 against the actual observed frequencies of M1's correctness. A well-calibrated model, where the curve aligns with the 45-degree diagonal, 
 ensures that the conformal p-values calculated in \ref{sec:conformal_preds} are grounded in realistic probability estimates.
-
-The integrity of the meta-labeling engine is further examined through classification-specific diagnostics, primarily utilizing nested confusion matrices and reliability diagrams. 
-The three-panel confusion matrix framework tracks signals from the base model (M1) through the meta-model (M2) to the final authorized trades. 
-It allows to follow the flow of the balance between Type I errors (False Discoveries) and Type II errors (Missed Opportunities). 
-To complement this, reliability diagrams and Brier scores are employed to assess the probabilistic quality of the meta-model. 
-By verifying that the calibration curve aligns with the 45-degree diagonal, we ensure that the conformal p-values calculated in \ref{sec:conformal_preds} are grounded in realistic 
-probability estimates.
 
 \medskip
 
@@ -1740,7 +1731,7 @@ event-dependent, and only partially attributable to the components it was design
 
 \subsection{Architecture Efficacy and the Tournament Framework}
 
-The nested, purged, and embargoed walk-forward tournament identified XGBoost as the RRF-aggregated winner (table \ref{tab:ranking_tournament}) and the production-phase comparison 
+The purged and nested walk-forward tournament identified XGBoost as the RRF-aggregated winner (table \ref{tab:ranking_tournament}) and the production-phase comparison 
 in section \ref{sec:production_performance} did not overturn this choice. XGBoost's advantages over the recurrent architectures were reconfirmed rather than merely assumed. Three 
 threads of evidence converge on this. First, XGBoost was the only architecture whose empirical false-accept rate tracked its nominal conformal significance level tightly in fold 1 
 (ratio $1.03$, see table \ref{tab:nested_confusion_summary}), while the two recurrent architectures (LSTM, GRU) and the bagged tree ensembles (RandomForest, ExtraTrees) exceeded their 
