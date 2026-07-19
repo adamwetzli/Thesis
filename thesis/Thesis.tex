@@ -109,7 +109,7 @@ This effectively transforms the trading system from a simple classifier into a s
 one that prioritizes the avoidance of false discoveries over the pursuit of frequent, but unverified, opportunities.
 
 
-\subsection{Problem Statement}
+\subsection{Problem Statement}\label{sec:problem_statement}
 
 The central challenge of intraday Forex trading lies in the fundamental tension between the vanishingly low signal-to-noise ratio of 
 financial time series and the non-stationary nature of global market regimes.
@@ -137,7 +137,7 @@ Without adaptive, pair-specific execution guardrails that can adjust to local li
 generalist in a market that demands specialized precision, ultimately leading to alpha decay where theoretical alpha vanishes upon contact with reality.
 
 
-\subsection{Research Objectives}
+\subsection{Research Objectives}\label{sec:research_objectives}
 
 The primary objective of this research is to answer the fundamental question of machine learning in algorithmic trading: 
 \textbf{Can we build an ML classifier that can drive a Forex trading model successfully?}
@@ -803,7 +803,7 @@ kind of overfitting risk that motivates selecting a single, common feature set p
 possibly unstable, feature subset, which would confuse genuine architectural differences with differences in feature selection noise.
 
 
-\subsubsection{Pair- and Model-Specific Parameter Discovery and Financial Robustness}
+\subsubsection{Pair- and Model-Specific Parameter Discovery and Financial Robustness}\label{sec:tournament_trading_hps}
 
 Having established a common static feature set per fold to mitigate overfitting and ensure comparability across architectures, we now turn to the model-specific hyperparameter 
 optimization and its financial implications. While the tournament includes multiple model classes, we focus the present discussion exclusively on the XGBoost results, 
@@ -881,7 +881,7 @@ the Kelly fraction, rather than the notional exposure cap itself, is the binding
 backstop against adverse mark-to-market drift rather than a target the strategy actively pushes toward.
 
 
-\subsubsection{From Raw Signals to Conformal Predictions: Model- \& Pair-Specific Conformal-Q Filtering}\label{sec:conformal_preds}
+\subsubsection{From Raw Signals to Conformal Predictions: Model- \& Pair-Specific Conformal-Q Filtering}\label{sec:conformal_preds_and_qfilter}
 
 Having quantified how the trading-level parameters are chosen, we now examine what the M2 meta-filter is actually doing to the raw M1 directional signals before 
 they ever reach the backtester. The Meta Sig. parameter introduced above is not applied to M2's raw probability output directly, instead it governs a conformal 
@@ -994,7 +994,7 @@ statistics alone and is addressed directly in later sections.
 
 \subsubsection{Validation of Conformal-Q Filtering: Model- and Fold-Specific Confusion Matrices \& Calibration}
 
-\paragraph{Confusion Matrices}
+\paragraph{Confusion Matrices}\label{sec:confusion_matrices_tournament}
 
 The previous subsection established precision (via the accepted signal hit rate) and a qualitative reading of the error map. Figures 
 \ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} make the full classification picture explicit by decomposing the pipeline into three nested 
@@ -1067,7 +1067,7 @@ comparatively weak basis for the conformal test, rather than this being a fold-s
 
 We interpret the fold 1 breakdown as most plausibly driven by a combination of factors rather than a single cause. As already mentioned several times, the calibration set in fold 1 
 is built from a much smaller memory window (little to no prior fold history to draw on yet) and the underlying M1/M2 separability is itself weaker in fold 1 
-(the shallow logistic fits discussed previously in section \ref{sec:conformal_preds}). Furthermore, the walk-forward calibration only delivers the conformal exchangeability 
+(the shallow logistic fits discussed previously in section \ref{sec:conformal_preds_and_qfilter}). Furthermore, the walk-forward calibration only delivers the conformal exchangeability 
 guarantee with a lot more data, so a small, less representative early calibration set is exactly where a violation would be expected to surface first. 
 That XGBoost alone tracks its guarantee tightly even under these conditions is a point in its favor as the architecture whose M2 confidence 
 scores are best behaved, independent of and prior to the accuracy comparison. We note as a limitation that each ratio in table \ref{tab:nested_confusion_summary} is a single 
@@ -1228,7 +1228,7 @@ conclusion into it.
 This chapter presents the final results of the Architecture Tournament.
 We evaluate model performance across backtests, analyze best- and worst-performing currency pairs, discuss model-specific limitations, and select the final architecture.
 
-\paragraph{Model-Specific Backtest Performance and Aggregated Performance Ranking}
+\paragraph{Model-Specific Backtest Performance and Aggregated Performance Ranking}\label{sec:backtests_tournament}
 
 We fused the reported financial metrics via the reciprocal rank fusion (RRF) scoring rule in table \ref{tab:ranking_tournament} and identified XGBoost as the tournament's overall 
 winner. We opted for RRF because it normalizes and aggregates rankings without needing to compare raw, incompatible relevance scores which is the case with the metrics reported in 
@@ -1437,60 +1437,6 @@ we regard as not well supported by this table alone is the incremental value of 
 leaves genuinely unresolved rather than confirmed by the tournament's aggregate numbers.
 
 
-\paragraph{Model-Specific Limitations}
-
-The preceding sections examined limitations that are visible in XGBoost's backtest \textit{output}, concentration risk, event dependency, fold instability. This section 
-considers limitations that are properties of XGBoost as a model \textit{class}, and would apply regardless of which pairs or folds happened to be profitable. These are worth 
-stating explicitly because the tournament's design, a single architecture selected once and reused across all eleven pairs, means any structural weakness in that architecture 
-is inherited by the entire production pipeline rather than isolated to a subset of results.
-
-\begin{itemize}
-\item \textbf{No native representation of sequence or temporal order.} XGBoost, like any tree ensemble, treats each row of the training matrix as an independent, unordered 
-observation. Any temporal structure in the price series, momentum, autocorrelation, regime persistence, is only available to the model insofar as it has been explicitly encoded 
-into the engineered feature set (lagged returns, rolling statistics, and similar constructions) ahead of time. This stands in contrast to architectures such as the LSTM 
-candidate also evaluated in this tournament, which maintain an internal recurrent state across the sequence by construction. Where XGBoost's performance depends on a temporal 
-pattern the feature engineering step did not anticipate or adequately capture, the model has no mechanism to discover it on its own.
-
-\item \textbf{Purging and embargoing address label leakage, not the effective-sample-size problem.} The blocking, purged, embargoed cross-validation scheme used throughout this 
-thesis prevents information from a validation window leaking into training. It does not address the separate issue that adjacent bars in a financial time series are highly 
-autocorrelated and therefore not independent draws. A tree ensemble's split-finding and leaf-weighting procedures are not aware of this and implicitly treat every row as 
-carrying an equal, independent unit of statistical evidence. In practice this means the model's effective sample size, and by extension its true overfitting risk, is smaller 
-than the raw row count of any training fold would suggest.
-
-\item \textbf{Axis-aligned, piecewise-constant decision boundaries.} Gradient-boosted trees partition the feature space with a sequence of univariate, axis-aligned splits. This 
-is a reasonable inductive bias for tabular data with threshold-like effects, but it approximates smooth or genuinely multivariate relationships between features (e.g. an 
-interaction between volatility and momentum that does not decompose cleanly along single-feature cutpoints) with a staircase of discrete boxes rather than fitting the underlying 
-relationship directly. Extrapolation beyond the value ranges seen in training is similarly constrained, since a leaf's prediction is a constant fit to the training rows that 
-landed in it and cannot extend a trend past that range.
-
-\item \textbf{The model-selection HPO budget is thin relative to XGBoost's hyperparameter space.} \texttt{optimize\_pipeline} allocates \texttt{n\_model\_trials\,=\,20} outer 
-Optuna trials to jointly search the M1 architecture's hyperparameters together with M2's \texttt{max\_depth}. For XGBoost specifically, the interacting parameters that govern 
-generalization, \texttt{n\_estimators}, \texttt{max\_depth}, \texttt{learning\_rate}, \texttt{subsample}, \texttt{colsample\_bytree}, and the \texttt{reg\_alpha}/\texttt{reg\_lambda} 
-regularization pair, form a considerably larger and more interaction-heavy search space than twenty trials can explore with confidence. The configuration selected as \enquote{best} 
-in table \ref{tab:hps_XGBoost_tournament} is best only relative to the twenty configurations actually tried, and we cannot rule out that a wider search would have surfaced a 
-materially different, and possibly more stable, operating point.
-
-\item \textbf{The meta-filter is architecture-agnostic, not tailored to XGBoost's specific error structure.} M2 is fixed as a \texttt{RandomForestClassifier} for every M1 
-candidate in the tournament, with only its \texttt{max\_depth} exposed to tuning. This is a deliberate simplification that keeps the tournament comparison fair across 
-architectures, but it also means the meta-filter was never allowed to specialize to whatever particular failure modes are characteristic of gradient-boosted trees as opposed to, 
-say, a recurrent or linear M1. A meta-model co-designed with XGBoost's specific misclassification patterns in mind is a plausible source of further improvement that this setup 
-does not explore.
-
-\item \textbf{Gradient-boosted trees are not natively well-calibrated probability estimators.} The leaf-averaged scores XGBoost outputs are known in the wider literature to be 
-systematically miscalibrated, typically overconfident, without a dedicated calibration step. This thesis's architecture already compensates for this via the M2 filter and the 
-conformal layer described in earlier sections, but it is worth being explicit that this compensation is necessary precisely because M1's raw probabilities cannot be trusted at 
-face value; the conformal machinery is not an optional robustness layer added on top of an already-reliable signal, it is doing work that M1's own architecture leaves undone.
-\end{itemize}
-
-\medskip
-
-None of these limitations are unique to this thesis's implementation, they are properties of tree ensembles generally, and the same tradeoffs would apply to any tournament 
-entrant built on XGBoost, LightGBM, or a Random Forest primary model. We selected XGBoost as the tournament winner via the RRF ranking in table \ref{tab:ranking_tournament}, and 
-the pair-level results in the preceding sections support that it was, on the evidence gathered here, the strongest available candidate. That conclusion is conditional on the 
-architecture-level constraints above rather than independent of them, and a natural extension of this work would be to test whether a wider HPO budget, a specialized meta-filter, 
-or a sequence-aware primary model changes the ranking.
-
-
 \paragraph{Picking the Tournament Winner}
 
 Table \ref{tab:ranking_tournament}'s RRF aggregation identifies XGBoost as the tournament's top-ranked architecture and we carry it forward as the winner for the production 
@@ -1509,14 +1455,123 @@ rather than assumed from the tournament outcome alone.
 
 
 \subsection{Global Production Refinement of the Winning Model}
-\subsubsection{Production Setup: Full Global Training \& Untouched Test Set}
-% 1 paragraph explaining Phase 2 methodology
+Having identified XGBoost as the tournament winner, we now refine its hyperparameters on the complete production dataset. Unlike the tournament phase, which relies on a nested 
+walk-forward scheme with two outer folds during model selection, the production refinement collapses this structure into a single global training fold. 
+The entire in-sample history across all pairs and years is pooled, the full feature selection and preprocessing pipeline is re-run on this aggregated set, and the same joint, 
+per-pair Optuna study used during the tournament is executed once more over this pooled history. The resulting hyperparameters are then evaluated exactly once against a strictly 
+held-out global test window that was untouched throughout both the tournament and the production HPO, providing the out-of-sample estimate of production performance 
+reported in section \ref{sec:production_performance}.
 
 \subsubsection{Pair-Specific Trading Parameter Discovery}
+
 \input{../data/tables/production/trading_hps_table/hps_XGBoost_production.tex}
 
-\subsubsection{Production Backtest: Final Out-of-Sample Performance}
-- Also talk about comparison across different trading strategies here but put the table in the appendix
+Table \ref{tab:hps_XGBoost_production} reports the resulting trading-level hyperparameters. Several observations are worth highlighting. First, the pronounced cross-sectional 
+heterogeneity already documented in the tournament phase (see section \ref{sec:tournament_trading_hps}) persists even after collapsing the two-fold structure into a single global 
+fit. The Kelly fraction again spans nearly the entire admissible range, from $0.30$ for EURUSD to $0.99$ for USDJPY.
+
+Second, and most notably, the risk-reward geometry for USDMXN reverses direction between the tournament and production phases. In tournament fold 1, USDMXN favored a wider 
+take-profit relative to its stop-loss (SL $3.40\times$ ATR vs. TP $4.79\times$ ATR). In production this relationship inverts sharply with the stop-loss now set far wider than 
+the take-profit (SL $4.68\times$ ATR vs. TP $1.01\times$ ATR), reflecting a shift toward a quick profit-taking, wide-stop posture.
+
+Finally, the meta-significance level and notional exposure ceiling exhibit patterns consistent with the tournament phase. Meta Sig. again spans nearly the full search range, from 
+a highly selective $0.01$ for AUDUSD to a comparatively permissive $0.19$--$0.20$ for USDCNH and EURUSD, while Max Exp. continues to cluster in the upper half of its range for 
+most pairs, though, as established previously, this ceiling is rarely the binding constraint on realized exposure.
+
+
+\subsubsection{Production Backtest: Final Out-of-Sample Performance}\label{sec:production_performance}
+
+Having refit the trading-level hyperparameters on the global training history (table \ref{tab:hps_XGBoost_production}), we now evaluate the resulting production model on 
+the global test fold, that neither the tournament HPO nor the production refit ever observed. 
+Because this evaluation window covers roughly two and a half months rather than a full year, any annualized statistic reported below (CAGR in particular) should be read with the 
+understanding that it extrapolates a short realized run over a much longer horizon and is consequently far more sensitive to the specific window tested than the tournament's own, 
+already flagged annualization artifacts.
+
+\input{../data/tables/production/strategy_comparison/strategy_comp_XGBoost_production.tex}
+
+Table \ref{tab:strategy_comparison_XGBoost_production} reports a pooled average Sharpe ratio of $4.30$ ($\pm 6.65$) for the full M1+M2 (Conformal) strategy across the eleven pairs. 
+This is a smaller ratio of standard deviation to mean than the tournament phase's pooled $1.97 \pm 4.50$, but the improvement is misleading as it reflects the production model 
+having excluded most of the G7 majors from trading altogether, rather than having produced more uniformly moderate profitability across them. Disaggregating by pair, drawn from 
+figures \ref{fig:production_result_XGBoost_1}-\ref{fig:production_result_XGBoost_4}, confirms this directly.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{ll|rrr}
+\toprule
+Pair & Group & Return\% & Sharpe & Trades \\
+\midrule
+USDZAR & EM     & 81.95 & 16.32 & 934 \\
+USDMXN & EM     & 17.38 & 14.45 & 947 \\
+USDTRY & EM     & 8.10  & 11.83 & 1019 \\
+USDCNH & EM     & 1.67  & 3.13  & 730 \\
+\midrule
+EURUSD & Major  & 0.59  & 3.86  & 8   \\
+USDJPY & Major  & -0.81 & -2.30 & 184 \\
+AUDUSD & Major  & 0.00  & 0.00  & 0   \\
+GBPUSD & Major  & 0.00  & 0.00  & 0   \\
+NZDUSD & Major  & 0.00  & 0.00  & 0   \\
+USDCAD & Major  & 0.00  & 0.00  & 0   \\
+USDCHF & Major  & 0.00  & 0.00  & 0   \\
+\bottomrule
+\end{tabular}
+\caption{Pair-level XGBoost production performance, global test fold, drawn from figures \ref{fig:production_result_XGBoost_1}-\ref{fig:production_result_XGBoost_4}}
+\label{tab:pair_level_xgb_production}
+\end{table}
+
+The concentration pattern already identified in the tournament phase is, if anything, sharper here. Five of the seven G7 majors (AUDUSD, GBPUSD, NZDUSD, USDCAD, and USDCHF) 
+execute literally zero trades over the entire global test fold, which is a direct consequence of the tight meta-significance thresholds the production Optuna study converged on 
+for these pairs (see table \ref{tab:hps_XGBoost_production} where i.e AUDUSD converged at $0.01$ and USDCHF at $0.02$). USDJPY does trade, comparatively often ($184$ trades), 
+but loses money (return $-0.81\%$, Sharpe $-2.30$) and EURUSD trades only marginally ($8$ trades, $1.9\%$ average exposure). Pooling by group, the majors average a return of 
+$\approx -0.03\%$ and a Sharpe of $\approx 0.22$ across the fold, while the four EM/exotic pairs average a return of $\approx 27.28\%$ and a Sharpe of $\approx 11.43$. 
+As in the tournament, essentially all of the aggregate profit originates from USDZAR, USDMXN, USDTRY, and USDCNH, whereas the majors collectively contribute nothing.
+
+Several further caveats temper how much confidence this concentrated edge deserves.
+
+\begin{itemize}
+\item \textbf{The reported CAGR figures are, if anything, more implausible than in the tournament.} USDZAR's annualized CAGR of $1387.75\%$ and USDTRY's $42.09\%$ are compounded 
+extrapolations of a real return realized over roughly eleven weeks. Even setting aside execution frictions, a headline figure of this magnitude is a direct artifact of annualizing 
+a short, favorable run rather than a claim about sustainable performance and the correspondingly tiny realized drawdowns (USDZAR's MDD of $-2.89\%$, USDTRY's $-0.51\%$) likely 
+reflect that the window has not sampled an adverse regime rather than provide evidence that these strategies carry little risk.
+
+\item \textbf{The deflated Sharpe ratio flags EURUSD and USDCNH as considerably less trustworthy than their nominal Sharpe ratios suggest.} EURUSD's Sharpe of $3.86$ corresponds 
+to a DSR of only $54.45\%$, and USDCNH's Sharpe of $3.13$ corresponds to a DSR of $39.56\%$, below the $50\%$ mark. After correcting for the number of trials attempted during 
+hyperparameter search, neither result can really be distinguished with confidence from what an extensive search would produce by chance alone, in contrast to USDMXN, USDTRY, and 
+USDZAR, which all report a DSR of $\geq 99.99\%$. We interpret the high DSR of these pairs, however, not as proof of any kind of edge.
+
+\item \textbf{USDJPY illustrates a case where trading actively destroys value.} Over the same window, simply buying and holding USDJPY realizes a Sharpe of $1.27$ 
+(see table \ref{tab:strategy_comparison_XGBoost_production}), reflecting a persistent yen-weakening trend. The full model, despite a meta-significance threshold loose enough to 
+admit $184$ trades, converts this into a Sharpe of $-2.30$ and a $10.87\%$ win rate. Here the model would have been better replaced by inaction or by the naive benchmark it is 
+meant to outperform.
+
+\item \textbf{USDTRY's edge overlaps substantially with passive currency exposure, while USDZAR's, USDMXN's, and USDCNH's largely do not.} Buy-and-hold alone achieves a Sharpe 
+of $7.83$ on USDTRY, close to the full model's $11.83$, and the execution log (see figure \ref{fig:production_result_XGBoost_4}) shows a steady, gradual lira depreciation over the 
+window rather than a single discrete event as in the tournament phase. A meaningful share of this pair's apparent edge is therefore beta to a well-known structural trend. 
+By contrast, buy-and-hold Sharpe ratios for USDZAR ($0.08$), USDMXN ($0.36$), and USDCNH ($-1.05$) are close to zero or negative, meaning the model's profits on these three pairs 
+cannot be explained by passively holding the underlying currency and instead rest entirely on the specific entry, exit, and sizing logic, concentrating risk in a comparatively 
+untested mechanism with no passive floor to fall back on if the signal degrades.
+
+\item \textbf{USDZAR exhibits significant data inconsistencies.} At least three major flash crashes are identifiable in the USDZAR execution log 
+(see figure \ref{fig:production_result_XGBoost_4}), none of which are confirmed by alternative data sources (see TradingView\footnote{\url{https://www.tradingview.com/chart/?symbol=OANDA%3AUSDZAR}}) 
+or supported by corresponding news events. The only notable macroeconomic shift during this period is an increase in the South African interest rate from 6.75\% to 7\% on 
+May 28, 2026, which does not temporally align with any of the three observed crashes (see SARB\footnote{\url{https://www.resbank.co.za/en/home/what-we-do/statistics/key-statistics/selected-historical-rates}}). 
+Additionally, the dataset contains multiple instances of interpolation across extended periods of missing data for USDZAR.
+\end{itemize}
+
+\medskip
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% GO OVER THIS CONCLUDING PART AGAIN %%%%%%%%%%%%%%%%%
+% The problem here is that we say the system correctly identifies that there is no exploitable edge in the G7 majors but 
+% that could techincally be incorrect due to the fact that we pool the calibration set!!!!!
+\paragraph{CHECK HERE AGAIN!}
+Taken together, the production results reinforce rather than resolve the concerns raised at the tournament stage. The single-architecture, pair-tuned design again correctly 
+identifies that most G7 majors offer no exploitable edge under this feature set and now abstains from them almost entirely rather than underperforming on them. 
+The profit that remains is concentrated in the same four EM/exotic pairs and for three of them (USDZAR, USDMXN, USDCNH) this profit does not appear to be a disguised directional 
+trend, which is the more reassuring reading available. Set against that, the magnitude of the headline figures, particularly USDZAR's return and annualized CAGR, is inflated by a 
+short, largely favorable test window that has not yet been stress-tested by an adverse regime and the deflated Sharpe ratios for EURUSD and USDCNH indicate that not every 
+nominally profitable pair should be read as a genuine edge.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}[H]
     \centering
@@ -1552,97 +1607,232 @@ rather than assumed from the tournament outcome alone.
     \end{minipage}
 \end{figure}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\input{../data/tables/production/performance_tables/perf_XGBoost_production.tex}
+\subsection{Tournament vs. Production}
 
-\input{../data/tables/production/strategy_comparison/strategy_comp_XGBoost_production.tex}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\input{../data/tables/production/rrf_leaderboard/rrf_matrix_production.tex}
-\input{../data/tables/production/rrf_leaderboard/rrf_summary_production.tex}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The preceding subsections established the results in production for the winning XGBoost architecture in isolation. It is instructive to place these figures side-by-side with 
+the corresponding tournament output (see figures \ref{fig:feature importances}-\ref{fig:tournament_results_XGBoost_4} and tables \ref{tab:hps_XGBoost_tournament}-\ref{tab:pair_level_xgb_production}) 
+to isolate what is gained and reconfirmed by promoting a single architecture out of the tournament phase.
 
 
-\subsubsection{Tournament vs. Production: Robustness \& Performance Consistency}
-- comparison tables of ie financial statistics like sharpe etc (Metric / Tournament (mean) / Production / Change)
-- talk about best/worst performing pairs between tournament and production model but put the table in appendix
+\subsubsection{Signal volume and acceptance under conformal filtering.} 
+At a comparable significance level ($\alpha \approx 0.10$ in both regimes), the conformal filter behaves very differently in absolute terms. 
+In production fold 1, XGBoost accepts 3939 of 14303 candidate signals (27.5\%) with a hit rate of 60.6\% (2385 hits vs.\ 1554 misses, see figure \ref{fig:prod conf preds} panel A). 
+In the tournament, the same architecture accepts a far smaller fraction of its candidate pool (accepts 1634 of 13243, 12.3\%) in fold 1 with a hit rate of 58.3\% (953 hits vs.\ 681 misses) 
+compared to 7.3\% acceptance in fold 2 (971 of 13251) and a higher hit rate of 74.1\% (719 hits vs.\ 252 misses). The rejection zone boundaries around the M2 midpoint are 
+similar in width across both regimes, so the discrepancy is not primarily a calibration artifact but rather reflects the fact that the production dataset yields a denser, more 
+separable cluster of high-confidence directional calls once the model is fit on the full accumulated history rather than a single tournament fold. This trade-off is visible directly 
+in the nested confusion matrices (see figure \ref{fig:model-specific confusion matrices 1} vs.\ figure \ref{fig:prod confusion matrices}) where the M2 meta-model's raw 
+discrimination accuracy on the wrong/correct task is essentially unchanged between regimes ($\approx$51.3\% in production and 49.0-50.3\% across the two tournament folds). 
+Thus, the additional accepted volume in production is suggested to come from the conformal layer admitting a wider effective population at the same nominal significance, not 
+from a stronger meta-model.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Calibration quality.}
+Reliability diagrams (see figures \ref{fig:model-specific reliability diagrams1} vs.\ \ref{fig:prod reliability curves}) show that the production Brier score of 0.2461 sits 
+between the two tournament folds (0.2492 in fold 1 and 0.2456 in fold 2). All three curves track the diagonal somewhat closely in the well-populated 0.5-0.65 confidence band, 
+with the familiar widening of the confidence interval only in the sparsely sampled tails. XGBoost's calibration is also consistently tighter than the recurrent architectures 
+(LSTM, GRU) evaluated in the tournament, which show pronounced instability at lower confidence and density bins (see figure \ref{fig:model-specific reliability diagrams2}) which 
+reinforces the selection of XGBoost as the more reliable candidate, independent of the production refinement step.
+
+
+\subsubsection{Downstream trading performance and local hyperparameter re-adaptation.}
+The practical payoff of the production refinement is clearest in the strategy comparison tables. Under the conformal filtered strategy (M1 + M2 (Conformal)), production fold 1 
+achieves an average annualized Sharpe ratio of 4.30 ($\pm$6.65, see table \ref{tab:strategy_comparison_XGBoost_production}), versus 1.52 ($\pm$3.78) in tournament fold 1 and 2.42 
+($\pm$5.27) in tournament fold 2 (see table \ref{tab:strategy_comparison_XGBoost_tournament}) which is roughly a 2-3x improvement in risk-adjusted return. The gap is already 
+present at the M1-only stage (production: $-2.55 \pm 13.65$ vs.\ tournament fold 1/2: $-5.50 \pm 8.26$ / $-3.08 \pm 10.16$), indicating that part of the improvement is 
+attributable to fitting the base learner on more data rather than to the meta-labeling or conformal layers themselves. Notably, the marginal contribution of conformal filtering 
+(M1 + M2 (Conformal)) with pair-specific parameters over the global baseline (M1 + M2 (Global)) with the median of these parameters is small in production (4.17 $\to$ 4.30) but 
+larger and less consistent in the tournament. Conformal filtering with pair-specific parameters during the tournament lifts fold 1 substantially (-0.36 $\to$ 1.52) but slightly 
+underperforms the global variant in fold 2 (3.05 $\to$ 2.42). This suggests conformal filtering with pair-specific parameters is most valuable precisely when the underlying signal 
+is noisiest, i.e. in the harder tournament folds while its benefit partially saturates once the base pipeline is already well-tuned in production.
+Additionally, comparing the pair-specific trading hyperparameters (see table \ref{tab:hps_XGBoost_tournament} vs.\ table \ref{tab:hps_XGBoost_production}) confirms that production 
+is not a frozen replay of the tournament configuration but a genuine re-optimization. The trading-level hyperparameters shift materially per pair between phases 
+(e.g.\ USDTRY's risk allocation drops from 0.01-0.03 in the tournament folds to 0.0095 in production, while its Kelly fraction rises from 0.14-0.58 to 0.78). This re-adaptation, 
+combined with the larger effective training window, is consistent with the observed gains in both raw signal acceptance and realized Sharpe ratio. Furthermore, it supports 
+treating the tournament as a architecture selection mechanism whose winner still benefits meaningfully from a dedicated production refit rather than a mechanism that alone 
+determines final deployment performance.
+
 
 %%%%%%%%%%%%%%
 % DISCUSSION %
 %%%%%%%%%%%%%%
 \section{Discussion}
 
+The preceding chapter reported the empirical results of the tournament and production phases in isolation, architecture by architecture, pair by pair, and diagnostic by diagnostic. 
+This section steps back from that granular reporting and reassembles those findings against the five research objectives set out in section \ref{sec:research_objectives}, before 
+returning to the overarching question posed at the very beginning of this thesis: can an ML classifier be built that drives a Forex trading model successfully? Read across the whole 
+empirical chapter, the honest answer is neither an unqualified yes nor a simple no, but a conditional one, in that a classifier-driven pipeline can be made to work, but only once 
+it is embedded in a substantial verification apparatus whose primary function is to say "no" far more often than "yes", and even then its apparent success is concentrated, 
+event-dependent, and only partially attributable to the components it was designed to test.
+
+
+\subsection{Architecture Efficacy and the Tournament Framework}
+
+The nested, purged, and embargoed walk-forward tournament identified XGBoost as the RRF-aggregated winner (table \ref{tab:ranking_tournament}) and the production-phase comparison 
+in section \ref{sec:production_performance} did not overturn this choice. XGBoost's advantages over the recurrent architectures were reconfirmed rather than merely assumed. Three 
+threads of evidence converge on this. First, XGBoost was the only architecture whose empirical false-accept rate tracked its nominal conformal significance level tightly in fold 1 
+(ratio $1.03$, see table \ref{tab:nested_confusion_summary}), while the two recurrent architectures (LSTM, GRU) and the bagged tree ensembles (RandomForest, ExtraTrees) exceeded their 
+nominal target by a factor of two or more. Second, XGBoost's reliability diagram tail sat closest to the diagonal in fold 1, giving a mechanistic explanation for the coverage result 
+above it, since an overconfident raw score is what inflates the calibration set quantile and lets true mistakes slip through. Third, LSTM was the single architecture whose 
+conformal guarantee failed in both folds and it did so even in fold 2, where its raw Brier calibration was, paradoxically, the best-behaved of any architecture. This is not a 
+contradiction but a genuine methodological finding, since a well-calibrated probability and an exchangeable non-conformity score are two distinct properties and a model can hold 
+one without the other. Recurrent architectures, at least under the endogenous, feature set used here, appear to be better probability estimators in isolation but 
+worse foundations for a conformal veto, which is arguably the more decision-relevant of the two properties for this pipeline.
+
+\medskip
+
+What the tournament framework did not deliver is a uniformly dominant architecture in the sense the research question originally poses it. Every one of the six candidates 
+failed to clear the bar of comparably-sized, uniform profitability across the eleven currency pairs (see section \ref{sec:tournament_trading_hps} onward), and the same EM-concentration, 
+major-neglection pattern documented for XGBoost recurred across all six architectures and both folds (see table \ref{tab:rrf_summary_tournament}). The tournament, in other words, is 
+better understood as having answered a comparative question, which architecture is least fragile under a shared, adversarial protocol, rather than an absolute one, which architecture 
+is robust in its own right. XGBoost's selection is therefore defensible on relative grounds precisely because it is the architecture whose failure modes (concentrated profit, event 
+dependence, small sample ratio artifacts) are traceable and interpretable rather than ambiguous, not because those failure modes were absent from its results.
+
+
+\subsection{Efficacy of the Meta-Machinery: Filtering and Sizing}
+
+The dissection in table \ref{tab:strategy_comparison_XGBoost_tournament} gives the clearest and most internally consistent answer of the five objectives. The unfiltered M1 signal is 
+not merely unprofitable, it is actively destructive, averaging Sharpe ratios of $-5.50$ and $-3.08$ across the two folds and posting the single worst per-pair result in the table for 
+every major currency. This establishes unambiguously that the value of the meta-labeling architecture in this thesis lies in veto power, not signal refinement. The referee model 
+does not sharpen a usable directional edge, it exists to suppress one that is not usable in the first place.
+
+\medskip
+
+Whether conformal calibration adds value beyond the meta-model itself is a more qualified yes. The fixed-threshold M2 filter recovers a large share of the lost performance 
+(fold 1: $-5.50 \to -3.94$; fold 2: $-3.08 \to -0.88$) but never crosses into positive average territory, confirming that M2's probabilities carry real information without being 
+usable at an arbitrary cut-off. Conformal calibration is what completes the recovery into positive territory in fold 1 ($-3.94 \to 1.52$ once combined with per-pair tuning) and 
+does most of its work not by improving per-trade quality on marginal pairs but by avoiding pairs that offer no apparent edge, visible directly as the block of exact 
+$0.00\%$ returns for most majors in fold 2 (see section \ref{tab:pair_level_xgb}). Thus, this conformal layer mechanism earns its keep by refusing to trade rather than by trading 
+better, which matters for how the result should be interpreted going forward, since a filter that mostly says no is not the same achievement as a filter that consistently picks winners.
+
+\medskip
+
+Set against this is the violation of the historical coverage reported in section \ref{sec:confusion_matrices_tournament} (see table \ref{tab:nested_confusion_summary}) where in fold 1, 
+four of six architectures let through roughly twice as many true mistakes as their tuned significance level promised and the calibration guarantee only came close to holding once the 
+sliding memory window had accumulated a full fold's worth of history. Practically, this means the referee is least reliable exactly when it is most needed, early in a live deployment, 
+before its calibration set has matured, which is a genuine limitation of the walk-forward conformal design as implemented here rather than an artifact of any single architecture's 
+weaknesses.
+
+
+\subsection{Statistical Discovery Control and Overfitting Mitigation}
+
+The deflated Sharpe ratio did the job it was introduced to do, but its verdict complicates rather than simplifies the headline profitability numbers. In production, EURUSD's 
+nominal Sharpe of $3.86$ and USDCNH's of $3.13$, both superficially respectable, correspond to DSRs of $54.45\%$ and $39.56\%$ respectively, the latter falling below the 
+coin flip threshold once the number of trials expended during hyperparameter search is accounted for. Neither result can be distinguished with any confidence from what an 
+exhaustive search would be expected to turn up by chance. By the same measure, USDMXN, USDTRY, and USDZAR all report DSRs of $99.99\%$ or higher, and it is tempting to read this 
+as confirmation of a genuine edge in exactly the pairs already flagged as the tournament's main profit centers.
+
+\medskip
+
+We resist that reading for the same reason flagged in section \ref{sec:production_performance} as a high DSR establishes that the observed Sharpe ratio is unlikely to be a product of 
+selection bias across the trials attempted, but it does not establish that the underlying return process is stationary, repeatable, or free of event-dependence, let alone has a 
+questionable underlying quality of the data itself. USDTRY's fold 1 return (see section \ref{sec:backtests_tournament}, figure \ref{fig:tournament_results_XGBoost_4}) is substantially 
+explained by a single large repricing event in March 2025, and USDZAR's production-phase CAGR of $1387.75\%$ is an artifact of annualizing an eleven-week window that has not yet 
+encountered an adverse regime, besides also showing several unexplained dips in the exchange rate (see section \ref{sec:production_performance}, figure \ref{fig:production_result_XGBoost_4}). 
+The DSR and the event-dependence diagnosis are, in this sense, answering two different questions, whether the result survived the 
+multiple-testing problem inherent in HPO and whether the underlying process generating that result is stable. It is needless to say that a pair can pass the first test decisively 
+while remaining vulnerable on the second. Objective 3's question, whether DSR can prevent the deployment of over-optimized models, is therefore only partially answered by this thesis, 
+since DSR correctly flagged two of the weakest production results (EURUSD, USDCNH) as statistically indistinguishable from noise. This is exactly its intended function, but it should 
+not be read as a general-purpose seal of approval for the pairs that passed, since it is silent on the tail and regime risks as well as questionable data integrity discussed in 
+section \ref{sec:production_performance}.
+
+
+\subsection{Feature Anatomy: What Works and Why}
+
+The feature selection results in section \ref{sec:tournament_trading_hps} paint a more unstable picture than the pipeline's downstream profitability figures might suggest. A small 
+handful of features, most notably num\_VWMA, together with num\_A/D, the spread volatility and volatility features, and num\_spread\_pips, held broadly 
+consistent rank across both mutual information and permutation importance metrics and across both outer folds. Thus, they are the closest thing this study offers to a structurally 
+durable signal. The remainder of the ranking, however, reshuffled considerably fold to fold, with features prominent in one window (e.g. num\_trade\_position\_in\_spread 
+in fold 2), but failing to register at all in the other. This instability is precisely why a single, common feature set per fold, rather than per-model selection, was adopted as the 
+tournament's design choice in the first place. Allowing each architecture to select its own subset would have generated genuine architectural differences with noise in the 
+selection process itself.
+
+\medskip
+
+The divergence between mutual importance and permutation importance rankings is itself informative about why these features work rather than that they do. Mutual information captures 
+marginal, univariate association with the label, while permutation importance reflects a feature's contribution to the fitted model net of interaction effects with everything 
+else retained. That a feature can rank highly on one metric and modestly on the other is consistent with at least two of the surviving features (VWMA-derived momentum, spread and 
+order-flow proxies) encoding information that is only partially exploitable in isolation and becomes more valuable in combination with the model's other retained inputs. 
+This is an observation that is suggestive of genuine microstructural and momentum content rather than spurious correlation, which this thesis's post-mortem being observational rather 
+than causal, cannot confirm directly. We regard the stability of this small feature core across two out-of-sample windows as the strongest evidence available in this study that 
+some component of the endogenous feature space captures a structural rather than a purely stochastic property of the market, while the volatility of the remainder is an explicit 
+caution against over-interpreting any single fold's importance ranking as a durable discovery.
+
+
+\subsection{Global Robustness versus Local Adaptation}
+
+The "global model, local parameters" philosophy carried through this thesis, one architecture selected once and reused across pairs with only its trading-level hyperparameters 
+tuned locally, is architecturally what was built, but the evidence for its superiority over a simpler global configuration is genuinely mixed rather than confirmatory. The direct 
+dissection in table \ref{tab:strategy_comparison_XGBoost_tournament} shows per-pair tuning outperforming the globally-tuned baseline in fold 1 ($1.52$ vs.\ $-0.36$) but 
+underperforming it in fold 2 ($2.42$ vs.\ $3.05$). Furthermore, with standard deviations of comparable magnitude to the means in both folds, a single reversal across only two outer 
+folds is not sufficient evidence either to confirm or to reject the local adaptation hypothesis. The production phase optimization (section \ref{sec:production_performance}) 
+reinforces the "local" side of this tension in a different way as trading hyperparameters shift materially per pair between the tournament and production fits 
+(i.e.\ USDTRY's Kelly fraction moving from $0.14$-$0.58$ to $0.78$ or USDCNH's risk-reward geometry shifting from roughly 1:1 to 2:1 in production), which demonstrates that 
+pair-specific parameters are doing substantive, non-trivial work rather than converging to a shared default, even if the marginal benefit of that work over a global configuration 
+remains unproven at the tournament level.
+
+\medskip
+
+Where the "global vs. local" question resolves more clearly is not in the trading parameter dimension but in the conformal significance dimension. The meta-significance level 
+$\varepsilon$ spans nearly its entire admissible range across pairs in both the tournament and production phases (from a highly selective $0.01$ for AUDUSD to a comparatively 
+permissive $0.19$-$0.20$ for EURUSD and USDCNH in production) and it is this pair-specific significance threshold, more than the ATR-based stop-loss and take-profit multiples, 
+that determines whether a pair trades at all. The neglect to trade majors in both phases is a direct consequence of the Optuna study converging on tight $\varepsilon$ values 
+for exactly those pairs, which is arguably the "execution guardrail" objective's clearest success (compare with sections \ref{sec:problem_statement} and \ref{sec:research_objectives}). 
+The framework correctly learns, that most G7 majors do not offer an exploitable edge under this feature set and architecture, thus enforces that conclusion through statistical veto 
+rather than requiring it to be imposed manually.
+
+
+\subsection{Synthesis: Revisiting the Overarching Research Question}
+
+Bringing these five threads together, this thesis's answer to whether an ML classifier can drive a Forex trading model successfully is layered. A raw classifier cannot as the M1-only 
+dissection is the single most unambiguous result in the entire empirical chapter (see table \ref{tab:strategy_comparison_XGBoost_tournament}). A classifier embedded in a meta-labeling 
+and conformal veto architecture can be made profitable on a subset of its trading universe, but the mechanism by which it becomes profitable is disproportionately one of principled 
+abstention to trade rather than improved directional accuracy. Also, the profits that remain are concentrated in a small number of EM/exotic pairs whose statistics are, on closer 
+inspection, considerably more fragile (event-dependent, small-sample, DSR-flagged, or exhibit data integrity issues) than their headline Sharpe ratios suggest. The tournament 
+framework succeeded at its narrower, comparative task of identifying the least fragile of six candidates under a shared adversarial protocol, but neither the tournament nor the 
+production refit produced an architecture whose success generalizes uniformly across the full multi-pair universe. The per-pair local adaptation this thesis set out to test remains 
+only partially and inconsistently supported by the dissection evidence gathered. Taken as a whole, we regard this as a more honest and more useful finding than a simple confirmation 
+of the original hypothesis would have been, since it identifies precisely which components of the pipeline (the veto logic, the per-pair significance threshold) are doing genuine, 
+traceable work, and which components (uniform cross-pair profitability, the incremental benefit of local trading-parameter tuning over a global configuration) remain unresolved and 
+should not be oversold on the strength of this study's two-fold, short evaluation alone.
+
 %%%%%%%%%%%%%%
 % CONCLUSION %
 %%%%%%%%%%%%%%
 \section{Conclusion and Future Work}
 \subsection{Summary}
-The Efficacy of Meta-Labeling in Forex
+
+This thesis set out to answer a deliberately blunt question, whether a machine learning classifier can be built that drives a Forex trading model successfully. Rather than pursuing 
+raw predictive power, the approach taken here was to treat that question as one of statistical verification first and prediction second, building a pipeline in which every candidate 
+trade signal has to survive a sequence of adversarial checks, a nested walk-forward split, a secondary meta-model acting as referee, a conformal calibration layer 
+translating that referee's opinion into a formal significance test, and a deflated Sharpe ratio correcting for the number of configurations searched along the way, before it is 
+allowed to reach the backtester at all.
+
+\medskip
+
+Across the five research objectives, the results are consistent in shape even where they differ in detail, because this machinery matters, and it matters in a specific way. The 
+architecture tournament (Objective 1) identified XGBoost as the most defensible candidate among six architectures, not because it traded profitably everywhere, none of the six 
+did, but because its conformal calibration held up more reliably than its competitors' and its failure modes remained traceable rather than hidden. The meta-labeling and conformal 
+filtering layer (Objective 2) turned out to be the single load-bearing component of the entire pipeline as an unfiltered directional signal was not merely weak but actively 
+loss-making and the recovery into profitability came almost entirely from the system learning when not to trade rather than from any improvement in directional accuracy. Statistical 
+discovery control via the deflated Sharpe ratio (Objective 3) did its intended job of separating likely noise from likely signal, flagging two of the production model's nominally 
+profitable pairs as statistically indistinguishable from chance, though it was equally clear that a high DSR is a defense against selection bias in hyperparameter search and not a 
+guarantee of a stationary, repeatable edge. The feature post-mortem (Objective 4) surfaced a small, stable core of momentum and microstructure features that held their rank across 
+both out-of-sample windows, alongside a much larger set of features whose importance reshuffled substantially fold to fold, which isa pattern that shaped the tournament's design as 
+much as it did its results. Ultimately, the question of global robustness versus local adaptation (Objective 5) was answered unevenly under the current pipeline, since the 
+pair-specific conformal significance threshold did real, decisive work by driving the model to almost entirely avoid G7 majors, while the corresponding case for pair-specific 
+trading parameter tuning over a single global configuration remained genuinely unresolved across the two folds tested.
+
+\medskip
+
+Taken together, this thesis does not conclude that machine learning can drive a uniformly profitable Forex strategy across the subset of eleven pairs and the empirical record does 
+not support that stronger claim. What it does show is narrower and, we think, more useful, because a classifier-driven pipeline can be made to behave responsibly under out-of-sample 
+testing, largely by being taught to say no. The resulting, concentrated profitability that remains is real enough to survive a battery of overfitting checks in a handful of 
+pairs, while being modest, fragile, and event-dependent enough that it should be read as a proof of concept for the verification framework itself rather than as evidence of a 
+deployable, general-purpose trading edge. If there is a single takeaway this research would want to leave a practitioner or a future researcher with, it is that the statistical 
+skepticism built into the pipeline, the willingness to reject a signal, a pair, or an entire architecture rather than force a result, is not a constraint on this approach's 
+performance but the mechanism that makes whatever performance does emerge worth taking seriously in the first place.
 
 
 \subsection{Future Extensions}
@@ -1689,12 +1879,12 @@ conformal veto logic.
 
 \subsubsection{More Exhaustive Hyperparameter Search}
 
-For tournament
-n_model_trials=25        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
-n_trading_trials=50     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
+% For tournament
+% n_model_trials=25        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
+% n_trading_trials=50     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
 
-For productionn_model_trials=50        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
-n_trading_trials=100     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
+% For productionn_model_trials=50        # Number of 'outer' Optuna trials to conduct (computationally expensive because it involves Model training)
+% n_trading_trials=100     # Number of 'inner' Optuna trials to conduct (conducts n backtests on the same model for fair evaluation)
 
 %%%%%%%%%%%%%%%%
 % BIBLIOGRAPHY %
@@ -2039,15 +2229,15 @@ the observed performance is considered statistically insufficient to distinguish
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/distributions/Production_financial_dist_RandomForest.png}
+    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/distributions/Production_financial_dist_XGBoost.png}
     \caption{Financial Statistic Distributions During Production Optimization}
     \label{fig:prod stat distributions}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/production/RandomForest/param_importance_trading_(best)_randomforest.png}
-    \caption{Optimization Parameter Importance Trading (Best) RandomForest}
+    \includegraphics[width=0.95\linewidth]{../data/figures/optimization/production/XGBoost/param_importance_trading_(best)_xgboost.png}
+    \caption{Optimization Parameter Importance Trading (Best) XGBoost}
     \label{fig:opt param importance trading rf}
 \end{figure}
 
@@ -2071,6 +2261,7 @@ the observed performance is considered statistically insufficient to distinguish
     \label{fig:prod confusion matrices}
 \end{figure}
 
+
 \subsection{Reliability Diagrams}
 
 \begin{figure}[H]
@@ -2079,6 +2270,12 @@ the observed performance is considered statistically insufficient to distinguish
     \caption{Model-Specific Reliability Diagrams During Production}
     \label{fig:prod reliability curves}
 \end{figure}
+
+
+\subsection{Granular Performance of Production Model}
+\input{../data/tables/production/rrf_leaderboard/rrf_matrix_production.tex}
+\input{../data/tables/production/rrf_leaderboard/rrf_summary_production.tex}
+\input{../data/tables/production/performance_tables/perf_XGBoost_production.tex}
 
 
 \section{Miscellaneous}\label{app:miscellaneous}
