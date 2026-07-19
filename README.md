@@ -13,7 +13,7 @@ cd master_thesis
 ### 2.5 (Optional) Create a Virtual Environment
 ```bash
 python -m venv venv
-source venv\Scripts\activate
+venv\Scripts\Activate.ps1
 ```
 
 ### 3. Install packages
