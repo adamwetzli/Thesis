@@ -844,7 +844,7 @@ suggesting that the profitable risk-reward geometry is itself pair- and regime-s
     \centering
     \includegraphics[width=0.95\linewidth]{../data/figures/optimization/distributions/Tournament_financial_dist_XGBoost.png}
     \caption{Financial Statistic Distributions During Tournament Optimization}
-    \label{fig:distributions}
+    \label{fig:financial_dist_xgboost}
 \end{figure}
 
 Before discussing individual panels, it is worth clarifying how each point in \ref{fig:financial_dist_xgboost} is constructed. Rather than reporting one distribution per currency 
@@ -1236,7 +1236,7 @@ table \ref{tab:ranking_tournament}. Additionally, table \ref{tab:all_models_tour
 pairs and both outer folds. The core design claim carried through this thesis, a single model architecture, tuned per pair via a small set of interpretable, pair-specific parameters 
 (see table \ref{tab:hps_XGBoost_tournament}), is architecturally accurate as XGBoost is indeed selected once and reused across all eleven pairs, with only its trading-level 
 hyperparameters varying by pair and fold. What that design claim does not imply and what the pair-level results in figures 
-\ref{tournament_results_XGBoost_1}-\ref{tournament_results_XGBoost_4} do not support is, that this adaptation produces uniformly robust, comparably-sized 
+\ref{fig:tournament_results_XGBoost_1}-\ref{fig:tournament_results_XGBoost_4} do not support is, that this adaptation produces uniformly robust, comparably-sized 
 profitability across pairs. It does not, and the remainder of this section examines why in some detail, since the aggregate statistics alone understate how concentrated and 
 fragile the tournament's apparent edge actually is.
 
