@@ -232,7 +232,7 @@ and the underlying reasons for feature performance. This is decomposed into the 
 
   \item \textbf{Statistical Discovery Control \& Overfitting Mitigation}
   \begin{enumerate}
-    \item \textit{Question:} Can the Deflated Sharpe Ratio (DSR) prevent the deployment of over-optimized models?
+    \item \textit{Question:} Can the deflated Sharpe ratio (DSR) prevent the deployment of over-optimized models?
     \item \textit{Objective:} To distinguish between strategy luck and systematic alpha using advanced metrics.
   \end{enumerate}
   
@@ -430,8 +430,8 @@ The research methodology is visually summarized through two lenses:
     and ultimately crowns a tournament winner which is made ready for production.
 
     \item Figure \ref{fig:pipeline structure} details the timeseries split of the tournament and production phases. 
-    This technical view highlights the "two-phase" approach, where a primary (M1) model identifies directional opportunities while a secondary (M2) 
-    meta-labeling model—enhanced by conformal prediction—acts as a statistical filter to validate trade quality.
+    This technical view highlights the two-phase approach, where a primary (M1) model identifies directional opportunities while a secondary (M2) 
+    meta-labeling model, enhanced by conformal prediction, acts as a statistical filter to validate trade quality.
 \end{itemize}
 
 \begin{figure}[H]
@@ -455,7 +455,7 @@ The research methodology is visually summarized through two lenses:
 
 The data acquisition process is designed to consolidate two different sources into a unified historical dataset.
 Hourly OHLCV data is retrieved via the OpenBB SDK, utilizing the Polygon.io provider. 
-The system iterates over a list of Forex pairs and performs for each pair incremental updates by detecting the the last timestamp in the local CSV. 
+The system iterates over a list of Forex pairs and performs for each pair incremental updates by detecting the last timestamp in the local CSV. 
 It then tries to fetch as much data as possible in a single API request starting from the last timestamp while respecting a "backoff" period that accounts for the 
 number of fetching attempts and API rate limits. If there is no last timestamp, i.e. data is requested for the very first time, the first timestamp will be placed roughly two years 
 in the past as this is the maximum period available within the free tier of the polygon API. However, the code allows to extend the dataset every additional day the
@@ -479,7 +479,7 @@ Secondly, timestamps are validated for strict monotonicity and any non-chronolog
 Finally, a sophisticated diagnostic is performed to compare transaction prices against the corresponding bid/ask spread. 
 While transaction prices should ideally reside within the quoted range, the system analyzes the magnitude of violations using both zero-tolerance and slippage-buffered thresholds. 
 It is important to note that these flagged bars are not filtered out during the cleaning phase because the available bid/ask data represents 
-the Top-of-Book (Level 1), which only reflects the best quote for standard volume sizes. 
+the top-of-book (level 1), which only reflects the best quote for standard volume sizes. 
 In reality, larger transaction volumes often sweep through the order book, executing at deeper level prices outside the initial spread. 
 By retaining these bars, the methodology ensures the dataset remains representative of actual market execution.
 
@@ -497,13 +497,13 @@ trivial to assign the correct scaler to the respective feature.
 
 In order to capture global trading hours, the system encodes time using both binary flags and cyclical transforms.
 It does so via binary indicators that identify among others the London, New York, and Asia sessions, as well as overlaps (i.e., London-NY).
-Features such as Time-of-day and day-of-week are transformed using sine and cosine functions to cyclical features which ensures that the 
+Features such as time-of-day and day-of-week are transformed using sine and cosine functions to cyclical features which ensures that the 
 model perceives the circular nature of time (i.e., that hour 23 is close to hour 0).
 To move beyond raw price data, a broad range of technical and momentum indicators is engineered to quantify price velocity, trend exhaustion, and prevailing market regimes. 
 This category focuses on capturing the "energy" and stability of price movements, providing the model with normalized signals that distinguish between 
 low-volatility ranging markets and high-momentum breakouts across varying look-back windows.
 The pipeline leverages bid/ask and volume data to model microstructural dynamics of the market by extracting features related to order flow imbalance, spread fluctuations, and quote
-resilience. These microstructural signals try to serve as a proxy for the information content of the order book, offering a deeper view of market state
+resilience. These microstructural signals try to serve as a proxy for the information content of the order book, offering a deeper view of the market state
 than traditional price action alone.
 Recognizing that market behavior is highly dependent on the active trading session (i.e. London vs. NY), 
 interaction features are created to capture the relationship between time-based sessions and price dynamics.
@@ -545,7 +545,7 @@ to identify the most robust learner for high-frequency forex signals. The primar
     correcting the errors made by the previous ones. XGBoost is highly regarded for its precision and regularization techniques that prevent overfitting, 
     while LightGBM is optimized for speed and efficiency, making it particularly effective at processing the large, high-dimensional feature sets common in forex trading.
 
-    \item Recurrent Neural Networks (LSTM \& GRU): These architectures are designed specifically for time-series data. Long Short-Term Memory (LSTM) networks use a "gating" mechanism 
+    \item Recurrent Neural Networks (LSTM \& GRU): These architectures are designed specifically for time-series data. Long Short-Term Memory (LSTM) networks use a gating mechanism 
     to selectively remember or forget information over long periods, allowing them to capture deep historical patterns in price action. The Gated Recurrent Unit (GRU) is a more 
     streamlined version of this logic that often achieves similar performance with less computational complexity, providing a faster alternative for sequential learning.
 \end{itemize}
@@ -553,7 +553,7 @@ to identify the most robust learner for high-frequency forex signals. The primar
 
 \subsubsection{Feature Preprocessing and Selection}\label{sec:preprocessing_scaling}
 
-As already announced in Figures \ref{fig:methodology flowchart} and \ref{fig:pipeline structure} the feature selection and preprocessing logic is executed exactly once per outer training fold.
+As already announced in figures \ref{fig:methodology flowchart} and \ref{fig:pipeline structure} the feature selection and preprocessing logic is executed exactly once per outer training fold.
 This obviously leads to a sort of minor lookahead bias in the inner validation sets since a preprocessor that is fitted on the entire outer training fold will transform the data used for 
 validation in a way that would be inaccessible for the model during live trading. However, it is of utmost importance to us to note that this lookahead solely occurs on these inner validation 
 set (included in the outer training set) and that no data was leaked to the outer testing sets as the preprocessor was never fitted on that data. Furthermore, we selected features from the 
@@ -600,14 +600,14 @@ This memory mitigates the problem that in early folds there exists no historical
 
 \subsubsection{Optimizing Model Architecture and Risk Management Hyperparameters}\label{sec:optimize}
 
-The optimization of the trading system is conducted through a Nested Hyperparameter Optimization (HPO) framework where the outer loop tunes the architectural hyperparameters of the M1 and M2 
+The optimization of the trading system is conducted through a nested hyperparameter optimization (HPO) framework where the outer loop tunes the architectural hyperparameters of the M1 and M2 
 models and the inner loop tunes the trading specific hyperparameters. In the outer loop the engine searches for the optimal structural parameters for both the primary model (M1) 
 and the meta-filter (M2). For every trial, the system executes a full walk-forward accumulation as discussed in \ref{sec:meta_label_accumulation} to generate statistically unbiased 
 out-of-sample (OOS) signals and confidence scores for conformal filtering (see \ref{sec:conformal_preds}). For every architectural candidate proposed by the outer loop, 
 a second optimization study is launched in the inner loop which tunes the risk management parameters. These parameters include among others ATR-based stop-loss and take-profit multipliers, 
-the fraction applied to the kelly formula, and the conformal significance level applied to the conformal prediction logic.
+the fraction applied to the kelly-like formula, and the conformal significance level applied to the conformal prediction logic.
 The objective function maximizes the average Sharpe ratio across the cross-section of currency pairs, ensuring that the winning configuration is robust to diverse market behaviors 
-rather than overfitted to a single instrument. To mitigate the "multiple testing" problem inherent in such an exhaustive search, the engine records the variance and total number of 
+rather than overfitted to a single instrument. To mitigate the multiple-testing problem inherent in such an exhaustive search, the engine records the variance and total number of 
 trials to compute the deflated Sharpe ratio, providing a statistically corrected measure of performance.
 
 \medskip
@@ -616,13 +616,13 @@ trials to compute the deflated Sharpe ratio, providing a statistically corrected
 acting as a wide net to identify as many potential opportunities as possible, while the secondary M2 model acts as a precision filter to remove false positives. 
 In this paradigm, M1 is often a simpler, "looser" rule-set, while M2 is the complex machine that does the "heavy lifting". Our methodology adopts a more integrated approach. 
 Rather than fixing M1 as a high-recall "pre-filter", we perform the joint architectural optimization as elaborated above in order to allow the HPO engine to find the global 
-optimum where M1 and M2 are most synergistic. By optimizing them together, we ensure that M1 acts as a "stable signal generator" whose errors are not random flukes, but
+optimum where M1 and M2 are most synergistic. By optimizing them together, we ensure that M1 acts as a stable signal generator whose errors are not random flukes, but
 are statistically significant events that the meta-model is architecturally equipped to recognize and filter.
 
 
 \subsubsection{Custom Backtester}\label{sec:custom_backtester}
 
-This engine uses Mark-to-Market (MTM) accounting as it updates the account's equity at every single time step, including "floating PnL" from open positions and strictly 
+This engine uses mark-to-market (MTM) accounting as it updates the account's equity at every single time step, including "floating PnL" from open positions and strictly 
 deducts transaction costs (commissions) and slippage (price degradation) at both entry and exit to ensure results are more realistic. 
 The core logic of the backtester monitors the distinct exit conditions for every trade whereby it prefers the stop-loss over the take-profit 
 even if the take-profit was triggered in the same candle.\footnote{i.e. within the same hourly bar the current high was greater or equal than the take-profit of a long 
@@ -678,7 +678,7 @@ where \(u\) represents the base position size, \(E\) is the current account capi
 This base size ensures that a stop-loss event results in a loss of exactly \(R\%\) of the portfolio, assuming the signal is valid. To quantify the likelihood of that validity, 
 we compute a conformal confidence score \(c\) for each prediction using the calibration framework introduced by \textcite{shafer_tutorial_2008} and defined in Equation \ref{eq:conformal_p}. 
 To prevent over-aggressive capital allocation on marginal signals, we transform the conformal excess confidence into a dynamic conviction multiplier using the 
-Cumulative Distribution Function (CDF) of the standard Normal distribution, adapting the framework proposed by \textcite[143]{lopez_de_prado_advances_2018}. 
+cumulative distribution function (CDF) of the standard normal distribution, adapting the framework proposed by \textcite[143]{lopez_de_prado_advances_2018}. 
 By mapping the confidence score c into a normalized Z-score, the betting size follows a sigmoid curve. This ensures the strategy remains conservative near the significance threshold 
 while dynamically scaling towards full risk as statistical conviction increases, effectively penalizing "noisy" predictions in the vicinity of the decision boundary.
 
@@ -718,22 +718,25 @@ statistical evidence provided by the conformal engine.
 
 \subsubsection{Evaluation on OOS Test Data}\label{sec:oos_evaluation}
 
-The final stage of the Nested Walk-Forward Validation (WFV) architecture is the unbiased evaluation of the optimized pipeline on the isolated outer test block. 
+The final stage of the nested walk-forward validation (WFV) architecture is the unbiased evaluation of the optimized pipeline on the isolated outer test block. 
 This phase serves as the definitive assessment of the strategy's robustness, simulating a "live" deployment where the model encounters entirely unseen market regimes.
 To maintain strict out-of-sample (OOS) integrity, the evaluation begins with the application of the preprocessing logic established in \ref{sec:preprocessing_scaling}. 
 Specifically, the test data is transformed using the singular ColumnTransformer that was fitted exclusively on the corresponding outer training fold. 
 Similarly, the feature set is restricted to those identified by the hierarchical selection pipeline in \ref{sec:preprocessing_scaling}, ensuring that the architectural tournament 
 is conducted on a consistent and pruned informational subset.
-The predictive execution follows a dual-model flow where the primary model (M1) generates directional signals, while the secondary model (M2) provides the raw probability of M1's success. 
+The predictive execution follows the dual-model flow where the primary model (M1) generates directional signals, while the secondary model (M2) provides the raw probability of M1's success. 
 As established in \ref{sec:meta_label_accumulation}, these raw probabilities are not utilized directly but are instead passed through a conformal filtering layer. 
 The system calculates a dynamic p-value for each prediction by comparing the current M2 probability to the calibration set of historical M1 mistakes accumulated from prior folds. 
 If the resulting p-value meets the per-pair significance threshold \( \varepsilon \) optimized in \ref{sec:optimize}, the trade is authorized.
 The authorized signals are subsequently processed by the backtesting engine (see \ref{sec:custom_backtester}), which implements the risk-parity and non-linear sigmoid sizing logic 
-defined in Equations \ref{eq:pct_risk_model} through \ref{eq:bet}. A distinguishing feature of this evaluation phase is the use of per-pair hyperparameter adaptation. 
+defined in equations \ref{eq:pct_risk_model} through \ref{eq:bet}. A distinguishing feature of this evaluation phase is the use of per-pair hyperparameter adaptation. 
 Unlike a "one-size-fits-all" approach, the backtester utilizes the unique ATR-based stop-loss, take-profit, and max-holding periods identified during the inner optimization study 
 (see \ref{sec:optimize}) for each specific currency pair.
 
-To validate the statistical "value-add" of the conformalized meta-labeling approach, the system benchmarks the resulting performance against five distinct strategies:
+\medskip
+
+To validate the statistical value added of the conformalized meta-labeling approach, the system benchmarks the resulting performance against five distinct strategies:
+
 \begin{enumerate}
     \item Buy and Hold: A passive benchmark representing the raw beta of the currency pair.
     \item SMA Crossover: A technical baseline using 50/200-period moving average logic.
@@ -776,15 +779,14 @@ generalize a conformal veto logic across the entire multi-pair universe without 
 \medskip
 
 Beyond financial outcomes, the integrity of the meta-labeling engine (M2) is evaluated through classification-specific diagnostics. We utilize confusion matrices to monitor the balance 
-between Type I errors (False Discoveries) and Type II errors (Missed Opportunities). To assess the probabilistic quality of the meta-model, we employ reliability diagrams (calibration curves), 
+between Type I errors (false discoveries) and Type II errors (missed opportunities). To assess the probabilistic quality of the meta-model, we employ reliability diagrams (calibration curves), 
 which compare the predicted probabilities of M2 against the actual observed frequencies of M1's correctness. A well-calibrated model, where the curve aligns with the 45-degree diagonal, 
 ensures that the conformal p-values calculated in \ref{sec:conformal_preds} are grounded in realistic probability estimates.
 
 \medskip
 
-\paragraph{LOOK AT THIS AGAIN!}
-To identify the ultimate tournament winner, we utilize a reciprocal rank fusion (RRF) and aggregated performance ranking. Models are ranked based on their mean Sharpe Ratio across all 
-outer test folds and all currency pairs. This "Global Mean" approach penalizes architectures that perform exceptionally well in a single regime but fail to generalize across the 
+To identify the ultimate tournament winner, we utilize, among others, a reciprocal rank fusion (RRF) ranking and all the statistics reported above. Models are ranked based on their mean Sharpe Ratio across all 
+outer test folds and all currency pairs. This "global mean" approach penalizes architectures that perform exceptionally well in a single regime but fail to generalize across the 
 diverse liquidity and volatility profiles of the full multi-pair dataset.
 
 
@@ -795,23 +797,23 @@ diverse liquidity and volatility profiles of the full multi-pair dataset.
 \subsection{The Architecture Tournament}
 
 This section presents the empirical findings of the Architecture Tournament, representing the first major phase of our experimental validation framework 
-(as outlined in Figure \ref{fig:methodology flowchart}). The primary objective of this phase is to conduct an unbiased, out-of-sample peer comparison of the candidate 
-model architectures detailed in \ref{sec:tournament_models} across the currency pairs. To prevent the pervasive issue of backtest overfitting discussed in 
-\ref{sec:backtest_overfitting}, the tournament is executed within a nested walk-forward validation framework as illustrated in Figure \ref{fig:pipeline structure}. 
+(as outlined in figure \ref{fig:methodology flowchart}). The primary objective of this phase is to conduct an unbiased, out-of-sample peer comparison of the candidate 
+model architectures, detailed in \ref{sec:tournament_models}, across the currency pairs. To prevent the pervasive issue of backtest overfitting discussed in 
+\ref{sec:backtest_overfitting}, the tournament is executed within a nested walk-forward validation framework as illustrated in figure \ref{fig:pipeline structure}. 
 The operational pipeline for the tournament proceeds through the following sequential steps:
 
 \begin{itemize}
 \item \textbf{Feature Preprocessing}: Before training, the information space is pruned to exclude multicollinear features using the hierarchical selection 
 pipeline in \ref{sec:preprocessing_scaling}. This ensures a static, homogeneous feature space across all competing architectures for a given fold.
 
-\item \textbf{Conformal Filtering}: Raw probability predictions from the meta-model \ref{sec:conformal_preds} are mapped to dynamical 
-conformal p-values. Signals that fall within the conformal rejection zone defined by the significance level are vetoed.
+\item \textbf{Conformal Filtering}: Raw probability predictions from the meta-model are mapped to dynamical 
+conformal p-values (see \ref{sec:conformal_preds}). Signals that fall within the conformal rejection zone defined by the significance level are vetoed.
 
 \item \textbf{Hyperparameter Optimization}: The combined signals are evaluated using the custom backtester (see \ref{sec:custom_backtester}). 
 Hyperparameters are optimized to maximize the Sharpe ratio.
 
-\item \textbf{Reciprocal Rank Fusion (RRF)}: The competing models are ranked globally based on their average performance across all outer folds and currency pairs. 
-The tournament winner is selected using the aggregated RRF matrix framework described in Section \ref{sec:empirical_framework}.
+\item \textbf{Reciprocal Rank Fusion (RRF) And Other Statistics}: The competing models are ranked globally based on their average performance across all outer folds and currency pairs. 
+The tournament winner is selected using the aggregated RRF matrix framework described in section \ref{sec:empirical_framework} and the other statistics mentioned in \ref{\label{sec:empirical_framework}}.
 \end{itemize}
 
 By evaluating the architectures through this multi-layered protocol, we ensure that the top-performing model is not merely a product of regime-specific luck, 
@@ -823,7 +825,7 @@ but a robust architecture capable of generating stable, conformalized alpha.
 To ensure a fair comparison across the tournament's competing model architectures, feature selection was performed once per outer fold rather than once per model,
 yielding a single, common feature set that every M1 candidate in that fold was subsequently trained and evaluated on (see \ref{sec:preprocessing_scaling}). 
 As a reminder, the selection proceeds in three sequential stages where first an unsupervised correlation filter removes redundant features irrespective of their 
-relationship to the target ($|\rho| > 0.90$), followed by a supervised Mutual Information filter that discards features falling below a minimum 
+relationship to the target ($|\rho| > 0.90$), followed by a supervised mutual information (MI) filter that discards features falling below a minimum 
 univariate association with the M1-label ($\text{MI}_{\text{thresh}} < 0.005$), and finally a permutation importance filter, which prunes any remaining feature 
 contributing negligible or negative predictive value to a reference model ($\text{PI}_{\text{thresh}} \leq 0.001$).
 
@@ -831,7 +833,7 @@ contributing negligible or negative predictive value to a reference model ($\tex
 
 Figure \ref{fig:correlation filtering} (see \ref{app:tourney_feat_select}) shows the correlation matrices of the feature space for both outer folds before and after 
 filtering for correlation. In total, the pipeline filtered out 12 features out of 94 in the first outer fold and 11 features in the second outer fold.
-The similarity between the Fold 1 and Fold 2 "AFTER" panels also suggests that the correlation structure of the feature space itself is
+The similarity between the fold 1 and fold 2 "AFTER" panels also suggests that the correlation structure of the feature space itself is
 reasonably stable across the two evaluation windows, even before any target-aware filtering is applied.
 
 \begin{figure}[H]
@@ -845,7 +847,7 @@ Figure \ref{fig:feature importances} then illustrates the two supervised stages 
 
 \medskip
 
-First, the MI and permutation importance rankings agree only partially: in fold 1, num\_VWMA dominates by a wide margin under both metrics and is still relevant in the second fold. 
+First, the MI and permutation importance rankings agree only partially. In fold 1, num\_VWMA dominates by a wide margin under both metrics and is still relevant in the second fold. 
 Furthermore, num\_A/D, num\_spread\_volatility\_10, num\_volatility\_50, num\_ny\_volatility, and num\_spread\_pips rank consistently on roughly the same positions across both 
 folds in the MI score and all of them also remain relevant in the subsequent PI scores across both folds suggesting their structural relevance across time.
 However, the remainder of the ranking reshuffles considerably. In both folds of the top features by MI score some features that are included in one fold but not the other are
@@ -860,7 +862,7 @@ model-critical or vice versa precisely because of such interactions.
 
 Second, and more importantly for the "static feature set" motivation of this section, the two folds
 themselves disagree substantially on which features matter most. For example, num\_trade\_position\_in\_spread is the single most important feature by permutation importance in
-Fold 2, yet it does not even register among the top PI features in Fold 1's ranking. Additionally, the fold-to-fold instability of the features in the PI metric is precisely the 
+fold 2, yet it does not even register among the top PI features in fold 1's ranking. Additionally, the fold-to-fold instability of the features in the PI metric is precisely the 
 kind of overfitting risk that motivates selecting a single, common feature set per fold across all tournament models rather than allowing each model architecture to select its own, 
 possibly unstable, feature subset, which would confuse genuine architectural differences with differences in feature selection noise.
 
@@ -889,17 +891,17 @@ would otherwise exceed it.
 
 \medskip
 
-\ref{tab:hps_XGBoost_tournament} reports the hyperparameters selected by the trading-level Optuna study for each currency pair and fold. Several patterns are worth highlighting, such as 
-the Kelly fraction, which shows substantial cross-sectional heterogeneity within a single fold (e.g. Fold 1 ranges from $0.11$ for USDCNH to $0.94$ for USDMXN), 
+Table \ref{tab:hps_XGBoost_tournament} reports the hyperparameters selected by the trading-level Optuna study for each currency pair and fold. Several patterns are worth highlighting, such as 
+the Kelly fraction, which shows substantial cross-sectional heterogeneity within a single fold (e.g. fold 1 ranges from $0.11$ for USDCNH to $0.94$ for USDMXN), 
 indicating that the optimizer does not converge on a single universal position-sizing aggressiveness but instead tries to tailor it to each pair's realized edge and volatility profile. 
-Second, the maximum holding period (MH) ceiling is systematically lower in Fold 2 than in Fold 1 for the majority of pairs (e.g. GBPUSD drops from 43 to 11 bars, USDTRY from 33 to 10). 
+Second, the maximum holding period (MH) ceiling is systematically lower in fold 2 than in fold 1 for the majority of pairs (e.g. GBPUSD drops from 43 to 11 bars, USDTRY from 33 to 10). 
 Since MH only caps how long a trade is permitted to remain open before being forcefully closed and the barrier-based exit logic (stop-loss/take-profit) typically resolves 
-trades well before this ceiling is reached, this shift is better read as the optimizer tightening the outer time budget available to trades in Fold 2 rather than as direct evidence 
+trades well before this ceiling is reached, this shift is better read as the optimizer tightening the outer time budget available to trades in fold 2 rather than as direct evidence 
 that realized trade durations themselves become shorter.
 Third, the discovered notional exposure ceiling (Max Exp.) clusters toward the upper half of its permissible search range ($50\%$-$100\%$) for most pairs in both folds, 
 frequently exceeding $80\%$, however, as we will see below, this ceiling is rarely binding in practice, since realized average exposure sits considerably lower. 
 Finally, the stop-loss and take-profit multipliers show no consistent asymmetry across pairs as some pairs favor a wider take-profit relative to stop-loss 
-(e.g. USDMXN, Fold 1: SL $3.40\times$ ATR vs. TP $4.79\times$ ATR), while others favor the reverse (e.g. USDZAR, Fold 1: SL $3.56\times$ ATR vs. TP $1.37\times$ ATR), 
+(e.g. USDMXN, fold 1: SL $3.40\times$ ATR vs. TP $4.79\times$ ATR), while others favor the reverse (e.g. USDZAR, Fold 1: SL $3.56\times$ ATR vs. TP $1.37\times$ ATR), 
 suggesting that the profitable risk-reward geometry is itself pair- and regime-specific rather than a fixed, universally superior ratio.
 
 \begin{figure}[H]
