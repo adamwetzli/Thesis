@@ -911,17 +911,17 @@ suggesting that the profitable risk-reward geometry is itself pair- and regime-s
     \label{fig:financial_dist_xgboost}
 \end{figure}
 
-Before discussing individual panels, it is worth clarifying how each point in \ref{fig:financial_dist_xgboost} is constructed. Rather than reporting one distribution per currency 
-pair (which, across eleven pairs and two folds, would be prohibitively repetitive), each plotted trial value is the arithmetic mean of that trial's statistic across all pairs and 
+Before discussing individual panels, it is worth clarifying how each point in figute \ref{fig:financial_dist_xgboost} is constructed. Rather than reporting one distribution per currency 
+pair, which would be prohibitively repetitive across eleven pairs and two folds, each plotted trial value is the arithmetic mean of that trial's statistic across all pairs and 
 all inner cross-validation folds evaluated during the trading-level Optuna search. This aggregation is what makes a single set of panels representative of the whole tournament, 
-but it also has a direct bearing on the Profit Factor panel discussed below.
+but it also comes at the cost of losing pair-wise inference.
 
 \medskip
 
 Figure \ref{fig:financial_dist_xgboost} moves beyond the single best-performing configuration reported in table \ref{tab:hps_XGBoost_tournament} and examines the distribution of financial 
 outcomes across the entire population of trading-hyperparameter trials sampled during the Optuna search. 
-Encouragingly, Total Return, Sharpe Ratio, and CAGR all have the bulk of their mass sitting on the positive side of zero, indicating that a large fraction of the sampled 
-hyperparameter space produces a modestly positive edge, at least during backtesting. 
+Encouragingly, total return, Sharpe ratio, and CAGR all have the bulk of their mass sitting on the positive side of zero, indicating that a large fraction of the sampled 
+hyperparameter space produces a modestly positive edge, at least during tuning. 
 The probabilistic Sharpe ratio panel tempers this reading, however, as its distribution is centered close to, and partially below, the $50\%$ mark, 
 meaning that for a substantial share of trials the estimated Sharpe ratio would not be considered statistically distinguishable from zero once estimation uncertainty, skewness, 
 and kurtosis are accounted for (see eq. \ref{eq:psr} in section \ref{sec:backtest_overfitting}). This is an important caveat to the otherwise favorable Sharpe and CAGR distributions as 
@@ -929,17 +929,17 @@ it suggests that while positive point estimates are common across the search spa
 
 \medskip
 
-The Profit Factor panel exhibits an extreme long right tail, with the overwhelming majority of trials clustering near a small finite value and a sparse scattering of trials 
+The profit factor panel exhibits an extreme long right tail, with the overwhelming majority of trials clustering near a small finite value and a sparse scattering of trials 
 reporting values in the tens of thousands. This is not indicative of genuinely exceptional trading performance but rather a well-known degenerate artifact of the profit factor 
 metric under low trade counts, propagated through an unweighted cross-pair average. Thus, a single pair that happens, under a given trial's sampled hyperparameters, to record only 
-one or two winning trades and no losing trades in the evaluation window returns a profit factor that is undefined in the limit and numerically enormous in practice — a pathology 
+one or two winning trades and no losing trades in the evaluation window returns a profit factor that is undefined in the limit and numerically enormous in practice, which is a pathology 
 already visible for several low-trade-count pairs in the individual tournament results (see appendix \ref{app:model_specific_backtests}). Because the plotted value is a 
 simple mean across all pairs rather than a trade-count weighted one, a single such pair is sufficient to drag an otherwise unremarkable trial's reported profit factor into the tens 
-of thousands, which is why the panel's tail is so extreme relative to its bulk. The Number of Trades and Win Rate panels support this interpretation as both report cross-pair and fold 
+of thousands, which is why the panel's tail is so extreme relative to its bulk. The number of trades and win rate panels support this interpretation as both report cross-pair and fold 
 average values, clustering around $60$-$70$ trades with a left-skewed tail and a right-skewed win rate in the $10$-$20\%$ range, consistent with a trend-following, 
 asymmetric-payoff style of strategy in which most individual trades lose small amounts and profitability is carried by a minority of large winners, which is precisely the regime 
 in which individual pairs, and by extension the cross-pair mean, are most sensitive to small-sample noise in the profit factor. 
-Finally, the Average Capital Exposure panel, which, unlike Max Exp. in \ref{tab:hps_XGBoost_tournament}, reflects the mean realized, mark-to-market exposure rather than the 
+Finally, the average capital exposure panel, which, unlike max exp. in table \ref{tab:hps_XGBoost_tournament}, reflects the mean realized, mark-to-market exposure rather than the 
 permitted ceiling, clusters around $25$-$30\%$, well below the $80$-$98\%$ ceilings frequently discovered by the optimizer. This gap indicates that the position sizing scaled by 
 the Kelly fraction, rather than the notional exposure cap itself, is the binding constraint for most trials, with the exposure ceiling instead functioning as a rarely-triggered 
 backstop against adverse mark-to-market drift rather than a target the strategy actively pushes toward.
@@ -948,30 +948,44 @@ backstop against adverse mark-to-market drift rather than a target the strategy 
 \subsubsection{From Raw Signals to Conformal Predictions: Model- \& Pair-Specific Conformal-Q Filtering}\label{sec:conformal_preds_and_qfilter}
 
 Having quantified how the trading-level parameters are chosen, we now examine what the M2 meta-filter is actually doing to the raw M1 directional signals before 
-they ever reach the backtester. The Meta Sig. parameter introduced above is not applied to M2's raw probability output directly, instead it governs a conformal 
-hypothesis test performed on top of it, which we refer to as Conformal-Q filtering. Concretely, for every outer test fold we maintain a growing calibration set 
+they ever reach the backtester. The meta sig. parameter introduced above is not applied to M2's raw probability output directly, instead it governs a conformal 
+hypothesis test performed on top of it, which we refer to as conformal-q filtering. Concretely, for every outer test fold we maintain a growing calibration set 
 of M2 confidence scores that were assigned, in-sample, to instances where M1's directional call was subsequently found to be wrong against the triple-barrier ground truth. 
-
 This set is built from a sliding memory window of previous outer folds plus the current fold's own mistakes and is always 
 re-scored through the fold's live M2 instance rather than reusing frozen probabilities from previously discarded model, since conformal calibration is only valid when calibration 
 and live scores originate from the same scoring function. Given a new M1 signal with meta-confidence $\alpha$ (see eq. \ref{eq:nonconformity}), we compute the empirical 
-conformal $p$-value according to equation \ref{eq:conformal_p}. Under the null hypothesis $H_0$: "this signal is a mistake." The signal is acted upon only if $p \leq \alpha$, 
+conformal $p$-value according to equation \ref{eq:conformal_p}. Under the null hypothesis $H_0$: "this signal is a mistake". The signal is acted upon only if $p \leq 1 - \alpha$, 
 i.e. only if its confidence is high enough to be an unusually rare occurrence within the empirical distribution of past failures. 
 Otherwise it is vetoed and the position is left flat. Equivalently, since $p$ is a monotonically decreasing transform of $\alpha$, this is the same as requiring $p$ to exceed 
-the $(1-\varepsilon)$-quantile of the calibration set \( \{\alpha_i\}_{i=1}^{k} \), which is exactly what Meta Sig. controls per pair and fold in table \ref{tab:hps_XGBoost_tournament}. 
+the $(1-\varepsilon)$-quantile of the calibration set \( \{\alpha_i\}_{i=1}^{k} \), which is exactly what meta sig. controls per pair and fold in table \ref{tab:hps_XGBoost_tournament}. 
 Thus again, a lower meta significance pushes this quantile further into the tail of the mistake distribution, producing a stricter, more selective veto.
 
-\medskip
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/figures/conformal_predictions/Tournament_conformal_predictions_part1.png}
+        \caption{Model-Specific Conformal Filtering During Tournament}
+        \label{fig:model-specific conformal filtering 1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/figures/conformal_predictions/Tournament_conformal_predictions_part2.png}
+        \caption{Model-Specific Conformal Filtering During Tournament (Continued)}
+        \label{fig:model-specific conformal filtering 2}
+    \end{minipage}
+\end{figure}
 
 Figures \ref{fig:model-specific conformal filtering 1} and \ref{fig:model-specific conformal filtering 2} visualize this mechanism for all six tournament architectures, pooled across all eleven 
-currency pairs within each outer fold (a per-pair breakdown, at $6 \times 11$ panels per fold, is not practically presentable and is therefore omitted). 
-Each row corresponds to one architecture and consists of three panels sharing a common x-axis, the directional meta-confidence $\alpha$ output by that architecture's M2. 
-Panel A plots M1's raw signal direction against $\alpha$. Panel B plots the ground-truth direction against $\alpha$, together with a logistic ("truth calibration") fit of $\alpha$ 
-against the realized direction. Lastly, panel C re-bins every point by outcome (F-Long: an accepted long that was wrong, Correct, F-Short: an accepted short that was wrong) to show 
-where errors concentrate in confidence space. Points are colored by their conformal fate: green for accepted and correct, dark red for accepted and incorrect, and grey for vetoed. 
+currency pairs within each outer fold.\footnote{Again, a per-pair breakdown, at $6 \times 11$ panels per fold, is not practically presentable and is therefore omitted.} 
+Each row corresponds to one architecture and consists of three panels sharing a common x-axis, the directional meta-confidence $\alpha$ output by that architecture's M2 model. 
+Panel A plots M1's raw signal direction against $\alpha$. Panel B plots the ground-truth direction against $\alpha$, together with a logistic fit of $\alpha$ 
+against the realized direction. Lastly, panel C re-bins every point by outcome (F-Long: an accepted long that was wrong, F-Short: an accepted short that was wrong) to show 
+where errors concentrate in confidence space. Points are colored by their conformal fate, such that green stands for accepted and correct, dark red for accepted and incorrect, and grey for vetoed. 
 The orange dotted lines mark the fold- and model-averaged conformal rejection zone, i.e. the band around $\alpha \approx 0.5$ inside which equation \ref{eq:conformal_p} 
 systematically fails to clear the meta significance $\varepsilon$. The purple dashed line marks the midpoint at which the logistic fit crosses the 50\% threshold, 
-and the inset box reports pooled Hits, Misses, Rejections, the fold-averaged significance $\varepsilon$, and this midpoint.
+and the inset box reports pooled hits, misses, rejections, the fold-averaged significance $\varepsilon$, and this midpoint.
 
 \medskip
 
@@ -1001,7 +1015,6 @@ GRU          & 1206 & 852  & 11185 & 15.5 & 58.6 & 988  & 451 & 11812 & 10.9 & 6
 \end{table}
 
 Three patterns emerge, and we discuss the good ones alongside the bad ones, since both are informative about the filter's behavior.
-
 First, the veto is doing something real, not just discarding signals at random as the vertical placement of dark-red (accepted but wrong) points in panel C is not uniform but 
 concentrates near the outer edge of the orange rejection band for both F-Long and F-Short. This could suggest that the mistakes that do slip through the filter 
 pile up right at the edge of acceptance (the ones that only just cleared the $\varepsilon$-quantile bar), rather than out in the confident tail.
@@ -1011,18 +1024,18 @@ tightening it further would principally cut the highest-risk, lowest-conviction 
 
 \medskip
 
-Second, and more encouraging, is the fold-over-fold change in the logistic ("truth calibration") fit itself. In fold 1 this curve rises gently across nearly the entire 
+Second, and more encouraging, is the fold-over-fold change in the logistic fit itself. In fold 1 this curve rises gently across nearly the entire 
 $[0,1]$ domain for every architecture, indicating that $\alpha$ only weakly separates long from short outcomes. In fold 2 the same fit is visibly steeper for every architecture, 
 saturating near 0 and 1 well before the domain edges. This improved separability tracks directly with the accuracy gains in table \ref{tab:conformal_tournament_summary}, where every 
 single architecture's accepted-signal accuracy improves from fold 1 to fold 2 (e.g. XGBoost from 58.3\% to 74.0\%, ExtraTrees from 56.5\% to 72.8\%), even as acceptance rates 
 fall substantially. Since \( \{\alpha_i\}_{i=1}^{k} \) accumulates via the sliding memory window across outer folds, 
 fold 2's empirical mistake distribution is built on a larger and more representative sample of M1's failure modes than fold 1's, which by construction produces sharper, 
-less noisy conformal $p$-values. A regime-shift explanation (fold 2 covering a more directionally "clean" period) cannot be ruled out either, and disentangling the two would 
+less noisy conformal $p$-values. A regime-shift explanation (fold 2 covering a more directionally "clean" period) cannot be ruled out either and disentangling the two would 
 require testing the calibration set growth effect in isolation, e.g. by holding the memory window fixed across folds. We flag this as a natural extension.
 
 \medskip
 
-Third, and less encouraging, is that the four tree ensembles (RandomForest, ExtraTrees, XGBoost, LightGBM) and the two recurrent architectures (LSTM, GRU) do not behave 
+Third, is that the four tree ensembles (RandomForest, ExtraTrees, XGBoost, LightGBM) and the two recurrent architectures (LSTM, GRU) do not behave 
 identically. RandomForest, ExtraTrees, and LSTM all accept a considerably larger share of candidate signals (13-30\%) than XGBoost, LightGBM, and GRU (7-16\%) in both folds, 
 yet this larger acceptance volume is not compensated by comparable accuracy. LSTM in particular has the lowest fold 2 accuracy of any architecture (63.6\%) despite operating 
 with a mid-range $\varepsilon$ (0.132), well below the 68.7-74.0\% achieved by the four remaining models. This is consistent with the conformal filter being only as good as the 
@@ -1038,49 +1051,47 @@ and fold 1's ceiling across all architectures sits in the 56-59\% range, only mo
 translates into an economically meaningful edge net of transaction costs, slippage, and the sizing guardrails discussed above is therefore not evident from the classification 
 statistics alone and is addressed directly in later sections.
 
-\begin{figure}[H]
-    \centering
-    \begin{minipage}[t]{0.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../data/figures/conformal_predictions/Tournament_conformal_predictions_part1.png}
-        \caption{Model-Specific Conformal Filtering During Tournament}
-        \label{fig:model-specific conformal filtering 1}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../data/figures/conformal_predictions/Tournament_conformal_predictions_part2.png}
-        \caption{Model-Specific Conformal Filtering During Tournament (Continued)}
-        \label{fig:model-specific conformal filtering 2}
-    \end{minipage}
-\end{figure}
-
 
 \subsubsection{Validation of Conformal-Q Filtering: Model- and Fold-Specific Confusion Matrices \& Calibration}
 
 \paragraph{Confusion Matrices}\label{sec:confusion_matrices_tournament}
 
-The previous subsection established precision (via the accepted signal hit rate) and a qualitative reading of the error map. Figures 
+The previous section \ref{sec:conformal_preds_and_qfilter} established precision via the accepted signal hit rate and a qualitative reading of the error map. Figures 
 \ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} make the full classification picture explicit by decomposing the pipeline into three nested 
 confusion matrices per architecture, again pooled across all eleven pairs per fold. Panel A cross-tabulates M1's raw predicted direction against the realized ground-truth 
 direction, i.e. the baseline directional classifier with no filtering applied whatsoever. Panel B cross-tabulates the final accept/reject decision, the outcome of 
-applying \ref{eq:conformal_p} at each pair's tuned $\varepsilon$, against whether M1 was actually correct. Despite the axis label "M2 Prediction", this is not M2's raw 
+applying equation \ref{eq:conformal_p} at each pair's tuned $\varepsilon$, against whether M1 was actually correct. Despite the axis label "M2 Prediction", this is not M2's raw 
 probability thresholded at 0.5, but the fully gated conformal verdict, "Correct" meaning the conformal filter accepted the signal and "Wrong" meaning it vetoed it. This can be 
 confirmed directly from the cell counts as the column total of "Predicted Correct" in panel B equals the total number of accepted signals in panel C for every model and fold 
-(e.g. XGBoost, fold 2: $252+719=971=564+41+211+155$), and is exactly the sum of Hits and Miss reported in table \ref{tab:conformal_tournament_summary}. As a further internal 
+(e.g. XGBoost, fold 2: $252+719=971=564+41+211+155$), and is exactly the sum of hits and miss reported in table \ref{tab:conformal_tournament_summary}. As a further internal 
 consistency check, panel A's diagonal, M1's own raw correct count, is identical to panel B's "Actual Correct" row total for every model and fold (RandomForest, fold 2: 
 $4574+2753=7327=6129+1198$), confirming that panels A and B describe the same underlying "was M1 correct" quantity via two independent cross-tabulations, one by direction 
 and one by conformal decision, which gives some assurance that no bookkeeping inconsistency was introduced across the plotting pipeline.
 
-\medskip
+\begin{figure}[H]
+    \centering
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/figures/confusion_matrices/Tournament_nested_confusion_matrices_part1.png}
+        \caption{Model-Specific Confusion Matrices During Tournament}
+        \label{fig:model-specific confusion matrices 1}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.49\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{../data/figures/confusion_matrices/Tournament_nested_confusion_matrices_part2.png}
+        \caption{Model-Specific Confusion Matrices During Tournament (Continued)}
+        \label{fig:model-specific confusion matrices 2}
+    \end{minipage}
+\end{figure}
 
 Framing panel B as a standard binary classifier, with the positive class defined as "M1's signal is correct", lets us extract two diagnostics beyond precision that were not 
-visible in the previous subsection. Recall (or sensitivity), $\frac{\text{TP}}{\text{TP}+\text{FN}}$, measures what fraction of all signals that would have been correct were 
+visible in the previous section \ref{sec:conformal_preds_and_qfilter}. Recall (or sensitivity), $\frac{\text{TP}}{\text{TP}+\text{FN}}$, measures what fraction of all signals, that would have been correct, were 
 actually accepted, i.e. the opportunity cost of the veto. Specificity, $\frac{\text{TN}}{\text{TN}+\text{FP}}$, measures how reliably the filter identifies true mistakes. 
-Its complement, the empirical false-accept rate $\frac{\text{FP}}{\text{FP}+\text{TN}}$, the fraction of true mistakes that nonetheless slipped through the veto, is the 
+Its complement, the empirical false-positive rate $\frac{\text{FP}}{\text{FP}+\text{TN}}$, the fraction of true mistakes that nonetheless slipped through the veto, is the 
 quantity directly relevant to calibration as this empirical rate should track the pair- and fold-averaged significance level $\varepsilon$ if the calibration and test time 
 score distributions are exchangeable. Table \ref{tab:nested_confusion_summary} reports these three quantities, 
-together with the ratio of the empirical false-accept rate to $\varepsilon$, our proxy for whether the calibration guarantee held in practice (a ratio near 1 indicating tight 
+together with the ratio of the empirical false-positive rate to $\varepsilon$, our proxy for whether the calibration guarantee held in practice (a ratio near 1 indicating tight 
 calibration, below 1 indicating conservative over-coverage, and above 1 indicating a violated guarantee).
 
 \paragraph{GET THESE VALUES VALIDATED AND UNDERSTAND WHAT THEY MEAN}
@@ -1101,15 +1112,11 @@ LSTM         & 31.5 & 72.2 & 27.8 & 12.1 & 2.30 & 21.1 & 85.5 & 14.5 & 13.2 & \t
 GRU          & 17.3 & 86.4 & 13.6 & 8.3  & 1.64 & 13.8 & 92.6 & 7.4  & 10.6 & 0.70 \\
 \bottomrule
 \end{tabular}
-\caption{Recall, Specificity, and empirical false-accept rate of the conformal decision (panel B), against the fold-averaged nominal significance $\varepsilon$. Ratio 
-$=$ Emp.FPR$/\varepsilon$; values near 1 indicate the empirical mistake-acceptance rate tracked its theoretical target.}
+\caption{Recall, Specificity, and empirical false-positive rate of the conformal decision (panel B), against the fold-averaged nominal significance $\varepsilon$.}
 \label{tab:nested_confusion_summary}
 \end{table}
 
 Two findings stand out, one confirming the previous subsection's narrative and one qualifying it.
-
-\medskip
-
 First, Recall is uniformly low, between 9.6\% and 32.9\% across every model-fold combination, meaning the filter discards the large majority of signals that would in fact have 
 been correct, not only the mistakes. This is the direct cost side of the precision gains reported earlier, since a low-$\varepsilon$ veto is, by construction, a conservative gate that 
 trades recall for precision, and these figures quantify exactly how steep that trade is. Recall is also systematically higher in fold 1 (14-33\%) than in fold 2 (10-21\%) for 
@@ -1118,13 +1125,13 @@ through, correct and incorrect signals alike, whereas fold 2's sharper separabil
 
 \medskip
 
-Second, the empirical false-accept rate does not track $\varepsilon$ uniformly well across architectures. In fold 1, only XGBoost 
+Second, the empirical false-positive rate does not track $\varepsilon$ uniformly well across architectures. In fold 1, only XGBoost 
 comes close to its theoretical target (ratio $1.03$). LightGBM is mildly over its target (ratio $1.22$), while RandomForest, ExtraTrees, LSTM, and GRU all substantially exceed 
-it, with RandomForest, ExtraTrees, and LSTM more than doubling their nominal false-accept rate (ratios of $2.23$-$2.30$). In other words, for four of the six architectures, the 
+it, with RandomForest, ExtraTrees, and LSTM more than doubling their nominal false-positive rate (ratios of $2.23$-$2.30$). In other words, for four of the six architectures, the 
 conformal guarantee did not hold empirically in the first fold, because the filter let through roughly twice as many true mistakes as its tuned $\varepsilon$ promised. By fold 2 the 
 picture improves markedly, most models move into conservative over-coverage (ratios $0.42$-$0.87$), meaning the filter ends up stricter than its nominal guarantee 
 required, with the single exception of LSTM, whose ratio of $1.10$ is the only one across all twelve model-fold cells in fold 2 that still exceeds 1. LSTM is therefore the only 
-architecture that fails to achieve its stated guarantee in either fold, reinforcing the diagnosis from the previous subsection that its M2 confidence scores are a 
+architecture that fails to achieve its stated guarantee in either fold, reinforcing the diagnosis from the previous section that its M2 confidence scores are a 
 comparatively weak basis for the conformal test, rather than this being a fold-specific artifact.
 
 \medskip
@@ -1142,32 +1149,12 @@ would be a natural way to attach an uncertainty band to these ratios in future w
 \medskip
 
 Finally, panel A also exposes a structural asymmetry in the raw M1 signal that is worth flagging briefly, independent of the conformal layer. In fold 2, RandomForest, LSTM, and 
-GRU all issue substantially more Short than Long predictions relative to the actual base rate, wehre RandomForest issued 8127 Short vs. 5124 Long predictions against an 
-actual split of 6945 Short vs. 6306 Long. GRU was even more extremely with 8899 Short vs. 4352 Long predictions against an actual split of 6945 Short vs. 6306 Long. 
-XGBoost and LightGBM, on the other hand, remain close to balanced with 6927 Short predictions vs. 6945 actual Shorts and 7042 Short predictions vs. 6945 actual Shorts respectively. 
-
-
-Whether this reflects a genuine 
-short-bias regularity in the underlying feature set that the tree-boosted models are simply better equipped to correct for or an artifact of hyperparameter search converging 
-to different regions of the space for different architectures, cannot be concluded from the confusion matrices alone. We flag it and the overall Short-bias here as a secondary 
-observation rather than draw a causal conclusion from it.
-
-\begin{figure}[H]
-    \centering
-    \begin{minipage}[t]{0.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../data/figures/confusion_matrices/Tournament_nested_confusion_matrices_part1.png}
-        \caption{Model-Specific Confusion Matrices During Tournament}
-        \label{fig:model-specific confusion matrices 1}
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.49\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{../data/figures/confusion_matrices/Tournament_nested_confusion_matrices_part2.png}
-        \caption{Model-Specific Confusion Matrices During Tournament (Continued)}
-        \label{fig:model-specific confusion matrices 2}
-    \end{minipage}
-\end{figure}
+GRU all issue substantially more short than long predictions relative to the actual base rate, where RandomForest issued 8127 short vs. 5124 long predictions against an 
+actual split of 6945 short vs. 6306 long. GRU was even more extremely with 8899 short vs. 4352 long predictions against an actual split of 6945 short vs. 6306 long. 
+XGBoost and LightGBM, on the other hand, remain close to balanced with 6927 short predictions vs. 6945 actual shorts and 7042 short predictions vs. 6945 actual shorts respectively. 
+Whether this reflects a genuine short-bias regularity in the underlying feature set that the tree-boosted models are simply better equipped to correct for or an artifact of 
+hyperparameter search converging to different regions of the space for different architectures, cannot be concluded from the confusion matrices alone. We flag it and the overall 
+short-bias here as a secondary observation rather than draw a causal conclusion from it.
 
 
 \paragraph{Reliability Diagrams}
@@ -1175,99 +1162,13 @@ observation rather than draw a causal conclusion from it.
 Diagnostics based on confusion matrices establish whether the conformal decision achieves valid coverage, but say nothing about whether the underlying M2 probability estimate 
 that decision is built on is itself a trustworthy probability. Figures \ref{fig:model-specific reliability diagrams1} and \ref{fig:model-specific reliability diagrams2} address 
 this directly via reliability diagrams for all six architectures across both folds. Each panel bins M2's raw predicted confidence and plots the mean predicted confidence in each bin 
-against the observed fraction of positives (M1 being correct) in that bin, together with the 45-degree line of theoretical perfect calibration, a shaded region reflecting bin-level 
-sampling uncertainty, a grey histogram showing how densely predictions populate each bin, and the Brier score for the full, unbinned prediction set.
+against the observed fraction of positives (M1 being correct) in that bin. Furthermore, the 45-degree line shows the theoretical perfect calibration, a shaded region reflects bin-level 
+sampling uncertainty, a grey histogram shows how densely predictions populate each bin, and the Brier score is applied to the full, unbinned prediction set.
 We note, however, that this pooling carries a genuine risk of aggregation bias, since currency pairs are known to differ substantially in their tuned trading hyperparameters 
 (e.g. the Kelly fraction range of $0.11$-$0.94$ documented in table \ref{tab:hps_XGBoost_tournament}). Thus, a pooled bin that appears well-calibrated could in principle mask two or 
-more pairs whose individual miscalibrations are of opposite sign and happen to cancel under aggregation, which is a Simpson's paradox style artifact that the pooled curve alone cannot 
+more pairs whose individual miscalibrations are of opposite sign and happen to cancel under aggregation, which the pooled curve alone cannot 
 rule out. A full per-pair reliability analysis was not pursued here for the same space and legibility constraints noted for the confusion matrices above, but confirming the 
 pooled picture, e.g. via the cross-pair spread of per-pair Brier scores for the architectures would be a natural and inexpensive robustness check for future work.
-
-\medskip
-
-The first observation is a genuine limitation. Before defining the relevant baseline, it is worth being precise about which binary variable M2 is actually predicting, since 
-panel A of figures \ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} contains two distinct binary variables that are easy to confuse. 
-M1's predicted direction $d \in \{\text{Short}, \text{Long}\}$ (columns) and the realized ground truth direction $t \in \{\text{Short}, \text{Long}\}$ (rows). M2 does not predict 
-either of these directly, instead it predicts $c = \mathbb{1}[d = t]$, whether M1's call agreed with the outcome. The base rate relevant to $c$ is therefore not a row or column 
-marginal of panel A, either of which would only describe the marginal frequency of $t$ or $d$ in isolation and is blind to whether the two agreed, but specifically the diagonal of 
-the table, $\bar p = P(c=1) = \frac{\text{count}(d{=}\text{Short}, t{=}\text{Short}) + \text{count}(d{=}\text{Long}, t{=}\text{Long})}{N}$, since agreement between prediction 
-and truth is exactly what the diagonal cells encode and the off-diagonal cells do not. For RandomForest in fold 1 these two quantities are numerically close but conceptually and 
-numerically distinct: the row marginal $P(t{=}\text{Short}) = 6900/13243 = 52.10\%$ describes only how often the market actually moved short, while the diagonal $\bar p = P(c{=}1) 
-= 7057/13243 = 53.29\%$ describes how often M1's call was right, and it is the latter, not the former, that a naive classifier for M2's actual task would need to reproduce.
-
-\medskip
-
-For a binary outcome with base rate $\bar p$, the Brier score of the trivial classifier that always predicts $\bar p$ regardless of input is:
-
-\begin{equation}
-\text{BS}_{\text{naive}} = \frac{1}{N}\sum_{i=1}^{N} (\bar p - y_i)^2 = \bar p(1-\bar p),
-\label{eq:naive_brier}
-\end{equation}
-
-since $\sum y_i = N\bar p$ by definition, with $y_i = c_i$ here. We compute $\bar p$ from the diagonal of panel A for each architecture and fold as derived above, and compare 
-$\text{BS}_{\text{naive}}$ against each architecture's actual, reported Brier score, where Brier of 0 means perfect predictions, 0.25 is a random guess, and 1 is always wrong. 
-Table \ref{tab:brier_baseline} shows the full computation where in fold 1 four of six architectures, RandomForest, ExtraTrees, LSTM, and GRU, score marginally worse than this 
-naive baseline ($+0.20\%$ to $+0.77\%$ relative), LightGBM ties it to four decimal places, and only XGBoost manages a small improvement ($-0.20\%$). 
-In the strict sense of a proper scoring rule averaged over the entire probability range, M2's fold 1 output is therefore not meaningfully more informative than simply guessing 
-the unconditional base rate for the great majority of architectures tested.
-In contrast, fold 2 tells a materially different story as every single model now beats its own naive baseline, by margins of $0.85\%$ to $1.42\%$ relative, with LightGBM showing 
-the largest improvement and LSTM the smallest. This is modest in absolute terms, but it is a second, fully independent confirmation, via a proper scoring rule rather than 
-via acceptance counts or coverage ratios, of the fold over fold improvement in M2's discriminative quality documented throughout this chapter.
-
-\begin{table}[h]
-\centering
-\small
-\begin{tabular}{l|rrr|r||rrr|r}
-\toprule
- & \multicolumn{4}{c||}{\textbf{Fold 1}} & \multicolumn{4}{c}{\textbf{Fold 2}} \\
-Model & $\bar p$ & BS$_{\text{naive}}$ & BS$_{\text{actual}}$ & Rel.\% & $\bar p$ & BS$_{\text{naive}}$ & BS$_{\text{actual}}$ & Rel.\% \\
-\midrule
-RandomForest & 0.5329 & 0.2489 & 0.2495 & $+0.23$ & 0.5529 & 0.2472 & 0.2441 & $-1.25$ \\
-ExtraTrees   & 0.5282 & 0.2492 & 0.2497 & $+0.20$ & 0.5381 & 0.2485 & 0.2458 & $-1.10$ \\
-XGBoost      & 0.5173 & 0.2497 & 0.2492 & $\mathbf{-0.20}$ & 0.5451 & 0.2480 & 0.2456 & $-0.95$ \\
-LightGBM     & 0.5248 & 0.2494 & 0.2494 & $+0.01$ & 0.5341 & 0.2488 & 0.2453 & $\mathbf{-1.42}$ \\
-LSTM         & 0.5376 & 0.2486 & 0.2505 & $+0.77$ & 0.5458 & 0.2479 & 0.2458 & $-0.85$ \\
-GRU          & 0.5280 & 0.2492 & 0.2501 & $+0.35$ & 0.5416 & 0.2483 & 0.2461 & $-0.87$ \\
-\bottomrule
-\end{tabular}
-\caption{Actual Brier score vs. the naive base-rate baseline $\bar p(1-\bar p)$, where $\bar p = P(c=1)$ is the diagonal of panel A in figures \ref{fig:model-specific confusion matrices 1} 
-and \ref{fig:model-specific confusion matrices 2}, i.e. M1's own raw correctness rate. Rel.\% is the relative change of the actual score over the naive one; negative values indicate M2 
-outperforms the naive baseline.}
-\label{tab:brier_baseline}
-\end{table}
-
-\medskip
-
-The reason the aggregate Brier scores look so weak despite the conformal filter's demonstrated precision gains becomes clear from the density histograms where the overwhelming 
-majority of M2's raw probability mass sits within a narrow band around $0.4$-$0.6$. This region is by construction close to uninformative and this bulk of M2 probabilities 
-dominates the averaged Brier score. The genuine signal is concentrated in the sparsely populated tails, exactly the region the conformal filter is 
-designed to isolate. In fold 1, RandomForest's highest-confidence bin predicts $0.82$ but delivers only $0.61$ actual correctness, ExtraTrees predicts $0.82$ but 
-delivers $0.67$, and LSTM predicts $0.83$ but delivers $0.71$, a systematic overconfidence at exactly the high end of the range that any conformal quantile threshold is built 
-from. These are precisely the three architectures whose empirical false-accept rate most severely exceeded its nominal target in fold 1 (ratios of $2.23$, $2.26$, and $2.30$ 
-respectively see table \ref{tab:nested_confusion_summary}). An overconfident raw score offers a direct, mechanistic explanation for that violation, because the scores regularly 
-overstate their own reliability, results in the calibration set quantile being inflated and the conformal test to admit more true mistakes than its target rate allows. 
-XGBoost's fold 1 tail, by contrast, sits essentially on the diagonal ($0.71 \to 0.79$, if anything slightly underconfident), consistent with its near-perfect coverage ratio of 
-$1.03$, and LightGBM's tail behaves similarly ($0.71 \to 0.75$), consistent with its comparatively mild violation of $1.22$.
-
-\medskip
-
-By fold 2, every architecture's tail pulls in close to or above the diagonal, consistent with the broad recovery already documented, but this cross-diagnostic comparison also 
-surfaces a genuine tension worth being explicit about rather than glossing over. LSTM's fold 2 tail is strongly underconfident ($0.72 \to 0.85$), arguably the best-behaved raw 
-probability calibration of any architecture in either fold, and yet LSTM remains the single architecture whose conformal decision still exceeded its nominal false-accept rate 
-target in fold 2 (ratio $1.10$, table \ref{tab:nested_confusion_summary}). This is not a contradiction so much as a reminder that the two diagnostics test different things as a 
-reliability diagram asks whether the raw probability is an honest estimate of $P(\text{correct})$, while the conformal coverage ratio asks whether calibration set and live 
-non-conformity scores remain exchangeable. 
-\textcite[377 ff.]{shafer_tutorial_2008}'s central appeal is precisely that conformal validity does not require the underlying score to be a 
-calibrated probability at all, only that its distribution be exchangeable between calibration and test time. LSTM's fold 2 result is a case where the raw score looks excellent 
-in isolation while exchangeability itself still appears to be mildly violated, plausibly by residual regime drift between the memory window and the live fold, a distinction the 
-Brier score alone cannot reveal.
-
-\medskip
-
-Finally, the erratic behavior of the leftmost bin for LSTM, GRU, and ExtraTrees in fold 1, dropping to an observed frequency of $0.0$ for LSTM and GRU or spiking to $1.0$ for 
-ExtraTrees, should not be over-interpreted as a genuine calibration failure at low confidence. The corresponding density histogram bars in that bin are close to empty, and the 
-correspondingly wide shaded uncertainty band confirms this is a small-sample artifact rather than a systematic pattern. We note it for transparency but do not read a substantive 
-conclusion into it.
 
 \begin{figure}[H]
     \centering
@@ -1285,6 +1186,88 @@ conclusion into it.
         \label{fig:model-specific reliability diagrams2}
     \end{minipage}
 \end{figure}
+
+The first observation is a genuine limitation. Before defining the relevant baseline, it is worth being precise about which binary variable M2 is actually predicting, since 
+panel A of figures \ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} contains two distinct binary variables that are easy to confuse. 
+There is M1's predicted direction $d \in \{\text{Short}, \text{Long}\}$ (columns) and the realized ground truth direction $t \in \{\text{Short}, \text{Long}\}$ (rows). M2 does not predict 
+either of these directly, instead it predicts $c = \mathbb{1}[d = t]$, whether M1's call agreed with the outcome. The base rate relevant to $c$ is therefore not a row or column 
+marginal of panel A, either of which would only describe the marginal frequency of $t$ or $d$ in isolation and is blind to whether the two agreed, but specifically the diagonal of 
+the table, $\bar p = P(c=1) = \frac{\text{count}(d{=}\text{Short}, t{=}\text{Short}) + \text{count}(d{=}\text{Long}, t{=}\text{Long})}{N}$, since agreement between prediction 
+and truth is exactly what the diagonal cells encode and the off-diagonal cells do not. For RandomForest in fold 1 these two quantities are numerically close but conceptually and 
+numerically distinct: the row marginal $P(t{=}\text{Short}) = 6900/13243 = 52.10\%$ describes only how often the market actually moved short, while the diagonal $\bar p = P(c{=}1) 
+= 7057/13243 = 53.29\%$ describes how often M1's call was right, and it is the latter, not the former, that a naive classifier for M2's actual task would need to reproduce.
+
+\medskip
+
+For a binary outcome with base rate $\bar p$, the Brier score of the trivial classifier that always predicts $\bar p$ regardless of input is:
+
+\begin{equation}
+\text{BS}_{\text{naive}} = \frac{1}{N}\sum_{i=1}^{N} (\bar p - y_i)^2 = \bar p(1-\bar p),
+\label{eq:naive_brier}
+\end{equation}
+
+since $\sum y_i = N\bar p$ by definition, with $y_i = c_i$ here. We compute $\bar p$ from the diagonal of panel A for each architecture and fold as derived above and compare 
+$\text{BS}_{\text{naive}}$ against each architecture's actual reported Brier score, where Brier of 0 means perfect predictions, 0.25 is a random guess, and 1 is always wrong. 
+Table \ref{tab:brier_baseline} shows the full computation where in fold 1 four of six architectures, RandomForest, ExtraTrees, LSTM, and GRU, score marginally worse than this 
+naive baseline ($+0.20\%$ to $+0.77\%$ relative), LightGBM ties it to four decimal places, and only XGBoost manages a small improvement ($-0.20\%$). 
+In the strict sense of a proper scoring rule averaged over the entire probability range, M2's fold 1 output is therefore not meaningfully more informative than simply guessing 
+the unconditional base rate for the great majority of architectures tested.
+In contrast, fold 2 tells a materially different story as every single model now beats its own naive baseline, by margins of $0.85\%$ to $1.42\%$ relative, with LightGBM showing 
+the largest improvement and LSTM the smallest. This is modest in absolute terms, but it is a second, fully independent confirmation, via a proper scoring rule rather than 
+via acceptance counts or coverage ratios, of the fold over fold improvement in M2's discriminative quality documented throughout this chapter.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{l|rrr|r||rrr|r}
+\toprule
+ & \multicolumn{4}{c||}{\textbf{Fold 1}} & \multicolumn{4}{c}{\textbf{Fold 2}} \\
+Model & $\bar p$ & BS$_{\text{naive}}$ & BS$_{\text{actual}}$ & Rel.\% & $\bar p$ & BS$_{\text{naive}}$ & BS$_{\text{actual}}$ & Rel.\% \\
+\midrule
+RandomForest & 0.5329 & 0.2489 & 0.2495 & $+0.23$ & 0.5529 & 0.2472 & 0.2441 & $-1.25$ \\
+ExtraTrees   & 0.5282 & 0.2492 & 0.2497 & $+0.20$ & 0.5381 & 0.2485 & 0.2458 & $-1.10$ \\
+XGBoost      & 0.5173 & 0.2497 & 0.2492 & $\mathbf{-0.20}$ & 0.5451 & 0.2480 & 0.2456 & $-0.95$ \\
+LightGBM     & 0.5248 & 0.2494 & 0.2494 & $+0.01$ & 0.5341 & 0.2488 & 0.2453 & $\mathbf{-1.42}$ \\
+LSTM         & 0.5376 & 0.2486 & 0.2505 & $+0.77$ & 0.5458 & 0.2479 & 0.2458 & $-0.85$ \\
+GRU          & 0.5280 & 0.2492 & 0.2501 & $+0.35$ & 0.5416 & 0.2483 & 0.2461 & $-0.87$ \\
+\bottomrule
+\end{tabular}
+\caption{Actual Brier score vs. the naive base-rate.}
+\label{tab:brier_baseline}
+\end{table}
+
+\medskip
+
+The reason the aggregate Brier scores look so weak despite the conformal filter's demonstrated precision gains becomes clear from the density histograms where the overwhelming 
+majority of M2's raw probability mass sits within a narrow band around $0.4$-$0.6$. This region is by construction close to uninformative and this bulk of M2 probabilities 
+dominates the averaged Brier score. The genuine signal is concentrated in the sparsely populated tails, exactly the region the conformal filter is 
+designed to isolate. In fold 1, RandomForest's highest-confidence bin predicts $0.82$ but delivers only $0.61$ actual correctness, ExtraTrees predicts $0.82$ but 
+delivers $0.67$, and LSTM predicts $0.83$ but delivers $0.71$, a systematic overconfidence at exactly the high end of the range that any conformal quantile threshold is built 
+from. These are precisely the three architectures whose empirical false-positive rate most severely exceeded its nominal target in fold 1 (ratios of $2.23$, $2.26$, and $2.30$ 
+respectively. See table \ref{tab:nested_confusion_summary}). An overconfident raw score offers a direct, mechanistic explanation for that violation, because the scores regularly 
+overstate their own reliability, results in the calibration set quantile being inflated and the conformal test to admit more true mistakes than its target rate allows. 
+XGBoost's fold 1 tail, by contrast, sits essentially on the diagonal ($0.71 \to 0.79$, if anything slightly underconfident), consistent with its near-perfect coverage ratio of 
+$1.03$, and LightGBM's tail behaves similarly ($0.71 \to 0.75$), consistent with its comparatively mild violation of $1.22$.
+
+\medskip
+
+By fold 2, every architecture's tail pulls in close to or above the diagonal, consistent with the broad recovery already documented, but this cross-diagnostic comparison also 
+surfaces a genuine tension worth being explicit about rather than glossing over. LSTM's fold 2 tail is strongly underconfident ($0.72 \to 0.85$), arguably the best-behaved raw 
+probability calibration of any architecture in either fold, and yet LSTM remains the single architecture whose conformal decision still exceeded its nominal false-positive rate 
+target in fold 2 (ratio $1.10$, table \ref{tab:nested_confusion_summary}). This is not a contradiction so much as a reminder that the two diagnostics test different things as a 
+reliability diagram asks whether the raw probability is an honest estimate of $P(\text{correct})$, while the conformal coverage ratio asks whether calibration set and live 
+non-conformity scores remain exchangeable. 
+\textcite[377 ff.]{shafer_tutorial_2008}'s central appeal is precisely that conformal validity does not require the underlying score to be a 
+calibrated probability at all, only that its distribution be exchangeable between calibration and test time. LSTM's fold 2 result is a case where the raw score looks excellent 
+in isolation while exchangeability itself still appears to be mildly violated, plausibly by residual regime drift between the memory window and the live fold, a distinction the 
+Brier score alone cannot reveal.
+
+\medskip
+
+Finally, the erratic behavior of the leftmost bin for LSTM, GRU, and ExtraTrees in fold 1, dropping to an observed frequency of $0.0$ for LSTM and GRU or spiking to $1.0$ for 
+ExtraTrees, should not be over-interpreted as a genuine calibration failure at low confidence. The corresponding density histogram bars in that bin are close to empty, and the 
+correspondingly wide shaded uncertainty band confirms this is a small-sample artifact rather than a systematic pattern. We note it for transparency but do not read a substantive 
+conclusion into it.
 
 
 \subsubsection{Tournament Evaluation}
