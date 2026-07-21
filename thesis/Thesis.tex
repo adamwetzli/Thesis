@@ -156,14 +156,14 @@ The fundamental challenge of modern quantitative finance is not a scarcity of in
 In the intraday Forex market, a domain characterized by extreme non-stationarity and a vanishingly low
 signal-to-noise ratio, the traditional tools of predictive modeling often become instruments of self-deception.
 When a machine learning model is tasked with finding patterns in a random walk with drift, it will invariably succeed in
-finding something. The question is whether that "something" is a structural property of the market or merely a ghost in the data.
+finding something. The question is whether that "something" is a structural property of the market or merely a ghost in the data \parencite{xu2026causal}.
 
 \medskip
 
 This thesis proceeds from the premise that the path to robust algorithmic trading lies not in the optimization of predictive power,
 but in the rigorous quantification of uncertainty. Most contemporary trading frameworks suffer from
 a form of epistemic arrogance, the sin of being overconfident about the reliability of your own knowledge,
-for they treat financial time-series as a standard supervised learning problem.
+for they treat financial time-series as a standard supervised learning problem \parencite{ouma2025epistemic}.
 Thus, they ignore the fact that the underlying distribution of the data can shift within minutes.
 To trade successfully is not necessarily to predict the future, but to establish a verification gauntlet
 that can distinguish between a high-probability regime and a chaotic one.
@@ -187,13 +187,16 @@ their transition from controlled backtests to live liquidity is typically compro
 This process often begins with the data-mining trap, where the high dimensionality of feature sets and 
 exhaustive hyperparameter optimization allow a model to inadvertently discover stochastic flukes rather than systematic alpha.
 These overfitted strategies appear spectacular in historical simulations but remain structurally fragile, 
-as their performance is a function of historical luck rather than predictive permanence.
+as their performance is a function of historical luck rather than predictive permanence.\footnote{\textcite{hou2020replicating} replicated 
+447 anomalies and found 64\% to 85\% were insignificant, thus illustrating the data-mining problem.}
 
 \medskip
 
 This fragility is further intensified by the hard classification threshold inherent in standard classifiers.
 By treating every trade signal with equal weight, most models remain blind to their own uncertainty, forced to take a binary stance
-even when the underlying market conditions are chaotic or ambiguous. 
+even when the underlying market conditions are chaotic or ambiguous.\footnote{I.e. RanfomForest assigns a probability vector $[p_0, p_1]$, representing the 
+estimated likelihood of each class, in a binary classification problem. By default it returns the class with the higher probability, which is equivalent to 
+using a fixed threshold of 50\%. Thus, a signal could be interpreted as "go long" even though the probability for long is 50.01\%, which is a highly chaotic signal.} 
 Without a secondary layer of statistical skepticism, a mechanism to rigorously veto low-conviction signals through meta-verification, 
 a strategy is inevitably eroded by the cumulative costs of trading in high-entropy regimes.
 
@@ -537,17 +540,19 @@ The tournament phase evaluates a heterogeneous ensemble of machine learning arch
 to identify the most robust learner for high-frequency forex signals. The primary models (M1) include:
 
 \begin{itemize}
-    \item Bagging Ensembles (Random Forest \& ExtraTrees): These models operate on the principle of "bootstrap aggregating." They build a large number of independent decision trees 
+    \item Bagging Ensembles (Random Forest \& ExtraTrees): These models operate on the principle of "bootstrap aggregating". They build a large number of independent decision trees 
     on random subsets of the data and average their predictions. This process reduces the risk of the model reacting to random market noise and 
-    ensures a more stable prediction by leveraging the "wisdom of the crowd."
+    ensures a more stable prediction by leveraging the "wisdom of the crowd" \parencite{scikit-learn}.
 
     \item Gradient Boosting Decision Trees (XGBoost \& LightGBM): Unlike bagging, boosting models build trees sequentially, where each new tree specifically focuses on 
     correcting the errors made by the previous ones. XGBoost is highly regarded for its precision and regularization techniques that prevent overfitting, 
-    while LightGBM is optimized for speed and efficiency, making it particularly effective at processing the large, high-dimensional feature sets common in forex trading.
+    while LightGBM is optimized for speed and efficiency, making it particularly effective at processing the large, high-dimensional feature sets common in forex trading 
+    (\parencite{Ke2017LightGBMAH} and \parencite{Chen:2016:XST:2939672.2939785}).
 
     \item Recurrent Neural Networks (LSTM \& GRU): These architectures are designed specifically for time-series data. Long Short-Term Memory (LSTM) networks use a gating mechanism 
     to selectively remember or forget information over long periods, allowing them to capture deep historical patterns in price action. The Gated Recurrent Unit (GRU) is a more 
-    streamlined version of this logic that often achieves similar performance with less computational complexity, providing a faster alternative for sequential learning.
+    streamlined version of this logic that often achieves similar performance with less computational complexity, providing a faster alternative for sequential learning 
+    \parencite{NEURIPS2019_9015}.
 \end{itemize}
 
 
@@ -565,7 +570,7 @@ such as selection via permutation importance can take quite some time depending 
 The preprocessing process is fairly lean thanks to the naming convention introduced in \ref{sec:features_labels} which allows granular control over which preprocessor to assign to which group 
 of features. Thus, the preprocessor is a singular scikit-learn ColumnTransformer object that uses on the other hand a make\_column\_selector object which selects the respective feature via 
 regex patterns. Ultimately, numerical features get assigned a StandardScaler, ordinal features get assigned an OrdinalEncoder, categorical features get assigned a OneHotEncoder, and all others 
-are simply let through. Features which do not adhere to the naming convention are discarded for numerical safety.
+are simply let through \parencite{scikit-learn}. Features which do not adhere to the naming convention are discarded for numerical safety.
 
 \medskip
 
@@ -589,7 +594,7 @@ the meta-label is assigned a value of 1 for success, otherwise, it is assigned 0
 mistake patterns of the M1 architecture. In the current implementation M2 is operationalized using a RandomForest Classifier with minimal parameters.
 In order to accumulate the labels for M2 across inner folds while ensuring that M2 is not trained and doesn't make predictions on the same set of data, the training of M2 is 
 conducted iteratively across the inner folds. On the first inner fold M1 is trained and generates signals, but M2 remains idle as no historical data yet exists for this specific training block.
-In subsequent folds before M2 makes a prediction for the current fold, it is trained on the accumulated buffer of all features and meta-labels generated in prior folds. 
+In subsequent folds before M2 makes a prediction for the current fold, it is trained on the accumulated buffer of all features and meta-labels generated in prior folds.
 This ensures that when M2 evaluates an M1 signal, it is doing so using a model that has never seen the current validation data, maintaining strict temporal separation.
 Once the inner walk-forward loop has completed the hyperparameter optimization, a final M2 model is trained on the entire accumulated dataset of the outer block. 
 The final M1 and M2 models are then passed to evaluate their performance on truly unseen data on the outer test block in order to provide an unbiased estimate of the 
@@ -608,7 +613,8 @@ a second optimization study is launched in the inner loop which tunes the risk m
 the fraction applied to the kelly-like formula, and the conformal significance level applied to the conformal prediction logic.
 The objective function maximizes the average Sharpe ratio across the cross-section of currency pairs, ensuring that the winning configuration is robust to diverse market behaviors 
 rather than overfitted to a single instrument. To mitigate the multiple-testing problem inherent in such an exhaustive search, the engine records the variance and total number of 
-trials to compute the deflated Sharpe ratio, providing a statistically corrected measure of performance.
+trials to compute the deflated Sharpe ratio, providing a statistically corrected measure of performance.\footnote{In our experiment we ran the tournament with 25 model trials and 
+50 trading trials per model per fold, resulting in 1250 trials per model and fold in the tournament. In the final production refinement we conducted a search over 5000 trials.}
 
 \medskip
 
@@ -742,7 +748,7 @@ To validate the statistical value added of the conformalized meta-labeling appro
     \item SMA Crossover: A technical baseline using 50/200-period moving average logic.
     \item M1 Only: An evaluation of the primary directional signals with optimized risk guardrails but without the meta-labeling filter.
     \item M1 + M2 (Fixed): A version using the meta-model with a static 0.5 probability threshold, aiming to prove the necessity of the conformal calibration.
-    \item M1 + M2 (Global): A baseline utilizing the median hyperparameters across all pairs, which isolates the performance benefit gained from the "local" per-pair adaptation discussed in \ref{sec:optimize}.
+    \item M1 + M2 (Global): A baseline utilizing conformal predictions and the median hyperparameters across all pairs, which isolates the performance benefit gained from the "local" per-pair adaptation discussed in \ref{sec:optimize}.
     \item M1 + M2 (Conformal): The full proposed pipeline utilizing optimized architectural parameters, per-pair risk hyperparameters, and conformalized conviction-based bet sizing.
 \end{enumerate}
 
@@ -813,7 +819,7 @@ conformal p-values (see \ref{sec:conformal_preds}). Signals that fall within the
 Hyperparameters are optimized to maximize the Sharpe ratio.
 
 \item \textbf{Reciprocal Rank Fusion (RRF) And Other Statistics}: The competing models are ranked globally based on their average performance across all outer folds and currency pairs. 
-The tournament winner is selected using the aggregated RRF matrix framework described in section \ref{sec:empirical_framework} and the other statistics mentioned in \ref{\label{sec:empirical_framework}}.
+The tournament winner is selected, among others, using the aggregated RRF matrix framework and the other statistics mentioned in section \ref{sec:empirical_framework}.
 \end{itemize}
 
 By evaluating the architectures through this multi-layered protocol, we ensure that the top-performing model is not merely a product of regime-specific luck, 
@@ -851,8 +857,11 @@ First, the MI and permutation importance rankings agree only partially. In fold 
 Furthermore, num\_A/D, num\_spread\_volatility\_10, num\_volatility\_50, num\_ny\_volatility, and num\_spread\_pips rank consistently on roughly the same positions across both 
 folds in the MI score and all of them also remain relevant in the subsequent PI scores across both folds suggesting their structural relevance across time.
 However, the remainder of the ranking reshuffles considerably. In both folds of the top features by MI score some features that are included in one fold but not the other are
-bin\_is\_asia\_session, bin\_is\_ny\_session, num\_spread\_abs, num\_normalized\_spread to name a few. In PI ranking, features in this category are num\_normalized\_spread, 
-bin\_is\_ny\_session, bin\_is\_asia\_session, num\_distance\_to\_recent\_low to name a few again.
+bin\_is\_asia\_session, bin\_is\_ny\_session, num\_spread\_abs, num\_normalized\_spread to name a few. In PI ranking, features in this category are 
+\texttt{num\_normalized\_spread}, 
+\texttt{bin\_is\_ny\_session}, 
+\texttt{bin\_is\_asia\_session}, 
+\texttt{num\_distance\_to\_recent\_low} to name a few again.
 Also, it is worth noting that features that rank highly in the MI section might not rank on the same position in the PI score, which is consistent with MI capturing marginal, 
 univariate association with the label, while permutation importance reflects a feature's marginal
 contribution to the fitted model's predictive performance, including any interaction effects with other retained features. Thus, a feature can be MI-weak yet
@@ -861,7 +870,7 @@ model-critical or vice versa precisely because of such interactions.
 \medskip
 
 Second, and more importantly for the "static feature set" motivation of this section, the two folds
-themselves disagree substantially on which features matter most. For example, num\_trade\_position\_in\_spread is the single most important feature by permutation importance in
+themselves disagree substantially on which features matter most. For example, \texttt{num\_trade\_position\_in\_spread} is the single most important feature by permutation importance in
 fold 2, yet it does not even register among the top PI features in fold 1's ranking. Additionally, the fold-to-fold instability of the features in the PI metric is precisely the 
 kind of overfitting risk that motivates selecting a single, common feature set per fold across all tournament models rather than allowing each model architecture to select its own, 
 possibly unstable, feature subset, which would confuse genuine architectural differences with differences in feature selection noise.
@@ -1064,7 +1073,7 @@ applying equation \ref{eq:conformal_p} at each pair's tuned $\varepsilon$, again
 probability thresholded at 0.5, but the fully gated conformal verdict, "Correct" meaning the conformal filter accepted the signal and "Wrong" meaning it vetoed it. This can be 
 confirmed directly from the cell counts as the column total of "Predicted Correct" in panel B equals the total number of accepted signals in panel C for every model and fold 
 (e.g. XGBoost, fold 2: $252+719=971=564+41+211+155$), and is exactly the sum of hits and miss reported in table \ref{tab:conformal_tournament_summary}. As a further internal 
-consistency check, panel A's diagonal, M1's own raw correct count, is identical to panel B's "Actual Correct" row total for every model and fold (RandomForest, fold 2: 
+consistency check, panel A's diagonal, M1's own raw correct count, is identical to panel B's "Actual Correct" row total for every model and fold (e.g. RandomForest, fold 2: 
 $4574+2753=7327=6129+1198$), confirming that panels A and B describe the same underlying "was M1 correct" quantity via two independent cross-tabulations, one by direction 
 and one by conformal decision, which gives some assurance that no bookkeeping inconsistency was introduced across the plotting pipeline.
 
@@ -1094,11 +1103,9 @@ score distributions are exchangeable. Table \ref{tab:nested_confusion_summary} r
 together with the ratio of the empirical false-positive rate to $\varepsilon$, our proxy for whether the calibration guarantee held in practice (a ratio near 1 indicating tight 
 calibration, below 1 indicating conservative over-coverage, and above 1 indicating a violated guarantee).
 
-\paragraph{GET THESE VALUES VALIDATED AND UNDERSTAND WHAT THEY MEAN}
-
 \begin{table}[h]
 \centering
-\small
+\footnotesize
 \begin{tabular}{l|rrrrr||rrrrr}
 \toprule
  & \multicolumn{5}{c||}{\textbf{Fold 1}} & \multicolumn{5}{c}{\textbf{Fold 2}} \\
@@ -1232,7 +1239,8 @@ LSTM         & 0.5376 & 0.2486 & 0.2505 & $+0.77$ & 0.5458 & 0.2479 & 0.2458 & $
 GRU          & 0.5280 & 0.2492 & 0.2501 & $+0.35$ & 0.5416 & 0.2483 & 0.2461 & $-0.87$ \\
 \bottomrule
 \end{tabular}
-\caption{Actual Brier score vs. the naive base-rate.}
+\caption{Actual Brier score vs. the naive base-rate ($\bar{p}(1 - \bar{p})$, where $\bar{p} = P(c = 1)$ is the
+diagonal of panel A in figures \ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} divided by N).}
 \label{tab:brier_baseline}
 \end{table}
 
@@ -1323,14 +1331,17 @@ USDJPY & Major  & 0.75  & 1.84  & 37  & 0.00  & 0.00  & 0   \\
 \label{tab:pair_level_xgb}
 \end{table}
 
-Two patterns in table \ref{tab:pair_level_xgb} directly contradict the expectation that majors would outperform, with EM pairs remaining profitable but comparatively weaker. 
-Pooling by group, majors average a Sharpe ratio of $\approx -0.09$ and a return of $\approx -0.12\%$ across both folds, while the four EM/exotic pairs average a Sharpe ratio of 
-$\approx 5.58$ and a return of $\approx 9.98\%$. Every dollar of aggregate profit in this tournament run originates from USDTRY, USDZAR, USDMXN, and, marginally, USDCNH. 
-The seven G7 majors collectively contribute nothing, and six of the eleven pairs (AUDUSD, GBPUSD, NZDUSD, USDCAD, USDCHF, USDJPY) execute zero trades in fold 2, with NZDUSD 
-executing zero trades in either fold. We interpret this not as majors underperforming in the sense of trading at reduced profitability since for the majority of majors in fold 2 
-there is no trading activity to evaluate at all. This happened primarilly due to the conformal veto, which, at the significance levels the pair-level Optuna study converged on, 
-rejects every candidate signal. Reporting this as robust performance across pairs would misrepresent what actually happened as performance exists for a minority of pairs but is 
-absent for the rest.
+Two patterns in table \ref{tab:pair_level_xgb} emerge, as pooling by group, majors average a Sharpe ratio of $\approx -0.09$ and a return of $\approx -0.12\%$ across both folds, 
+while the four EM/exotic pairs average a Sharpe ratio of $\approx 5.58$ and a return of $\approx 9.98\%$. Every dollar of aggregate profit in this tournament run originates from 
+USDTRY, USDZAR, USDMXN, and, marginally, USDCNH. The seven G7 majors collectively contribute nothing, and six of the eleven pairs (AUDUSD, GBPUSD, NZDUSD, USDCAD, USDCHF, USDJPY) 
+execute zero trades in fold 2, with NZDUSD executing zero trades in either fold. We interpret this not as majors underperforming in the sense of trading at reduced profitability 
+since for the majority of majors in fold 2 there is no trading activity to evaluate at all. This happened primarilly due to the conformal veto, which, at the significance levels 
+the pair-level Optuna study converged on, rejects every candidate signal.\footnote{The reference distribution a pair's M2 confidence is compared against is the same pooled mix for 
+all 15 instruments. If EM pairs generate far more trade rows (which they do), the pooled calibration set is dominated by EM-pair mistake statistics. A major's M2 confidence score 
+then gets benchmarked against "how confident is M2 typically when an EM-pair trade goes wrong" rather than against its own pair's baseline. 
+If majors' M1/M2 score distributions sit on a different scale (which they likely do, given fewer/weaker patterns to learn from), this pooling can make majors' p-values look 
+unremarkable almost by construction, thus gating them out regardless of whether they have a small but real edge.} 
+Reporting this as robust performance across pairs would misrepresent what actually happened as performance exists for a minority of pairs but is absent for the rest.
 
 \medskip
 
@@ -1374,7 +1385,7 @@ the return profile without yet having been stress-tested by the backtest itself.
 
 Taken together, we do not think the tournament results support a claim of robust, comparably-sized profitability across the eleven pairs, nor that majors reliably 
 outperform EM/exotic pairs. What they support is a narrower and, we think, more defensible claim as a single architecture with per-pair tuned parameters correctly identifies that 
-most G7 majors offer no exploitable edge under this feature set and largely abstains from trading them. At the same time this architecture concentrates activity in a small number 
+most G7 majors offer no exploitable edge under this feature set and architecture so that it largely abstains from trading them. At the same time this architecture concentrates activity in a small number 
 of higher-volatility EM pairs whose favorable statistics are heavily influenced by a small number of large, possibly non-repeatable events within the specific historical windows tested. 
 We regard the EM-pair results reported here as suggestive rather than conclusive evidence of a durable edge, and would not expect the magnitude of these Sharpe ratios to survive 
 either a longer out-of-sample evaluation window or live execution frictions not captured by the backtester.
@@ -1611,18 +1622,16 @@ Additionally, the dataset contains multiple instances of interpolation across ex
 
 \medskip
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% GO OVER THIS CONCLUDING PART AGAIN %%%%%%%%%%%%%%%%%
-% The problem here is that we say the system correctly identifies that there is no exploitable edge in the G7 majors but 
-% that could techincally be incorrect due to the fact that we pool the calibration set!!!!!
-\paragraph{CHECK HERE AGAIN!}
 Taken together, the production results reinforce rather than resolve the concerns raised at the tournament stage. The single-architecture, pair-tuned design again correctly 
-identifies that most G7 majors offer no exploitable edge under this feature set and now abstains from them almost entirely rather than underperforming on them. 
+identifies that most G7 majors offer no exploitable edge under this feature set and architecture\footnote{The reference distribution a pair's M2 confidence is compared against is the same pooled mix for 
+all 15 instruments. If EM pairs generate far more trade rows (which they do), the pooled calibration set is dominated by EM-pair mistake statistics. A major's M2 confidence score 
+then gets benchmarked against "how confident is M2 typically when an EM-pair trade goes wrong" rather than against its own pair's baseline. 
+If majors' M1/M2 score distributions sit on a different scale (which they likely do, given fewer/weaker patterns to learn from), this pooling can make majors' p-values look 
+unremarkable almost by construction, thus gating them out regardless of whether they have a small but real edge.}, such that it now abstains from them almost entirely rather than underperforming on them. 
 The profit that remains is concentrated in the same four EM/exotic pairs and for three of them (USDZAR, USDMXN, USDCNH) this profit does not appear to be a disguised directional 
 trend, which is the more reassuring reading available. Set against that, the magnitude of the headline figures, particularly USDZAR's return and annualized CAGR, is inflated by a 
 short, largely favorable test window that has not yet been stress-tested by an adverse regime and the deflated Sharpe ratios for EURUSD and USDCNH indicate that not every 
 nominally profitable pair should be read as a genuine edge.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{figure}[H]
     \centering
@@ -1667,7 +1676,7 @@ to isolate what is gained and reconfirmed by promoting a single architecture out
 
 
 \subsubsection{Signal volume and acceptance under conformal filtering.} 
-At a comparable significance level ($\alpha \approx 0.10$ in both regimes), the conformal filter behaves very differently in absolute terms. 
+At a comparable significance level ($\alpha \approx 0.10$ in both the tournament and production), the conformal filter behaves very differently in absolute terms. 
 In the production fold, XGBoost accepts 3939 of 14303 candidate signals (27.5\%) with a hit rate of 60.6\% (2385 hits vs.\ 1554 misses, see figure \ref{fig:prod conf preds} panel A). 
 In the tournament, the same architecture accepts a far smaller fraction of its candidate pool (accepts 1634 of 13243, 12.3\%) in fold 1 with a hit rate of 58.3\% (953 hits vs.\ 681 misses) 
 compared to 7.3\% acceptance in fold 2 (971 of 13251) and a higher hit rate of 74.1\% (719 hits vs.\ 252 misses). The rejection zone boundaries around the M2 midpoint are 
@@ -1698,7 +1707,10 @@ larger and less consistent in the tournament. Conformal filtering with pair-spec
 underperforms the global variant in fold 2 (3.05 $\to$ 2.42). This suggests conformal filtering with pair-specific parameters is most valuable precisely when the underlying signal 
 is noisiest, i.e. in the harder tournament folds while its benefit partially saturates once the base pipeline is already well-tuned in production.
 Additionally, comparing the pair-specific trading hyperparameters (see table \ref{tab:hps_XGBoost_tournament} vs.\ table \ref{tab:hps_XGBoost_production}) confirms that production 
-is not a frozen replay of the tournament configuration but a genuine re-optimization. The trading-level hyperparameters shift materially per pair between phases 
+is not a frozen replay of the tournament configuration but a genuine re-optimization.\footnote{However, we need to be cautious about the interpretation of these values, because 
+TPE-style samplers such as the one in Optuna need a reasonable number of observations per dimension before their conditional models are informative. We consider our trials to be 
+too little, but had to decide between computational efficiency and a holisitc search. Thus, it is very likely that at this ratio, most pairs' parameters are still close to 
+quasi-random exploration by the time the study ends.} The trading-level hyperparameters shift materially per pair between phases 
 (e.g.\ USDTRY's risk allocation drops from 0.01-0.03 in the tournament folds to 0.0095 in production, while its Kelly fraction rises from 0.14-0.58 to 0.78). This re-adaptation, 
 combined with the larger effective training window, is consistent with the observed gains in both raw signal acceptance and realized Sharpe ratio. Furthermore, it supports 
 treating the tournament as a architecture selection mechanism whose winner still benefits meaningfully from a dedicated production refit rather than a mechanism that alone 
@@ -1724,11 +1736,11 @@ The purged and nested walk-forward tournament identified XGBoost as the RRF-aggr
 in section \ref{sec:production_performance} did not overturn this choice. XGBoost's advantages were reconfirmed rather than merely assumed. Three 
 threads of evidence converge on this. First, XGBoost was the only architecture whose empirical false-positive rate tracked its nominal conformal significance level tightly in fold 1 
 (ratio $1.03$, see table \ref{tab:nested_confusion_summary}), while the two recurrent architectures (LSTM, GRU) and the bagged tree ensembles (RandomForest, ExtraTrees) exceeded their 
-nominal target by a factor of two or more. Second, XGBoost's reliability diagram tail sat closest to the diagonal in fold 1, giving a mechanistic explanation for the coverage result 
+nominal target by a factor of two or more. Second, XGBoost's reliability diagram tail sat very close to the diagonal in fold 1, giving a mechanistic explanation for the coverage result 
 above it, since an overconfident raw score is what inflates the calibration set quantile and lets true mistakes slip through. Third, LSTM was the single architecture whose 
 conformal guarantee failed in both folds and it did so even in fold 2, where its raw Brier calibration was, paradoxically, the best-behaved of any architecture. This is not a 
 contradiction but a genuine methodological finding, since a well-calibrated probability and an exchangeable non-conformity score are two distinct properties and a model can hold 
-one without the other. Recurrent architectures, at least under the endogenous feature set used here, appear to be better probability estimators in isolation but 
+one without the other. Recurrent architectures, at least under the endogenous feature set and very limited data used here, appear to be better probability estimators in isolation but 
 worse foundations for a conformal veto, which is arguably the more decision-relevant of the two properties for this pipeline.
 
 \medskip
@@ -1745,8 +1757,9 @@ dependence, small sample ratio artifacts) are traceable and interpretable rather
 
 The dissection in table \ref{tab:strategy_comparison_XGBoost_tournament} gives the clearest and most internally consistent answer of the five objectives. The unfiltered M1 signal is 
 not merely unprofitable, it is actively destructive, averaging Sharpe ratios of $-5.50$ and $-3.08$ across the two folds and posting the single worst per-pair result in the table for 
-every major currency. This establishes unambiguously that the value of the meta-labeling architecture in this thesis lies in veto power, not signal refinement. The referee model 
-does not sharpen a usable directional edge, it exists to suppress one that is not usable in the first place.
+every major currency. The same pattern repeats in table \ref{tab:strategy_comparison_XGBoost_production} in so far, that M1 (Only) posts again the worst aggregate performance among all 
+other strategies and also shows some of the wors per-pair results in the table. This establishes unambiguously that the value of the meta-labeling architecture in this thesis lies in 
+veto power, not signal refinement. The referee model does not sharpen a usable directional edge, it exists to suppress one that is not usable in the first place.
 
 \medskip
 
@@ -1829,7 +1842,12 @@ Where the "global vs. local" question resolves more clearly is not in the tradin
 $\varepsilon$ spans nearly its entire admissible range across pairs in both the tournament and production phases (from a highly selective $0.01$ for AUDUSD to a comparatively 
 permissive $0.19$-$0.20$ for EURUSD and USDCNH in production) and it is this pair-specific significance threshold, more than the ATR-based stop-loss and take-profit multiples, 
 that determines whether a pair trades at all. The neglect to trade majors in both phases is a direct consequence of the Optuna study converging on tight $\varepsilon$ values 
-for exactly those pairs, which is arguably the "execution guardrail" objective's clearest success (compare with sections \ref{sec:problem_statement} and \ref{sec:research_objectives}). 
+for exactly those pairs, which is arguably the "execution guardrail" objective's clearest success (compare with sections \ref{sec:problem_statement} and \ref{sec:research_objectives}).
+\footnote{We remind: Under the tournament and production architecture the reference distribution a pair's M2 confidence is compared against is the same pooled mix for 
+all 15 instruments. If EM pairs generate far more trade rows (which they do), the pooled calibration set is dominated by EM-pair mistake statistics. A major's M2 confidence score 
+then gets benchmarked against "how confident is M2 typically when an EM-pair trade goes wrong" rather than against its own pair's baseline. 
+If majors' M1/M2 score distributions sit on a different scale (which they likely do, given fewer/weaker patterns to learn from), this pooling can make majors' p-values look 
+unremarkable almost by construction, thus gating them out regardless of whether they have a small but real edge.} 
 The framework correctly learns, that most G7 majors do not offer an exploitable edge under this feature set and architecture, thus enforces that conclusion through statistical veto 
 rather than requiring it to be imposed manually.
 
