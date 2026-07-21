@@ -14,6 +14,7 @@
 \usepackage{enumitem}
 \usepackage{titlesec}
 \usepackage{float}
+\usepackage{seqsplit}
 \usepackage{setspace}
 \usepackage{times}  % Times New Roman
 \usepackage{rotating}
@@ -822,7 +823,7 @@ Hyperparameters are optimized to maximize the Sharpe ratio.
 The tournament winner is selected, among others, using the aggregated RRF matrix framework and the other statistics mentioned in section \ref{sec:empirical_framework}.
 \end{itemize}
 
-By evaluating the architectures through this multi-layered protocol, we ensure that the top-performing model is not merely a product of regime-specific luck, 
+By evaluating the architectures through this multi-layered protocol, we ensure that the \seqsplit{top-performing} model is not merely a product of \seqsplit{regime-specific} luck, 
 but a robust architecture capable of generating stable, conformalized alpha.
 
 
@@ -858,10 +859,10 @@ Furthermore, num\_A/D, num\_spread\_volatility\_10, num\_volatility\_50, num\_ny
 folds in the MI score and all of them also remain relevant in the subsequent PI scores across both folds suggesting their structural relevance across time.
 However, the remainder of the ranking reshuffles considerably. In both folds of the top features by MI score some features that are included in one fold but not the other are
 bin\_is\_asia\_session, bin\_is\_ny\_session, num\_spread\_abs, num\_normalized\_spread to name a few. In PI ranking, features in this category are 
-\texttt{num\_normalized\_spread}, 
-\texttt{bin\_is\_ny\_session}, 
-\texttt{bin\_is\_asia\_session}, 
-\texttt{num\_distance\_to\_recent\_low} to name a few again.
+\seqsplit{num\_normalized\_spread}, 
+\seqsplit{bin\_is\_ny\_session}, 
+\seqsplit{bin\_is\_asia\_session}, 
+\seqsplit{num\_distance\_to\_recent\_low} to name a few again.
 Also, it is worth noting that features that rank highly in the MI section might not rank on the same position in the PI score, which is consistent with MI capturing marginal, 
 univariate association with the label, while permutation importance reflects a feature's marginal
 contribution to the fitted model's predictive performance, including any interaction effects with other retained features. Thus, a feature can be MI-weak yet
@@ -870,7 +871,7 @@ model-critical or vice versa precisely because of such interactions.
 \medskip
 
 Second, and more importantly for the "static feature set" motivation of this section, the two folds
-themselves disagree substantially on which features matter most. For example, \texttt{num\_trade\_position\_in\_spread} is the single most important feature by permutation importance in
+themselves disagree substantially on which features matter most. For example, \seqsplit{num\_trade\_position\_in\_spread} is the single most important feature by permutation importance in
 fold 2, yet it does not even register among the top PI features in fold 1's ranking. Additionally, the fold-to-fold instability of the features in the PI metric is precisely the 
 kind of overfitting risk that motivates selecting a single, common feature set per fold across all tournament models rather than allowing each model architecture to select its own, 
 possibly unstable, feature subset, which would confuse genuine architectural differences with differences in feature selection noise.
@@ -1001,9 +1002,7 @@ and the inset box reports pooled hits, misses, rejections, the fold-averaged sig
 Table \ref{tab:conformal_tournament_summary} condenses these inset statistics into a single cross-model view, adding the derived acceptance rate 
 $\frac{\text{Hits}+\text{Miss}}{\text{Total Signals}}$ and the hit-rate accuracy among accepted signals $\frac{\text{Hits}}{\text{Hits}+\text{Miss}}$:
 
-\paragraph{GET THESE VALUES VALIDATED AND UNDERSTAND WHAT THEY MEAN}
-
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \small
 \begin{tabular}{l|rrr|r|r||rrr|r|r}
@@ -1063,7 +1062,7 @@ statistics alone and is addressed directly in later sections.
 
 \subsubsection{Validation of Conformal-Q Filtering: Model- and Fold-Specific Confusion Matrices \& Calibration}
 
-\paragraph{Confusion Matrices}\label{sec:confusion_matrices_tournament}
+\paragraph{Confusion Matrices}\label{sec:confusion_matrices_tournament}\hspace{0pt}
 
 The previous section \ref{sec:conformal_preds_and_qfilter} established precision via the accepted signal hit rate and a qualitative reading of the error map. Figures 
 \ref{fig:model-specific confusion matrices 1} and \ref{fig:model-specific confusion matrices 2} make the full classification picture explicit by decomposing the pipeline into three nested 
@@ -1103,7 +1102,7 @@ score distributions are exchangeable. Table \ref{tab:nested_confusion_summary} r
 together with the ratio of the empirical false-positive rate to $\varepsilon$, our proxy for whether the calibration guarantee held in practice (a ratio near 1 indicating tight 
 calibration, below 1 indicating conservative over-coverage, and above 1 indicating a violated guarantee).
 
-\begin{table}[h]
+\begin{table}[H]
 \centering
 \footnotesize
 \begin{tabular}{l|rrrrr||rrrrr}
@@ -1164,7 +1163,7 @@ hyperparameter search converging to different regions of the space for different
 short-bias here as a secondary observation rather than draw a causal conclusion from it.
 
 
-\paragraph{Reliability Diagrams}
+\paragraph{Reliability Diagrams}\hspace{0pt}
 
 Diagnostics based on confusion matrices establish whether the conformal decision achieves valid coverage, but say nothing about whether the underlying M2 probability estimate 
 that decision is built on is itself a trustworthy probability. Figures \ref{fig:model-specific reliability diagrams1} and \ref{fig:model-specific reliability diagrams2} address 
@@ -1283,7 +1282,7 @@ conclusion into it.
 This chapter presents the final results of the Architecture Tournament.
 We evaluate model performance across backtests, analyze best- and worst-performing currency pairs, discuss model-specific limitations, and select the final architecture.
 
-\paragraph{Model-Specific Backtest Performance and Aggregated Performance Ranking}\label{sec:backtests_tournament}
+\paragraph{Model-Specific Backtest Performance and Aggregated Performance Ranking}\hspace{0pt}\label{sec:backtests_tournament}
 
 We fused the reported financial metrics via the reciprocal rank fusion (RRF) scoring rule in table \ref{tab:ranking_tournament} and identified XGBoost as the winner by the RRF score. 
 We opted for RRF because it normalizes and aggregates rankings without needing to compare raw, incompatible relevance scores which is the case with the metrics reported in 
@@ -1425,7 +1424,7 @@ either a longer out-of-sample evaluation window or live execution frictions not 
 \end{figure}
 
 
-\paragraph{Granular Performance Analysis and Best- and Worst-Performing Pairs per Model}
+\paragraph{Granular Performance Analysis and Best- and Worst-Performing Pairs per Model}\hspace{0pt}
 
 The pair-level concentration documented above for XGBoost is not an artifact of that architecture specifically. Table \ref{tab:rrf_summary_tournament} reports the top two and 
 bottom two RRF-ranked pairs for every one of the six tournament architectures, in both folds, distilled from the full $6 \times 11 \times 2$ granular ranking matrix in appendix 
@@ -1449,7 +1448,7 @@ fold 1, but among the bottom two for LightGBM in fold 2. A pair ranking as one o
 reinforces rather than isolates the earlier concern that even the EM/exotic-pair results driving this tournament's apparent edge are not stable across adjacent evaluation windows.
 
 
-\paragraph{Comparison Across Different Trading Strategies}
+\paragraph{Comparison Across Different Trading Strategies}\hspace{0pt}
 
 The previous sections established that XGBoost's tournament-wide profitability is concentrated in a handful of EM pairs and driven by a small number of large events. A separate 
 question, addressed by this section, is whether the pipeline's individual components, the meta-labeling filter (M2), its conformal calibration, and the per-pair tuning of trading 
@@ -1495,7 +1494,7 @@ we regard as not well supported by this table alone is the incremental value of 
 leaves genuinely unresolved rather than confirmed by the tournament's aggregate numbers.
 
 
-\paragraph{Picking the Tournament Winner}
+\paragraph{Picking the Tournament Winner}\hspace{0pt}
 
 Table \ref{tab:ranking_tournament}'s RRF aggregation identifies XGBoost as the tournament's top-ranked architecture and we carry it forward as the winner for the production 
 refinement phase.\footnote{The decision is also based on all the other findings beyond the RRF ranking, but it is the single most concrete finding about an objective ranking by financial metrics.} 
@@ -2026,7 +2025,7 @@ The instantaneous exposure at time \(t\) is defined as the percentage of mark-to
     \label{eq:exposure}
 \end{equation}
 
-where \(\text{Notional}_t\) is the total notional value of the open position at time \(t\) (calculated as \(\left\|\text{Bet} \times \text{Entry Price}\right\|\)), and 
+where \(\text{Notional}_t\) is the total notional value of the open position at time \(t\) (calculated as $\|\text{Bet} \times \text{Entry Price}\|$), and 
 \(\text{E}_t\) is the mark-to-market account equity at time \(t\). Exposure values range from 0\% (fully in cash) to potentially over 100\% if leverage is employed.
 The average capital exposure (ACE) measures the time-weighted average percentage of account equity deployed in the market throughout the entire evaluation period, 
 including periods when the strategy is entirely in cash:
